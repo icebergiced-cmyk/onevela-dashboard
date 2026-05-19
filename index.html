@@ -2,6 +2,21 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<script>
+/* Simple gate — One Vela */
+(function(){
+  if (sessionStorage.getItem('ov_auth') === 'ok') return;
+  var u = prompt('Username:');
+  if (u === null) { window.stop(); document.write('Access denied'); return; }
+  var p = prompt('Password:');
+  if (u === 'ice' && p === 'Onevela89.') {
+    sessionStorage.setItem('ov_auth', 'ok');
+  } else {
+    window.stop();
+    document.write('<h2 style="font-family:sans-serif;text-align:center;padding:40px;color:#0f2742">เข้าใช้งานไม่ได้</h2>');
+  }
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f2742">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -445,6 +460,8 @@
 </style>
 </head>
 <body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<style>.home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;text-decoration:none;font-family:Sarabun,sans-serif;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;box-shadow:0 3px 12px rgba(0,0,0,.28)}.home-fab:hover{background:#b08d57}@media print{.home-fab{display:none!important}}</style>
 <div class="vmode-banner">🎯 <b>กำลังพรีวิวที่ลูกค้าเห็น</b> — ข้อมูลภายใน (ราคาทุน, customer info, การผ่อน) ถูกซ่อนชั่วคราว
 <a href="?" style="background:#fff;color:#2563eb;padding:5px 14px;border-radius:14px;text-decoration:none;font-weight:700;margin-left:12px;">← ออกจากพรีวิว</a></div>
 <header>

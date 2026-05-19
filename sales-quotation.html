@@ -118,6 +118,8 @@
 </style>
 </head>
 <body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<style>.home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;text-decoration:none;font-family:Sarabun,sans-serif;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;box-shadow:0 3px 12px rgba(0,0,0,.28)}.home-fab:hover{background:#b08d57}@media print{.home-fab{display:none!important}}</style>
 <div class="wrap">
 
   <div class="toolbar no-print">
@@ -311,13 +313,17 @@
       }
       const p = PLOTS_CACHE.find(x=>String(x.plot)===pno);
       if(!p){ alert('ไม่พบแปลง '+pno+' ในฐานข้อมูล'); return; }
+      const area=parseFloat(p.area)||0, aAdd=parseFloat(p.areaAdd)||0;
       $('houseType').value    = p.typeCode || '';
       $('houseDesc').value    = p.typeShort || '';
-      $('baseLandArea').value = p.area || '';
-      $('basePrice').value    = p.priceNet || '';
+      $('baseLandArea').value = (area-aAdd>0) ? Math.round((area-aAdd)*100)/100 : (p.area||'');
+      $('extraLandArea').value= aAdd || '';
+      $('basePrice').value    = p.priceStart || '';
       render();
-      alert('✅ ดึงข้อมูลแปลง '+pno+' แล้ว\nแบบ '+(p.typeCode||'-')+' · ราคาสุทธิ '+
-        Number(p.priceNet||0).toLocaleString('th-TH')+' บาท');
+      alert('✅ ดึงข้อมูลแปลง '+pno+' แล้ว\nแบบ '+(p.typeCode||'-')+
+        '\nราคาเริ่มต้น '+Number(p.priceStart||0).toLocaleString('th-TH')+' บาท'+
+        ' + ที่ดินเพิ่ม '+aAdd+' ตร.ว. (×30,000)'+
+        '\n⚠️ ค่าแปลงมุม/พิเศษ — กรอกเองในช่อง "ค่าแปลงมุม / ติดสวน"');
     }catch(e){ alert('⚠️ ดึงข้อมูลไม่สำเร็จ — ตรวจอินเทอร์เน็ต หรือเปิดหน้านี้ผ่านเว็บ'); }
   }
 
