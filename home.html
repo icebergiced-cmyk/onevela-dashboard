@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Vela — ระบบบริหารโครงการ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2b2b; --charcoal:#3d3d3d; --gold:#b08d57; --gold-d:#96763f;
+    --cream:#f7f5f1; --line:#e6e2da; --muted:#8a8578;
+    --good:#3f7d4e; --soft:#faf9f6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Sarabun',sans-serif;color:var(--ink);
+    background:var(--soft);line-height:1.6;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+
+  /* ===== hero ===== */
+  .hero{
+    background:linear-gradient(170deg,#fff 0%,var(--cream) 100%);
+    border-bottom:1px solid var(--line);text-align:center;
+    padding:54px 20px 46px;
+  }
+  .hero .logo img{height:96px;width:auto}
+  .hero .logo .fb{margin-bottom:6px}
+  .brand{
+    font-family:'Cormorant Garamond',serif;font-weight:700;
+    font-size:52px;letter-spacing:8px;color:var(--charcoal);line-height:1;margin-top:14px;
+  }
+  .brand-sub{
+    font-size:12px;letter-spacing:6px;color:var(--muted);margin-top:6px;font-weight:600;
+  }
+  .hero h1{
+    font-size:21px;font-weight:800;color:var(--charcoal);margin-top:22px;
+  }
+  .hero .tag{font-size:14px;color:var(--muted);margin-top:4px}
+  .rule{
+    width:54px;height:3px;background:var(--gold);margin:18px auto 0;border-radius:2px;
+  }
+
+  /* ===== sections ===== */
+  section{padding:38px 0}
+  .sec-h{
+    text-align:center;margin-bottom:6px;
+  }
+  .sec-h .en{font-size:11px;letter-spacing:4px;color:var(--gold);font-weight:700}
+  .sec-h .th{font-size:20px;font-weight:800;color:var(--charcoal)}
+  .sec-h .ds{font-size:13.5px;color:var(--muted);margin-top:2px}
+
+  /* ===== tool grid ===== */
+  .grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px;
+  }
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:20px 18px;text-decoration:none;color:inherit;display:block;
+    transition:.18s;position:relative;overflow:hidden;
+  }
+  .card::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+    background:var(--gold);transform:scaleY(0);transition:.18s;transform-origin:top;
+  }
+  .card.live:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(61,61,61,.13);border-color:var(--gold)}
+  .card.live:hover::before{transform:scaleY(1)}
+  .card .ic{font-size:32px;line-height:1}
+  .card .nm{font-size:16px;font-weight:800;color:var(--charcoal);margin-top:10px}
+  .card .ds{font-size:12.5px;color:var(--muted);margin-top:5px;min-height:50px}
+  .chip{
+    display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;
+    border-radius:20px;margin-top:8px;
+  }
+  .chip.ok{background:#e8f1e9;color:var(--good)}
+  .chip.soon{background:#f0eee9;color:var(--muted)}
+  .card.soon{opacity:.62;cursor:default}
+  .card.soon .ic{filter:grayscale(.6)}
+
+  /* ===== capabilities ===== */
+  .caps{background:var(--charcoal);color:#ece9e3}
+  .caps .sec-h .th,.caps .sec-h .en{color:#fff}
+  .caps .sec-h .en{color:var(--gold)}
+  .cap-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:24px;
+  }
+  .cap{text-align:center}
+  .cap .ci{font-size:26px}
+  .cap .cn{font-size:14.5px;font-weight:800;color:#fff;margin-top:6px}
+  .cap ul{list-style:none;margin-top:8px;font-size:12px;color:#bdb8ad;line-height:1.85}
+
+  /* ===== flow ===== */
+  .flow{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:22px;margin-top:24px;text-align:center;font-size:13.5px;color:var(--ink);
+  }
+  .flow b{color:var(--gold-d)}
+  .flow .arrow{color:var(--gold);font-weight:800;margin:0 4px}
+
+  footer{
+    background:var(--charcoal);color:#9a958a;text-align:center;
+    padding:26px 20px;font-size:12px;
+  }
+  footer .fb{color:#cfcabe;font-weight:700;letter-spacing:3px;
+    font-family:'Cormorant Garamond',serif;font-size:18px}
+
+  @media(max-width:820px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .cap-grid{grid-template-columns:repeat(2,1fr)}
+    .brand{font-size:40px}
+  }
+  @media(max-width:520px){
+    .grid{grid-template-columns:1fr}
+    .cap-grid{grid-template-columns:1fr}
+    .card .ds{min-height:0}
+  }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="logo">
+      <img src="assets/brand/logo-icon.png" alt="One Vela"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="fb" style="display:none"></div>
+    </div>
+    <div class="brand">ONE VELA</div>
+    <div class="brand-sub">AMATA · CHONBURI</div>
+    <h1>ระบบบริหารโครงการ One Vela</h1>
+    <div class="tag">โครงการบ้านจัดสรร วันเวลา อมตะ-ชลบุรี · 483 แปลง</div>
+    <div class="rule"></div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="sec-h">
+        <div class="en">TOOLS</div>
+        <div class="th">เครื่องมือทั้งหมด</div>
+        <div class="ds">คลิกการ์ดเพื่อเปิดใช้งานเครื่องมือ</div>
+      </div>
+      <div class="grid">
+
+        <a class="card live" href="index.html">
+          <div class="ic">💰</div>
+          <div class="nm">แดชบอร์ดต้นทุนบ้าน</div>
+          <div class="ds">ต้นทุนวัสดุ + ค่าแรงรายหลัง ครบ 483 แปลง แยกตามหมวดงาน</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="income-calculator.html">
+          <div class="ic">🧮</div>
+          <div class="nm">คำนวณรายได้ &amp; สินเชื่อ</div>
+          <div class="ds">ประเมินความสามารถผ่อน + วงเงินกู้ ตามเกณฑ์รายได้จริง</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="sales-quotation.html">
+          <div class="ic">📄</div>
+          <div class="nm">ใบเสนอราคา</div>
+          <div class="ds">ออกใบเสนอราคาตรงฟอร์มโครงการ พร้อมโปรโมชั่น 10 รายการ</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="sales-booking.html">
+          <div class="ic">📋</div>
+          <div class="nm">ใบจอง</div>
+          <div class="ds">ออกใบจอง เลขที่จองอิงทำสัญญา บันทึกเข้าฐานข้อมูลกลาง</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="sales-contract.html">
+          <div class="ic">📜</div>
+          <div class="nm">สัญญาจะซื้อจะขาย</div>
+          <div class="ds">ออกสัญญา 17 ข้อ 6 หน้า พร้อมตารางผ่อนดาวน์ 12 งวด</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="sales-receipt.html">
+          <div class="ic">🧾</div>
+          <div class="nm">ใบเสร็จรับเงิน</div>
+          <div class="ds">ออกใบเสร็จค่างวด บันทึกการชำระเงินเข้าฐานข้อมูลกลาง</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="sales-promotion.html">
+          <div class="ic">🎁</div>
+          <div class="nm">ใบโปรโมชั่น</div>
+          <div class="ds">ใบยืนยันสิทธิ์โปรโมชั่นที่ลูกค้าได้รับ แนบท้ายสัญญา</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+        <a class="card live" href="sales-dashboard.html">
+          <div class="ic">📊</div>
+          <div class="nm">แดชบอร์ดงานขาย &amp; รายงาน</div>
+          <div class="ds">สถานะรายหลัง 483 แปลง + รายงานรายเดือน/ปี + รายการหลุดจอง</div>
+          <span class="chip ok">● พร้อมใช้</span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="caps">
+    <div class="wrap">
+      <div class="sec-h">
+        <div class="en">CAPABILITIES</div>
+        <div class="th">ความสามารถของระบบ</div>
+      </div>
+      <div class="cap-grid">
+        <div class="cap">
+          <div class="ci">💰</div><div class="cn">ต้นทุน</div>
+          <ul><li>ต้นทุนรายหลัง 483 แปลง</li><li>แยกหมวดงานก่อสร้าง</li><li>อัปเดตจากไฟล์ ERP</li></ul>
+        </div>
+        <div class="cap">
+          <div class="ci">🧮</div><div class="cn">สินเชื่อ</div>
+          <ul><li>คำนวณรายได้ตามเกณฑ์จริง</li><li>แยกกลุ่มเงินเดือน</li><li>ประเมินวงเงินกู้</li></ul>
+        </div>
+        <div class="cap">
+          <div class="ci">📄</div><div class="cn">เอกสารขาย</div>
+          <ul><li>เสนอราคา · จอง · สัญญา</li><li>เลขรันอัตโนมัติ</li><li>พิมพ์ PDF · แชร์ LINE</li></ul>
+        </div>
+        <div class="cap">
+          <div class="ci">🗄️</div><div class="cn">ฐานข้อมูล</div>
+          <ul><li>ฐานข้อมูลกลางบน Drive</li><li>บันทึกจอง/สัญญาอัตโนมัติ</li><li>แนบไฟล์รายแปลง</li></ul>
+        </div>
+      </div>
+
+      <div class="flow" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#d8d4ca">
+        <b style="color:var(--gold)">ขั้นตอนงานขาย:</b>
+        เสนอราคา <span class="arrow">→</span> จอง <span class="arrow">→</span> ทำสัญญา
+        <span class="arrow">→</span> ผ่อนดาวน์ 12 งวด <span class="arrow">→</span> โอนกรรมสิทธิ์
+        <br><span style="font-size:12px;color:#a9a499">ทุกขั้นบันทึกเข้าฐานข้อมูลกลางอัตโนมัติ</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="fb">ONE VELA</div>
+    บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด · โครงการวันเวลา อมตะ-ชลบุรี<br>
+    ระบบบริหารโครงการ · 483 แปลง
+  </footer>
+
+</body>
+</html>

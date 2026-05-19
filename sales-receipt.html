@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบเสร็จรับเงิน — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1e293b;--muted:#64748b;--line:#d9dee5;--brand:#3d3d3d;--accent:#b08d57;--bg:#eef1f4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:860px;margin:0 auto}
+  .toolbar{background:var(--brand);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:14px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .toolbar .ttl{font-weight:800;font-size:16px;margin-right:auto}
+  .toolbar .ttl small{display:block;font-size:11px;opacity:.7;font-weight:500;letter-spacing:2px}
+  .toolbar button{font-family:inherit;font-size:13.5px;font-weight:700;border:none;border-radius:9px;
+    padding:9px 13px;cursor:pointer;transition:.15s}
+  .b-print{background:#fff;color:var(--brand)}
+  .b-line{background:#06c755;color:#fff}
+  .b-save{background:var(--accent);color:#fff}
+  .b-log{background:rgba(255,255,255,.18);color:#fff}
+  .b-reset{background:rgba(255,255,255,.1);color:#fff}
+  .toolbar button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+  .card{background:#fff;border-radius:13px;padding:15px 16px 8px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .card h2{font-size:14px;font-weight:800;color:var(--brand);margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 12px}
+  .grid .full{grid-column:1/-1}
+  .f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
+  .f input,.f select{width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:14px;color:var(--ink);background:#fff}
+  .f input:focus,.f select:focus{outline:none;border-color:var(--accent)}
+  .f input.num{text-align:right}
+  .hint{font-size:11.5px;color:var(--muted);margin:-2px 0 10px}
+  .irow{display:grid;grid-template-columns:1fr 130px;gap:8px;margin-bottom:7px}
+  .irow input{padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px}
+  .irow input:last-child{text-align:right}
+
+  .doc{background:#fff;border-radius:4px;box-shadow:0 3px 16px rgba(0,0,0,.13);
+    padding:38px 42px;margin-bottom:14px;font-size:13px;color:#222}
+  .lh{display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--brand);padding-bottom:12px}
+  .lh-logo img{height:54px;width:auto;display:block}
+  .lh-logo .fb .m{font-size:17px;font-weight:800;letter-spacing:2px;color:var(--brand)}
+  .lh-co{font-size:11px;color:#444;line-height:1.65}
+  .lh-co b{font-size:13px;color:var(--brand);display:block}
+  .lh-co .en{font-size:10px;letter-spacing:1px;color:#777}
+  .doc-ttl{text-align:center;margin:14px 0 2px}
+  .doc-ttl .th{font-size:21px;font-weight:800;color:var(--brand)}
+  .doc-ttl .sub{font-size:12px;color:#555}
+  .cust{display:flex;justify-content:space-between;gap:20px;font-size:12.5px;margin:12px 0 6px}
+  .cust .kv{margin:2px 0}
+  .cust .kv b{font-weight:700}
+  table.it{width:100%;border-collapse:collapse;margin-top:6px;font-size:12.5px}
+  table.it th,table.it td{border:1px solid #555;padding:5px 8px}
+  table.it th{background:#3d3d3d;color:#fff;font-weight:700;text-align:center}
+  table.it td.c{text-align:center}
+  table.it td.r{text-align:right}
+  table.it tr.sum td{background:#faf6ef;font-weight:800}
+  .amtbox{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:14px}
+  .amtwords{background:#f1f3f5;border:1px solid var(--line);border-radius:8px;
+    padding:8px 14px;font-weight:700;font-size:13px;flex:1;text-align:center}
+  .chan{font-size:12.5px}
+  .chan .bx{display:inline-block;width:14px;height:14px;border:1.4px solid #444;
+    text-align:center;line-height:12px;font-weight:800;margin:0 4px -2px 10px}
+  .signs{display:flex;justify-content:space-between;gap:24px;margin-top:36px;text-align:center}
+  .signs .s{flex:1}
+  .signs .sl{border-bottom:1px dotted #888;padding-top:30px;margin-bottom:4px}
+  .signs .sc{font-size:11.5px;color:#444}
+  .signs .sd{font-size:11px;color:#888;margin-top:6px}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:6px 0 22px}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}.doc{padding:22px 16px}
+    .lh{flex-direction:column;text-align:center}.cust{flex-direction:column;gap:4px}}
+  @media print{body{background:#fff;padding:0}
+    .toolbar,.card,.hint,footer,.no-print{display:none!important}
+    .doc{box-shadow:none;border-radius:0;padding:0;margin:0}
+    table.it th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4;margin:16mm 14mm}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="toolbar no-print">
+    <div class="ttl">ใบเสร็จรับเงิน<small>RECEIPT</small></div>
+    <button class="b-print" onclick="printDoc()">🖨️ พิมพ์ / PDF</button>
+    <button class="b-log" onclick="saveToFolder()">💾 เก็บเข้าโฟลเดอร์</button>
+    <button class="b-line" onclick="shareLine()">📲 แชร์ LINE</button>
+    <button class="b-save" onclick="saveLog()">💾 บันทึก Log</button>
+    <button class="b-log" onclick="exportLog()">📊 ส่งออก Log</button>
+    <button class="b-reset" onclick="resetForm()">↺ ล้าง</button>
+  </div>
+
+  <div class="card">
+    <h2>🧾 ข้อมูลใบเสร็จ</h2>
+    <div class="grid">
+      <div class="f"><label>เลขที่ใบเสร็จ</label><input id="docNo" type="text"></div>
+      <div class="f"><label>วันที่</label><input id="docDate" type="date"></div>
+      <div class="f"><label>ผู้รับเงิน</label><input id="receiver" type="text" placeholder="ชื่อผู้รับเงิน"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 ลูกค้า &amp; แปลง</h2>
+    <div class="grid">
+      <div class="f"><label>นามลูกค้า</label><input id="cName" type="text" placeholder="คุณ..."></div>
+      <div class="f"><label>เบอร์โทร</label><input id="cPhone" type="text"></div>
+      <div class="f"><label>บ้านเลขที่</label><input id="houseNo" type="text" placeholder="89/172"></div>
+      <div class="f"><label>แปลง</label><input id="plot" type="text" placeholder="172"></div>
+      <div class="f"><label>แบบบ้าน (TYPE)</label><input id="hType" type="text" placeholder="D MOMENT"></div>
+      <div class="f"><label>ช่องทางชำระ</label><select id="channel">
+        <option value="โอน" selected>โอนชำระ</option><option value="เงินสด">เงินสด</option>
+      </select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💵 ประเภทการชำระ (สำหรับฐานข้อมูล)</h2>
+    <div class="grid">
+      <div class="f"><label>ประเภท</label><select id="payType">
+        <option value="ผ่อนดาวน์" selected>ผ่อนดาวน์</option>
+        <option value="เงินจอง">เงินจอง</option>
+        <option value="เงินทำสัญญา">เงินทำสัญญา</option>
+        <option value="ส่วนโอนกรรมสิทธิ์">ส่วนโอนกรรมสิทธิ์</option>
+      </select></div>
+      <div class="f"><label>งวดที่ (ถ้าเป็นผ่อนดาวน์)</label><input id="instSeq" type="text" placeholder="เช่น 8"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 รายการรับเงิน</h2>
+    <div class="hint">กรอกรายละเอียด + จำนวนเงิน — ระบบรวมยอดให้</div>
+    <div class="irow"><input id="d1" type="text" placeholder="รายละเอียด เช่น ชำระค่าผ่อนดาวน์ งวดที่ 8"><input id="a1" class="num" type="number" min="0" placeholder="0"></div>
+    <div class="irow"><input id="d2" type="text" placeholder="รายการที่ 2 (ถ้ามี)"><input id="a2" class="num" type="number" min="0" placeholder="0"></div>
+    <div class="irow"><input id="d3" type="text" placeholder="รายการที่ 3 (ถ้ามี)"><input id="a3" class="num" type="number" min="0" placeholder="0"></div>
+  </div>
+
+  <!-- ===== DOCUMENT ===== -->
+  <div class="doc" id="doc">
+    <div class="lh">
+      <div class="lh-logo">
+        <img src="assets/brand/logo-icon.png" alt="One Vela"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="fb" style="display:none"><div class="m">ONE VELA</div></div>
+      </div>
+      <div class="lh-co">
+        <b>บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด (สำนักงานใหญ่)</b>
+        <span class="en">TWO BUILD DEVELOPMENT CO.,LTD.</span>
+        เลขที่ 1/88 หมู่ที่ 13 ต.หนองแหน อ.พนมสารคาม จ.ฉะเชิงเทรา 24120<br>
+        โทร 092-484-4222
+      </div>
+    </div>
+
+    <div class="doc-ttl">
+      <div class="th">ใบเสร็จรับเงิน</div>
+      <div class="sub">โครงการวันเวลา อมตะ ชลบุรี</div>
+    </div>
+
+    <div class="cust">
+      <div>
+        <div class="kv">นามลูกค้า <b id="o_cName">-</b></div>
+        <div class="kv">เบอร์โทร <b id="o_cPhone">-</b></div>
+      </div>
+      <div>
+        <div class="kv">บ้านเลขที่ <b id="o_houseNo">-</b></div>
+        <div class="kv">วันที่ <b id="o_docDate">-</b> · เลขที่ <b id="o_docNo">-</b></div>
+      </div>
+    </div>
+
+    <table class="it"><thead><tr>
+      <th style="width:46px">ลำดับ</th><th>รายละเอียด</th>
+      <th style="width:96px">TYPE</th><th style="width:80px">ช่องทาง</th><th style="width:120px">จำนวนเงิน</th>
+    </tr></thead><tbody id="o_items"></tbody></table>
+
+    <div class="amtbox">
+      <div class="amtwords" id="o_amtWords">-</div>
+      <div style="font-weight:800;font-size:15px;color:var(--brand)">
+        รวมสุทธิ <span id="o_total">0</span> บาท</div>
+    </div>
+
+    <div class="chan" style="margin-top:10px">
+      ชำระโดย:
+      <span class="bx" id="o_bxCash"></span> เงินสด
+      <span class="bx" id="o_bxTransfer"></span> โอนชำระ
+    </div>
+
+    <div class="signs">
+      <div class="s"><div class="sl"></div><div class="sc">ผู้รับเงิน</div>
+        <div class="sc" id="o_receiver">(.......................)</div>
+        <div class="sd">ลงวันที่ ..................</div></div>
+      <div class="s"><div class="sl"></div><div class="sc">ผู้รับใบเสร็จ</div>
+        <div class="sd">ลงวันที่ ..................</div></div>
+      <div class="s"><div class="sl"></div><div class="sc">ผู้มีอำนาจลงนาม</div>
+        <div class="sd">ในนาม โครงการวันเวลาอมตะชลบุรี</div></div>
+    </div>
+  </div>
+
+  <footer>ใบเสร็จรับเงิน v1.0 · One Vela — Two Build Development</footer>
+</div>
+
+<script>
+  const LS_LOG='onevela_rc_log';
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $=id=>document.getElementById(id);
+  const numv=id=>{const v=parseFloat($(id).value);return isFinite(v)&&v>0?v:0;};
+  const fmt=n=>Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const TH_MONTH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const dThai=iso=>{if(!iso)return '-';const [y,m,d]=iso.split('-').map(Number);return d+' '+TH_MONTH[m]+' '+(y+543);};
+
+  function bahtText(num){
+    num=Math.round((num||0)*100)/100;
+    if(num===0)return 'ศูนย์บาทถ้วน';
+    const d=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+    const pos=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+    function rg(s){let r='';const L=s.length;
+      for(let i=0;i<L;i++){const dg=+s[i],p=L-1-i;if(dg===0)continue;
+        if(p===0&&dg===1&&L>1)r+='เอ็ด';else if(p===1&&dg===1)r+='สิบ';
+        else if(p===1&&dg===2)r+='ยี่สิบ';else r+=d[dg]+pos[p];}return r;}
+    const [ip,dp]=num.toFixed(2).split('.');
+    let s=ip,g=[];while(s.length>6){g.unshift(s.slice(-6));s=s.slice(0,-6);}g.unshift(s);
+    let t='';for(let i=0;i<g.length;i++){t+=rg(g[i]);if(i<g.length-1)t+='ล้าน';}
+    t=t?t+'บาท':'';t+=(+dp===0)?'ถ้วน':rg(dp)+'สตางค์';return t;
+  }
+
+  const FIELDS=['docNo','docDate','receiver','cName','cPhone','houseNo','plot','hType',
+    'channel','payType','instSeq','d1','a1','d2','a2','d3','a3'];
+
+  function render(){
+    const set=(id,v)=>$(id).textContent=v;
+    set('o_cName',$('cName').value||'-');
+    set('o_cPhone',$('cPhone').value||'-');
+    set('o_houseNo',$('houseNo').value||'-');
+    set('o_docDate',dThai($('docDate').value));
+    set('o_docNo',$('docNo').value||'-');
+    set('o_receiver',$('receiver').value?'( '+$('receiver').value+' )':'(.......................)');
+
+    const ch=$('channel').value, ty=$('hType').value||'-';
+    let rows='',total=0,n=0;
+    [['d1','a1'],['d2','a2'],['d3','a3']].forEach(([d,a])=>{
+      const desc=$(d).value.trim(), amt=numv(a);
+      if(desc||amt){ n++; total+=amt;
+        rows+='<tr><td class="c">'+n+'</td><td>'+(desc||'-')+'</td><td class="c">'+ty+
+              '</td><td class="c">'+ch+'</td><td class="r">'+fmt(amt)+'</td></tr>';
+      }
+    });
+    if(!n) rows='<tr><td class="c">1</td><td>-</td><td class="c">'+ty+'</td><td class="c">'+ch+'</td><td class="r">0.00</td></tr>';
+    rows+='<tr class="sum"><td colspan="4" class="r">รวมยอดชำระสุทธิ</td><td class="r">'+fmt(total)+'</td></tr>';
+    $('o_items').innerHTML=rows;
+    set('o_total',fmt(total));
+    set('o_amtWords',bahtText(total));
+    $('o_bxCash').textContent=ch==='เงินสด'?'✓':'';
+    $('o_bxTransfer').textContent=ch==='โอน'?'✓':'';
+    return {total};
+  }
+
+  function saveLog(){
+    if(!$('docNo').value||!$('cName').value){alert('กรุณากรอก เลขที่ใบเสร็จ และ นามลูกค้า');return;}
+    const r=render();
+    let log;try{log=JSON.parse(localStorage.getItem(LS_LOG))||[];}catch(e){log=[];}
+    log.push({docNo:$('docNo').value,date:$('docDate').value,customer:$('cName').value,
+      plot:$('plot').value,houseNo:$('houseNo').value,amount:r.total,payType:$('payType').value,
+      savedAt:new Date().toISOString().slice(0,16).replace('T',' ')});
+    localStorage.setItem(LS_LOG,JSON.stringify(log));
+    // ส่งเข้าฐานข้อมูลกลาง — แท็บ payments
+    const data={payDate:$('docDate').value,plot:$('plot').value,payType:$('payType').value,
+      installmentSeq:$('instSeq').value,amount:r.total,channel:$('channel').value,
+      slipLink:'',receiptNo:$('docNo').value,receiptLink:'',recordedBy:$('receiver').value,
+      note:($('d1').value||'')};
+    fetch(API_URL,{method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'savePayment',data})})
+      .then(()=>alert('บันทึกแล้ว ✅\nในเครื่อง + ส่งเข้าฐานข้อมูลกลาง (แท็บ payments)\n'+
+        $('docNo').value+' · '+fmt(r.total)+' บาท'))
+      .catch(()=>alert('บันทึกในเครื่องแล้ว ✅\n⚠️ ส่งเข้า Sheet ไม่สำเร็จ — เช็คอินเทอร์เน็ต'));
+  }
+
+  function exportLog(){
+    let log;try{log=JSON.parse(localStorage.getItem(LS_LOG))||[];}catch(e){log=[];}
+    if(!log.length){alert('ยังไม่มีรายการใน Log');return;}
+    const head=['เลขที่ใบเสร็จ','วันที่','ลูกค้า','แปลง','บ้านเลขที่','จำนวนเงิน','ประเภท','บันทึกเมื่อ'];
+    const rows=log.map(e=>[e.docNo,e.date,e.customer,e.plot,e.houseNo,e.amount,e.payType,e.savedAt]);
+    const csv='﻿'+[head,...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download='ReceiptLog_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  }
+
+  function printDoc(){
+    const o=document.title;
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const plot=clean($('plot').value)||'-', cust=clean($('cName').value)||'ลูกค้า';
+    document.title='ใบเสร็จ_แปลง'+plot+'_'+cust;
+    window.print();
+    setTimeout(()=>{document.title=o;},800);
+  }
+
+  async function saveToFolder(){
+    if(!window.showDirectoryPicker){
+      alert('⚠️ การเก็บเข้าโฟลเดอร์อัตโนมัติใช้ได้เฉพาะ Chrome / Edge'); return;
+    }
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const name='ใบเสร็จ_แปลง'+(clean($('plot').value)||'-')+'_'+(clean($('cName').value)||'ลูกค้า');
+    try{
+      if(!window._ovDir) window._ovDir=await window.showDirectoryPicker({mode:'readwrite'});
+      const styles=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+      const html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>'+name+'</title>'+
+        '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">'+
+        '<style>'+styles+'\nbody{background:#fff;padding:18px}</style></head><body>'+
+        document.getElementById('doc').outerHTML+'</body></html>';
+      const fh=await window._ovDir.getFileHandle(name+'.html',{create:true});
+      const w=await fh.createWritable(); await w.write(html); await w.close();
+      alert('✅ เก็บเข้าโฟลเดอร์แล้ว\n'+name+'.html');
+    }catch(e){
+      if(e&&e.name==='AbortError') return;
+      alert('เก็บไม่สำเร็จ — ฟีเจอร์นี้ใช้ได้บน Chrome/Edge เมื่อเปิดผ่านเว็บ (https)');
+    }
+  }
+
+  function shareLine(){
+    const r=render();
+    const txt=['🧾 ใบเสร็จรับเงิน One Vela',
+      'เลขที่: '+($('docNo').value||'-'),
+      'ลูกค้า: '+($('cName').value||'-'),
+      'บ้านเลขที่: '+($('houseNo').value||'-'),
+      'จำนวนเงิน: '+fmt(r.total)+' บาท'].join('\n');
+    if(navigator.share)navigator.share({title:'ใบเสร็จ One Vela',text:txt}).catch(()=>{});
+    else window.open('https://line.me/R/msg/text/?'+encodeURIComponent(txt),'_blank');
+  }
+
+  function resetForm(){
+    if(!confirm('ล้างข้อมูลในฟอร์มทั้งหมด?'))return;
+    FIELDS.forEach(id=>{if($(id).tagName==='SELECT')$(id).selectedIndex=0;else $(id).value='';});
+    initDefaults();render();
+  }
+  function initDefaults(){
+    const d=new Date();
+    $('docDate').value=d.toISOString().slice(0,10);
+    const dd=('0'+d.getDate()).slice(-2),mm=('0'+(d.getMonth()+1)).slice(-2),yy=(''+((d.getFullYear()+543)%100)).slice(-2);
+    $('docNo').value='RC-'+dd+mm+yy;
+  }
+  FIELDS.forEach(id=>$(id).addEventListener($(id).tagName==='SELECT'?'change':'input',render));
+  initDefaults();render();
+</script>
+</body>
+</html>

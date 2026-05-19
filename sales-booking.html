@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบจอง — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1e293b; --muted:#64748b; --line:#d9dee5;
+    --brand:#3d3d3d; --accent:#b08d57; --bg:#eef1f4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto}
+
+  .toolbar{background:var(--brand);color:#fff;border-radius:14px;padding:14px 18px;
+    margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .toolbar .ttl{font-weight:800;font-size:16px;margin-right:auto}
+  .toolbar .ttl small{display:block;font-size:11px;opacity:.7;font-weight:500;letter-spacing:2px}
+  .toolbar button{font-family:inherit;font-size:13.5px;font-weight:700;border:none;
+    border-radius:9px;padding:9px 13px;cursor:pointer;transition:.15s}
+  .b-print{background:#fff;color:var(--brand)}
+  .b-line{background:#06c755;color:#fff}
+  .b-save{background:var(--accent);color:#fff}
+  .b-log{background:rgba(255,255,255,.18);color:#fff}
+  .b-reset{background:rgba(255,255,255,.1);color:#fff}
+  .toolbar button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+
+  .card{background:#fff;border-radius:13px;padding:15px 16px 8px;margin-bottom:12px;
+        box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .card h2{font-size:14px;font-weight:800;color:var(--brand);margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 12px}
+  .grid.g2{grid-template-columns:1fr 1fr}
+  .grid .full{grid-column:1/-1}
+  .f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
+  .f input,.f select,.f textarea{width:100%;padding:8px 10px;border:1.5px solid var(--line);
+    border-radius:9px;font-family:inherit;font-size:14px;color:var(--ink);background:#fff}
+  .f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--accent)}
+  .f input.num{text-align:right}
+  .f input[readonly]{background:#f1f5f9;font-weight:700}
+  .f textarea{resize:vertical;min-height:110px}
+  .hint{font-size:11.5px;color:var(--muted);margin:-2px 0 10px}
+  .lookup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f3efe6;
+    border:1px solid var(--accent);border-radius:9px;padding:8px 12px;margin-bottom:11px;
+    font-size:12.5px;color:var(--muted)}
+  .lk-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;
+    font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .lk-btn:hover{filter:brightness(1.07)}
+
+  /* document */
+  .doc{background:#fff;border-radius:4px;box-shadow:0 3px 16px rgba(0,0,0,.13);
+       padding:40px 44px;margin-bottom:14px;font-size:13px;color:#222;line-height:1.85}
+  .lh{display:flex;align-items:center;gap:14px;justify-content:center;text-align:center;
+      border-bottom:2px solid var(--brand);padding-bottom:12px;margin-bottom:6px}
+  .lh-logo img{height:52px;width:auto;display:block}
+  .lh-logo .fb .m{font-size:19px;font-weight:800;letter-spacing:3px;color:var(--brand)}
+  .lh-logo .fb .s{font-size:8px;letter-spacing:3px;color:var(--muted)}
+  .doc-ttl{font-size:19px;font-weight:800;color:var(--brand)}
+  .doc-sub{font-size:11.5px;color:#555}
+  .meta{display:flex;justify-content:space-between;font-size:12.5px;margin:10px 0 4px}
+  .meta b{font-weight:700}
+  p.cl{margin:9px 0;text-indent:38px;text-align:justify}
+  p.cl.noind{text-indent:0}
+  .cln{font-weight:800;color:var(--brand)}
+  .fv{font-weight:700;border-bottom:1px dotted #888;padding:0 3px}
+  .pay-opt{margin:4px 0 4px 38px;font-size:12.5px}
+  .pay-opt .opt{margin:2px 0}
+  .box{display:inline-block;width:13px;height:13px;border:1.3px solid #444;
+       text-align:center;line-height:11px;font-weight:800;margin-right:5px;vertical-align:-1px}
+  .promo-h{text-align:center;font-weight:800;color:var(--accent);font-size:13px;margin:16px 0 6px}
+  .promo-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;font-size:11.5px;line-height:1.7}
+  .promo-grid div::before{content:"✓ ";color:#16a34a;font-weight:800}
+  .signs{display:flex;justify-content:space-around;gap:30px;margin-top:30px;text-align:center}
+  .signs .s{flex:1}
+  .signs .sl{border-bottom:1px dotted #888;padding-top:28px;margin-bottom:4px}
+  .signs .sc{font-size:11.5px;color:#444}
+  .signs .sp{font-size:11px;color:#777;margin-top:2px}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:6px 0 22px}
+  @media(max-width:600px){
+    .grid,.grid.g2{grid-template-columns:1fr}
+    .doc{padding:24px 18px}
+    .promo-grid{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff;padding:0}
+    .toolbar,.card,.hint,footer,.no-print{display:none !important}
+    .doc{box-shadow:none;border-radius:0;padding:0;margin:0;font-size:12.5px}
+    @page{size:A4;margin:15mm 14mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="toolbar no-print">
+    <div class="ttl">ใบจองสิทธิ์<small>BOOKING</small></div>
+    <button class="b-print" onclick="printDoc()">🖨️ พิมพ์ / PDF</button>
+    <button class="b-log" onclick="saveToFolder()">💾 เก็บเข้าโฟลเดอร์</button>
+    <button class="b-line" onclick="shareLine()">📲 แชร์ LINE</button>
+    <button class="b-save" onclick="saveLog()">💾 บันทึก Log</button>
+    <button class="b-log" onclick="exportLog()">📊 ส่งออก Log</button>
+    <button class="b-reset" onclick="resetForm()">↺ ล้าง</button>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <div class="card">
+    <h2>📄 ข้อมูลใบจอง</h2>
+    <div class="grid">
+      <div class="f"><label>เลขที่ใบจอง</label><input id="docNo" type="text" placeholder="070269-C140"></div>
+      <div class="f"><label>วันที่จอง</label><input id="docDate" type="date"></div>
+      <div class="f"><label>ผู้รับจอง / ตัวแทนขาย</label><input id="agent" type="text" placeholder="ชื่อพนักงานขาย"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 ผู้จอง (ลูกค้า)</h2>
+    <div class="grid">
+      <div class="f"><label>ชื่อ-นามสกุล</label><input id="cName" type="text" placeholder="นางสาว..."></div>
+      <div class="f"><label>เลขบัตรประชาชน</label><input id="cId" type="text" placeholder="x-xxxx-xxxxx-xx-x"></div>
+      <div class="f"><label>โทรศัพท์</label><input id="cPhone" type="text" placeholder="08x-xxx-xxxx"></div>
+    </div>
+    <div class="hint">ที่อยู่ตามทะเบียนบ้าน</div>
+    <div class="grid">
+      <div class="f"><label>บ้านเลขที่</label><input id="aNo" type="text"></div>
+      <div class="f"><label>หมู่ที่</label><input id="aMoo" type="text"></div>
+      <div class="f"><label>ตำบล</label><input id="aTambon" type="text"></div>
+      <div class="f"><label>อำเภอ</label><input id="aAmphoe" type="text"></div>
+      <div class="f"><label>จังหวัด</label><input id="aProvince" type="text"></div>
+      <div class="f"><label>รหัสไปรษณีย์</label><input id="aZip" type="text"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏠 บ้านที่จอง</h2>
+    <div class="lookup">
+      <span>กรอก "แปลงเลขที่" ด้านล่าง แล้วกด →</span>
+      <button type="button" class="lk-btn" onclick="fetchPlot()">🔍 ดึงราคา/ข้อมูลจากฐานข้อมูล</button>
+    </div>
+    <div class="grid">
+      <div class="f"><label>บ้านเลขที่</label><input id="hNo" type="text" placeholder="89/140"></div>
+      <div class="f"><label>แปลงเลขที่</label><input id="plot" type="text" placeholder="140"></div>
+      <div class="f"><label>แบบบ้าน</label><input id="hType" type="text" placeholder="บ้านแฝดชั้นเดียว"></div>
+      <div class="f"><label>ห้องนอน</label><input id="hBed" type="text" placeholder="3"></div>
+      <div class="f"><label>ห้องน้ำ</label><input id="hBath" type="text" placeholder="2"></div>
+      <div class="f"><label>พื้นที่ (ตร.ว.)</label><input id="hArea" type="text" placeholder="41.3"></div>
+      <div class="f full"><label>ราคาขาย (บาท)</label><input id="price" class="num" type="number" min="0" placeholder="3179000"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💰 เงินจอง</h2>
+    <div class="grid">
+      <div class="f"><label>จำนวนเงินจอง (บาท)</label><input id="payBook" class="num" type="number" min="0" placeholder="5000"></div>
+      <div class="f"><label>วิธีชำระ</label><select id="payMethod">
+        <option value="cash">เงินสด</option>
+        <option value="transfer" selected>โอนบัญชี</option>
+        <option value="cheque">เช็คธนาคาร</option>
+      </select></div>
+      <div class="f"><label>วันที่ชำระเงินจอง</label><input id="payDate" type="date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 เงื่อนไขทำสัญญา &amp; ผ่อนดาวน์</h2>
+    <div class="grid">
+      <div class="f"><label>ทำสัญญาภายใน (วัน)</label><input id="ctDays" class="num" type="number" min="0" placeholder="7"></div>
+      <div class="f"><label>หรือภายในวันที่</label><input id="ctDate" type="date"></div>
+      <div class="f"><label>ค่าทำสัญญา (บาท)</label><input id="payContract" class="num" type="number" min="0" placeholder="10000"></div>
+      <div class="f"><label>จำนวนงวด</label><input id="instN" class="num" type="number" min="0" placeholder="12"></div>
+      <div class="f"><label>งวดละ (บาท)</label><input id="instAmt" class="num" type="number" min="0" placeholder="8000"></div>
+      <div class="f"><label>ชำระภายในวันที่ (ของเดือน)</label><input id="instDay" class="num" type="number" min="1" max="31" placeholder="30"></div>
+      <div class="f"><label>เริ่มงวดเดือน</label><input id="startMonth" type="month"></div>
+      <div class="f"><label>ถึงเดือน (อัตโนมัติ)</label><input id="endMonthView" type="text" readonly></div>
+      <div class="f"><label>รวมผ่อนดาวน์ (อัตโนมัติ)</label><input id="downTotalView" class="num" type="text" readonly></div>
+      <div class="f full"><label>คงเหลือชำระวันโอนกรรมสิทธิ์ (อัตโนมัติ)</label><input id="remainView" class="num" type="text" readonly></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>✍️ พยาน</h2>
+    <div class="grid g2">
+      <div class="f"><label>พยานคนที่ 1</label><input id="wit1" type="text"></div>
+      <div class="f"><label>พยานคนที่ 2</label><input id="wit2" type="text"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎁 โปรโมชั่น (1 รายการ/บรรทัด)</h2>
+    <div class="f"><textarea id="promos"></textarea></div>
+  </div>
+
+  <!-- ===== DOCUMENT ===== -->
+  <div class="doc" id="doc">
+    <div class="lh">
+      <div class="lh-logo">
+        <img src="assets/brand/logo-icon.png" alt="One Vela"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="fb" style="display:none">
+          <div class="m">ONE VELA</div><div class="s">AMATA · CHONBURI</div>
+        </div>
+      </div>
+      <div>
+        <div class="doc-ttl">หนังสือจองสิทธิ์ (ใบจอง)</div>
+        <div class="doc-sub">โครงการวันเวลา อมตะนคร ชลบุรี</div>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span>ทำที่ สำนักงานขายโครงการวันเวลา</span>
+      <span>เลขที่ใบจอง <b id="o_docNo">-</b></span>
+      <span>วันที่ <b id="o_docDate">-</b></span>
+    </div>
+
+    <p class="cl">ข้าพเจ้า <span class="fv" id="o_cName">-</span> (&#8220;ผู้จอง&#8221;) (เรียกว่าผู้ซื้อ)
+      มีที่อยู่ตามทะเบียนบ้านเลขที่ <span class="fv" id="o_addr">-</span>
+      เลขที่บัตรประชาชน <span class="fv" id="o_cId">-</span>
+      โทรศัพท์ <span class="fv" id="o_cPhone">-</span>
+      มีความประสงค์ขอจองบ้านในโครงการวันเวลาอมตะนคร โดยบริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด
+      ซึ่งต่อไปจะเรียกว่า &#8220;โครงการ&#8221; ที่ตั้งบริษัท เลขที่ 89 ตำบลคลองตำหรุ อำเภอเมือง
+      จังหวัดชลบุรี โทรศัพท์ 092-787-4222 ซึ่งต่อไปนี้จะเรียกว่าผู้จะขาย</p>
+
+    <p class="cl">จองบ้านเลขที่ <span class="fv" id="o_hNo">-</span>
+      แปลง <span class="fv" id="o_plot">-</span>
+      แบบ <span class="fv" id="o_hType">-</span>
+      <span class="fv" id="o_rooms">-</span>
+      พื้นที่ประมาณ <span class="fv" id="o_hArea">-</span> ตารางวา
+      ในราคา <span class="fv" id="o_price">0</span> บาท
+      (<span id="o_priceTxt">-</span>)</p>
+
+    <p class="cl"><span class="cln">1.</span> ในวันนี้ผู้จองได้ชำระเงินจองเป็นเงิน
+      <span class="fv" id="o_payBook">0</span> บาท (<span id="o_payBookTxt">-</span>)
+      ให้แก่โครงการไว้แล้ว โดยชำระเป็น</p>
+    <div class="pay-opt">
+      <div class="opt"><span class="box" id="bx_cash"></span>เงินสด</div>
+      <div class="opt"><span class="box" id="bx_transfer"></span>โอนบัญชี ธนาคารไทยพาณิชย์ เลขที่บัญชี 409-691797-6
+        ชื่อบัญชี บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด ลงวันที่ <span class="fv" id="o_payDate">-</span></div>
+      <div class="opt"><span class="box" id="bx_cheque"></span>เช็คธนาคาร ลงวันที่ <span id="o_payDateChq">.................</span></div>
+    </div>
+    <p class="cl">กรณีชำระเงินด้วยเช็ค หากเช็คเรียกเก็บเงินไม่ได้ให้ถือว่าผู้จองสละสิทธิ์ในการจองบ้านตามใบจองฉบับนี้ทันที
+      และให้ถือว่ากำหนดวันที่จะทำสัญญาจะซื้อจะขายตามวรรคแรกเป็นอันยกเลิกไม่มีผลผูกพันต่อโครงการอีกต่อไป
+      และยินยอมให้โครงการนำบ้านตามที่ระบุในใบจองนี้ออกขายให้กับบุคคลอื่นได้ทันทีโดยไม่จำเป็นต้องบอกกล่าวแก่ผู้จองแต่อย่างใด</p>
+
+    <p class="cl"><span class="cln">2.</span> ผู้จองและผู้รับจองตกลงจะทำสัญญาจะซื้อจะขายที่ดินพร้อมสิ่งปลูกสร้างที่จองตามสัญญาข้อ 1.
+      กำหนดภายใน <span class="fv" id="o_ctDays">-</span> วัน นับแต่วันทำหนังสือจองฉบับนี้
+      หรือภายในวันที่ <span class="fv" id="o_ctDate">-</span>
+      โดยจะชำระค่างวด ณ วันทำสัญญาจะซื้อจะขายเป็นจำนวนเงิน <span class="fv" id="o_payContract">0</span> บาท
+      (<span id="o_payContractTxt">-</span>) และชำระค่างวดเป็นจำนวนเงินดังนี้</p>
+    <p class="cl">งวดที่ 1 ถึง งวดที่ <span class="fv" id="o_instN">-</span>
+      งวดละ <span class="fv" id="o_instAmt">0</span> บาท (<span id="o_instAmtTxt">-</span>)
+      ชำระภายในวันที่ <span class="fv" id="o_instDay">-</span> ของทุกเดือน
+      เริ่มตั้งแต่เดือน <span class="fv" id="o_startMonth">-</span>
+      ถึงเดือน <span class="fv" id="o_endMonth">-</span></p>
+    <p class="cl">รวมยอดผ่อนดาวน์ทั้งสิ้นจำนวน <span class="fv" id="o_downTotal">0</span> บาท
+      (<span id="o_downTotalTxt">-</span>)</p>
+    <p class="cl">คงเหลือยอดเงินชำระ ณ วันโอนกรรมสิทธิ์ จำนวน <span class="fv" id="o_remain">0</span> บาท
+      (<span id="o_remainTxt">-</span>)</p>
+
+    <p class="cl"><span class="cln">3.</span> หากผู้จองไม่ทำสัญญาจะซื้อจะขายภายในกำหนดเวลาข้อ 1.
+      ถือว่าผู้จองสละสิทธิ์ในการจองบ้านตามใบจองฉบับนี้ ยินยอมให้โครงการริบเงินทั้งหมดโดยไม่เรียกสิทธิใด ๆ
+      ขึ้นโต้แย้งทั้งสิ้น และยินยอมให้โครงการนำบ้านที่ระบุในใบจองนี้ออกขายให้กับบุคคลอื่นได้ทันที
+      โดยไม่จำต้องบอกกล่าวแก่ผู้จองแต่อย่างใด</p>
+
+    <p class="cl"><span class="cln">4.</span> ผู้จองจะโอนสิทธิตามใบจองฉบับนี้ให้แก่บุคคลอื่นไม่ได้
+      เว้นแต่จะได้รับความยินยอมเป็นหนังสือจากโครงการก่อน และเมื่อโครงการให้ความยินยอมแล้ว
+      ผู้จองตกลงเสียค่าใช้จ่ายในการโอนสิทธิให้แก่โครงการเป็นเงิน 25,000 บาท (สองหมื่นห้าพันบาทถ้วน)
+      ทั้งนี้ผู้รับโอนสิทธิจะต้องรับไปซึ่งสิทธิหน้าที่และความรับผิดของผู้จองตามใบจองฉบับนี้ทุกประการ</p>
+
+    <p class="cl noind">หนังสือจองสิทธิ์นี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความ
+      โดยตลอดดีแล้ว จึงลงลายมือชื่อพร้อมทั้งประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยาน และเก็บไว้ฝ่ายละหนึ่งฉบับ</p>
+
+    <div class="signs">
+      <div class="s"><div class="sl"></div><div class="sc">ผู้จอง</div>
+        <div class="sp" id="o_signName">(.............................)</div></div>
+      <div class="s"><div class="sl"></div><div class="sc">ผู้รับจอง / ตัวแทนขาย</div>
+        <div class="sp" id="o_signAgent">(.............................)</div></div>
+    </div>
+    <div class="signs">
+      <div class="s"><div class="sl"></div><div class="sc">พยาน</div>
+        <div class="sp" id="o_signWit1">(.............................)</div></div>
+      <div class="s"><div class="sl"></div><div class="sc">พยาน</div>
+        <div class="sp" id="o_signWit2">(.............................)</div></div>
+    </div>
+
+    <div class="promo-h" id="o_promoHead">โปรโมชั่น</div>
+    <div class="promo-grid" id="o_promos"></div>
+  </div>
+
+  <footer>ใบจองสิทธิ์ v1.0 · One Vela — Two Build Development · บันทึก Log ในเครื่อง</footer>
+
+</div>
+
+<script>
+  const DEFAULT_PROMOS = [
+    'ฟรีค่าประเมิน','ฟรีค่าส่วนกลาง 1 ปี','ฟรีค่าโอนค่าจดจำนอง','ฟรีถังสำรองน้ำ',
+    'ฟรีมิเตอร์น้ำ มิเตอร์ไฟ','ฟรีกาแฟและเครื่องดื่มที่ร่วมรายการ 4 แก้ว/เดือน/ปี',
+    'ฟรีเดินท่อปลวก','ฟรีแอร์ 12000 BTU / 3 เครื่อง','Voucher IKEA มูลค่า 300,000 บาท',
+    'ฟรีม่านทั้งหลัง ตามมาตรฐานโครงการ',
+  ];
+  const LS_LOG = 'onevela_bk_log';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  let PLOTS_CACHE = null;
+  async function fetchPlot(){
+    const pno = $('plot').value.trim();
+    if(!pno){ alert('กรอกแปลงเลขที่ก่อน'); return; }
+    try{
+      if(!PLOTS_CACHE){
+        const r = await fetch(API_URL+'?action=getSalesData');
+        PLOTS_CACHE = (await r.json()).plots || [];
+      }
+      const p = PLOTS_CACHE.find(x=>String(x.plot)===pno);
+      if(!p){ alert('ไม่พบแปลง '+pno+' ในฐานข้อมูล'); return; }
+      $('hNo').value   = p.houseNo || '';
+      $('hType').value = p.typeShort || '';
+      $('hArea').value = p.area || '';
+      $('price').value = p.priceNet || '';
+      render();
+      alert('✅ ดึงข้อมูลแปลง '+pno+' แล้ว\nราคา '+
+        Number(p.priceNet||0).toLocaleString('th-TH')+' บาท');
+    }catch(e){ alert('⚠️ ดึงข้อมูลไม่สำเร็จ — ตรวจอินเทอร์เน็ต หรือเปิดหน้านี้ผ่านเว็บ'); }
+  }
+  const TH_MONTH = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+  const $ = id => document.getElementById(id);
+  const numv = id => { const v=parseFloat($(id).value); return isFinite(v)&&v>0?v:0; };
+  const fmt = n => Number(n||0).toLocaleString('th-TH');
+  const dThai = iso => {
+    if(!iso) return '-';
+    const m=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const [y,mo,d]=iso.split('-').map(Number);
+    return d+' '+m[mo]+' '+(y+543);
+  };
+
+  // เลขเป็นข้อความภาษาไทย (บาท)
+  function bahtText(num){
+    num = Math.round((num||0)*100)/100;
+    if(num===0) return 'ศูนย์บาทถ้วน';
+    const d=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+    const pos=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+    function readGroup(s){
+      let r=''; const L=s.length;
+      for(let i=0;i<L;i++){
+        const dig=+s[i], p=L-1-i;
+        if(dig===0) continue;
+        if(p===0 && dig===1 && L>1) r+='เอ็ด';
+        else if(p===1 && dig===1) r+='สิบ';
+        else if(p===1 && dig===2) r+='ยี่สิบ';
+        else r+=d[dig]+pos[p];
+      }
+      return r;
+    }
+    const [intPart,decPart]=num.toFixed(2).split('.');
+    let s=intPart, groups=[];
+    while(s.length>6){ groups.unshift(s.slice(-6)); s=s.slice(0,-6); }
+    groups.unshift(s);
+    let text='';
+    for(let i=0;i<groups.length;i++){
+      text+=readGroup(groups[i]);
+      if(i<groups.length-1) text+='ล้าน';
+    }
+    text = text ? text+'บาท' : '';
+    if(+decPart===0) text+='ถ้วน';
+    else text+=readGroup(decPart)+'สตางค์';
+    return text;
+  }
+
+  const FIELDS = ['docNo','docDate','agent','cName','cId','cPhone','aNo','aMoo','aTambon',
+    'aAmphoe','aProvince','aZip','hNo','plot','hType','hBed','hBath','hArea','price',
+    'payBook','payMethod','payDate','ctDays','ctDate','payContract','instN','instAmt',
+    'instDay','startMonth','wit1','wit2','promos'];
+
+  function render(){
+    const set=(id,v)=>$(id).textContent=v;
+    set('o_docNo',$('docNo').value||'-');
+    set('o_docDate',dThai($('docDate').value));
+    set('o_cName',$('cName').value||'-');
+    set('o_cId',$('cId').value||'-');
+    set('o_cPhone',$('cPhone').value||'-');
+
+    const addr=['เลขที่ '+($('aNo').value||'-'),
+      $('aMoo').value?'หมู่ที่ '+$('aMoo').value:'',
+      $('aTambon').value?'ตำบล'+$('aTambon').value:'',
+      $('aAmphoe').value?'อำเภอ'+$('aAmphoe').value:'',
+      $('aProvince').value?'จังหวัด'+$('aProvince').value:'',
+      $('aZip').value?'รหัสไปรษณีย์ '+$('aZip').value:''].filter(Boolean).join(' ');
+    set('o_addr',addr);
+
+    set('o_hNo',$('hNo').value||'-');
+    set('o_plot',$('plot').value||'-');
+    set('o_hType',$('hType').value||'-');
+    const rooms=[$('hBed').value?$('hBed').value+' ห้องนอน':'',
+                 $('hBath').value?$('hBath').value+' ห้องน้ำ':''].filter(Boolean).join(' ');
+    set('o_rooms',rooms||'-');
+    set('o_hArea',$('hArea').value||'-');
+
+    const price=numv('price'), book=numv('payBook'), contract=numv('payContract');
+    const instN=numv('instN'), instAmt=numv('instAmt');
+    const downTotal=instN*instAmt;
+    const remain=Math.max(0, price-book-contract-downTotal);
+
+    set('o_price',fmt(price)); set('o_priceTxt',bahtText(price));
+    set('o_payBook',fmt(book)); set('o_payBookTxt',bahtText(book));
+    set('o_payContract',fmt(contract)); set('o_payContractTxt',bahtText(contract));
+    set('o_instN',instN||'-');
+    set('o_instAmt',fmt(instAmt)); set('o_instAmtTxt',bahtText(instAmt));
+    set('o_instDay',$('instDay').value||'-');
+    set('o_downTotal',fmt(downTotal)); set('o_downTotalTxt',bahtText(downTotal));
+    set('o_remain',fmt(remain)); set('o_remainTxt',bahtText(remain));
+    $('downTotalView').value=fmt(downTotal);
+    $('remainView').value=fmt(remain);
+
+    set('o_ctDays',$('ctDays').value||'-');
+    set('o_ctDate',dThai($('ctDate').value));
+
+    // วิธีชำระ
+    const method=$('payMethod').value;
+    $('bx_cash').textContent=method==='cash'?'✓':'';
+    $('bx_transfer').textContent=method==='transfer'?'✓':'';
+    $('bx_cheque').textContent=method==='cheque'?'✓':'';
+    set('o_payDate',dThai($('payDate').value));
+    $('o_payDateChq').textContent=method==='cheque'?dThai($('payDate').value):'.................';
+
+    // เดือนงวด
+    let startTxt='-', endTxt='-';
+    if($('startMonth').value){
+      const [y,m]=$('startMonth').value.split('-').map(Number);
+      startTxt=TH_MONTH[m]+' '+(y+543);
+      if(instN>0){
+        const tot=m-1+(instN-1);
+        const ey=y+Math.floor(tot/12), em=(tot%12)+1;
+        endTxt=TH_MONTH[em]+' '+(ey+543);
+      }
+    }
+    set('o_startMonth',startTxt);
+    set('o_endMonth',endTxt);
+    $('endMonthView').value=endTxt;
+
+    const nm=$('cName').value, ag=$('agent').value, w1=$('wit1').value, w2=$('wit2').value;
+    set('o_signName', nm?'( '+nm+' )':'(.............................)');
+    set('o_signAgent', ag?'( '+ag+' )':'(.............................)');
+    set('o_signWit1', w1?'( '+w1+' )':'(.............................)');
+    set('o_signWit2', w2?'( '+w2+' )':'(.............................)');
+
+    const promos=$('promos').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    $('o_promoHead').textContent='โปรโมชั่น'+(promos.length?' ('+promos.length+' รายการ)':'');
+    $('o_promos').innerHTML=promos.map(p=>'<div>'+p+'</div>').join('');
+
+    return { price, remain, downTotal };
+  }
+
+  function saveLog(){
+    if(!$('docNo').value || !$('cName').value){
+      alert('กรุณากรอก เลขที่ใบจอง และ ชื่อผู้จอง ก่อนบันทึก'); return;
+    }
+    const r=render();
+    let log; try{ log=JSON.parse(localStorage.getItem(LS_LOG))||[]; }catch(e){ log=[]; }
+    log.push({docNo:$('docNo').value,date:$('docDate').value,customer:$('cName').value,
+      phone:$('cPhone').value,plot:$('plot').value,hNo:$('hNo').value,
+      price:r.price,book:numv('payBook'),agent:$('agent').value,
+      savedAt:new Date().toISOString().slice(0,16).replace('T',' ')});
+    localStorage.setItem(LS_LOG,JSON.stringify(log));
+    // ส่งเข้าฐานข้อมูลกลาง (Google Sheet) ผ่าน Apps Script API
+    const methodMap={cash:'เงินสด',transfer:'โอน',cheque:'เช็ค'};
+    const data={bookingNo:$('docNo').value,plot:$('plot').value,cName:$('cName').value,
+      cPhone:$('cPhone').value,cId:$('cId').value,bookDate:$('docDate').value,
+      bookAmount:numv('payBook'),payMethod:methodMap[$('payMethod').value]||'',
+      contractDeadline:$('ctDate').value,status:'จอง',salesAgent:$('agent').value,note:''};
+    fetch(API_URL,{method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'saveBooking',data})})
+      .then(()=>alert('บันทึกแล้ว ✅\nในเครื่อง + ส่งเข้าฐานข้อมูลกลาง (Sheet)\n'+
+        $('docNo').value+' · '+$('cName').value))
+      .catch(()=>alert('บันทึกในเครื่องแล้ว ✅\n⚠️ ส่งเข้า Sheet ไม่สำเร็จ — เช็คอินเทอร์เน็ต'));
+  }
+
+  function exportLog(){
+    let log; try{ log=JSON.parse(localStorage.getItem(LS_LOG))||[]; }catch(e){ log=[]; }
+    if(!log.length){ alert('ยังไม่มีรายการใน Log'); return; }
+    const head=['เลขที่ใบจอง','วันที่','ผู้จอง','เบอร์โทร','แปลง','บ้านเลขที่','ราคา','เงินจอง','ตัวแทนขาย','บันทึกเมื่อ'];
+    const rows=log.map(e=>[e.docNo,e.date,e.customer,e.phone,e.plot,e.hNo,e.price,e.book,e.agent,e.savedAt]);
+    const csv='﻿'+[head,...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download='BookingLog_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+  }
+
+  function printDoc(){
+    const o=document.title;
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const plot=clean($('plot').value)||'-', cust=clean($('cName').value)||'ลูกค้า';
+    document.title='ใบจอง_แปลง'+plot+'_'+cust;
+    window.print();
+    setTimeout(()=>{document.title=o;},800);
+  }
+
+  async function saveToFolder(){
+    if(!window.showDirectoryPicker){
+      alert('⚠️ การเก็บเข้าโฟลเดอร์อัตโนมัติใช้ได้เฉพาะ Chrome / Edge'); return;
+    }
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const name='ใบจอง_แปลง'+(clean($('plot').value)||'-')+'_'+(clean($('cName').value)||'ลูกค้า');
+    try{
+      if(!window._ovDir) window._ovDir=await window.showDirectoryPicker({mode:'readwrite'});
+      const styles=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+      const html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>'+name+'</title>'+
+        '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">'+
+        '<style>'+styles+'\nbody{background:#fff;padding:18px}</style></head><body>'+
+        document.getElementById('doc').outerHTML+'</body></html>';
+      const fh=await window._ovDir.getFileHandle(name+'.html',{create:true});
+      const w=await fh.createWritable(); await w.write(html); await w.close();
+      alert('✅ เก็บเข้าโฟลเดอร์แล้ว\n'+name+'.html');
+    }catch(e){
+      if(e&&e.name==='AbortError') return;
+      alert('เก็บไม่สำเร็จ — ฟีเจอร์นี้ใช้ได้บน Chrome/Edge เมื่อเปิดผ่านเว็บ (https)');
+    }
+  }
+
+  function shareLine(){
+    const r=render();
+    const txt=['📋 ใบจอง One Vela',
+      'เลขที่: '+($('docNo').value||'-'),
+      'ผู้จอง: '+($('cName').value||'-'),
+      'แปลง: '+($('plot').value||'-')+' บ้านเลขที่ '+($('hNo').value||'-'),
+      'ราคา: '+fmt(r.price)+' บาท',
+      'เงินจอง: '+fmt(numv('payBook'))+' บาท'].join('\n');
+    if(navigator.share) navigator.share({title:'ใบจอง One Vela',text:txt}).catch(()=>{});
+    else window.open('https://line.me/R/msg/text/?'+encodeURIComponent(txt),'_blank');
+  }
+
+  function resetForm(){
+    if(!confirm('ล้างข้อมูลในฟอร์มทั้งหมด?')) return;
+    FIELDS.forEach(id=>{ if($(id).tagName==='SELECT') $(id).selectedIndex=1; else $(id).value=''; });
+    initDefaults();
+    render();
+  }
+
+  function initDefaults(){
+    const d=new Date();
+    $('docDate').value=d.toISOString().slice(0,10);
+    $('payDate').value=d.toISOString().slice(0,10);
+    $('promos').value=DEFAULT_PROMOS.join('\n');
+    $('ctDays').value='7';
+  }
+
+  FIELDS.forEach(id=>$(id).addEventListener(
+    $(id).tagName==='SELECT'?'change':'input', render));
+  initDefaults();
+  render();
+</script>
+</body>
+</html>

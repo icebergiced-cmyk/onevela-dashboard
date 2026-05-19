@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โปรแกรมคำนวณรายได้ — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#3b82f6; --blue-d:#2563eb; --dark:#0f2742;
+    --ink:#1e293b; --muted:#64748b; --line:#e2e8f0;
+    --good:#16a34a; --bad:#dc2626; --warn:#d97706;
+    --card:#fff; --bg1:#f1f5f9; --bg2:#e2e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Sarabun',sans-serif; color:var(--ink);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    min-height:100vh; padding:16px; line-height:1.5;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+  header{
+    background:linear-gradient(135deg,var(--dark),#1d4ed8);
+    color:#fff; border-radius:18px; padding:22px 24px; margin-bottom:16px;
+    box-shadow:0 8px 24px rgba(15,39,66,.25);
+  }
+  .brandchip{
+    width:58px;height:58px;background:#fff;border-radius:14px;margin-bottom:12px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.18);
+  }
+  .brandchip img{height:38px;width:auto}
+  header h1{font-size:22px;font-weight:800;letter-spacing:.2px}
+  header .sub{font-size:14px;opacity:.85;margin-top:4px}
+  .badge{
+    display:inline-block;margin-top:10px;background:rgba(255,255,255,.18);
+    padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:600;
+  }
+  .card{
+    background:var(--card);border-radius:16px;padding:18px 18px 8px;
+    margin-bottom:14px;box-shadow:0 2px 10px rgba(15,39,66,.07);
+  }
+  .card h2{
+    font-size:15.5px;font-weight:800;color:var(--dark);
+    display:flex;align-items:center;gap:8px;margin-bottom:4px;
+  }
+  .card .hint{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+  .row{
+    display:grid;grid-template-columns:1fr 118px 96px;gap:10px;
+    align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);
+  }
+  .row:last-child{border-bottom:none}
+  .row label{font-size:14px;font-weight:600}
+  .row label small{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+  .row input[type=number]{
+    width:100%;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:14.5px;text-align:right;color:var(--ink);
+  }
+  .row input:focus{outline:none;border-color:var(--blue);background:#f8fafc}
+  .pct{
+    font-size:12px;font-weight:700;text-align:center;border-radius:8px;padding:6px 4px;
+  }
+  .pct.full{background:#dcfce7;color:var(--good)}
+  .pct.part{background:#fef9c3;color:var(--warn)}
+  .pct.zero{background:#fee2e2;color:var(--bad)}
+  .recog{font-size:12px;color:var(--muted);text-align:right;grid-column:1/-1;margin-top:-2px}
+  .recog b{color:var(--blue-d)}
+  .subtotal{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:11px 0 4px;font-weight:800;font-size:14.5px;color:var(--dark);
+  }
+  .subtotal span:last-child{font-size:16px}
+  .text-info{font-size:12px;color:var(--muted);font-weight:500}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .meta input,.meta select{
+    width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:14px;background:#fff;color:var(--ink);
+  }
+  .meta input:focus,.meta select:focus{outline:none;border-color:var(--blue)}
+  .meta label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px}
+  /* result */
+  .result{
+    background:linear-gradient(135deg,var(--dark),#1d4ed8);color:#fff;
+    border-radius:18px;padding:22px;margin-bottom:14px;
+    box-shadow:0 8px 24px rgba(15,39,66,.25);
+  }
+  .result .line{
+    display:flex;justify-content:space-between;font-size:14px;
+    padding:6px 0;border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  .result .line.neg span:last-child{color:#fca5a5}
+  .result .big{
+    margin-top:14px;text-align:center;
+  }
+  .result .big .cap{font-size:13.5px;opacity:.85}
+  .result .big .amt{font-size:38px;font-weight:800;line-height:1.2;margin-top:2px}
+  .result .big .amt small{font-size:18px;font-weight:600;opacity:.8}
+  .loanbox{
+    margin-top:12px;background:rgba(255,255,255,.13);border-radius:14px;
+    padding:14px;text-align:center;
+  }
+  .loanbox .cap{font-size:13px;opacity:.85}
+  .amt2{font-size:30px;font-weight:800;line-height:1.2;margin-top:2px}
+  .amt2 small{font-size:15px;font-weight:600;opacity:.8}
+  .loan-th{font-size:14px;opacity:.9;margin-top:2px;font-weight:600}
+  .verdict{
+    margin-top:12px;text-align:center;font-size:14px;font-weight:700;
+    padding:9px;border-radius:12px;
+  }
+  .verdict.ok{background:rgba(22,163,74,.25);color:#bbf7d0}
+  .verdict.no{background:rgba(220,38,38,.3);color:#fecaca}
+  .formula{
+    font-size:11.5px;opacity:.7;text-align:center;margin-top:10px;line-height:1.6;
+  }
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  button{
+    flex:1;min-width:130px;font-family:inherit;font-size:14px;font-weight:700;
+    padding:13px;border:none;border-radius:12px;cursor:pointer;transition:.15s;
+  }
+  .btn-print{background:var(--blue);color:#fff}
+  .btn-print:active{background:var(--blue-d)}
+  .btn-line{background:#06c755;color:#fff}
+  .btn-reset{background:#fff;color:var(--muted);border:1.5px solid var(--line)}
+  button:hover{transform:translateY(-1px);filter:brightness(1.04)}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);margin:10px 0 20px}
+  @media(max-width:520px){
+    .row{grid-template-columns:1fr 96px 82px;gap:7px}
+    .row label{font-size:13px}
+    .meta{grid-template-columns:1fr}
+    header h1{font-size:19px}
+    .result .big .amt{font-size:32px}
+  }
+  @media print{
+    body{background:#fff;padding:0}
+    .actions,footer,.card .hint{display:none}
+    .card,.result,header{box-shadow:none;border:1px solid var(--line)}
+    .result{background:#0f2742 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .pct,.verdict{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brandchip"><img src="assets/brand/logo-icon.png" alt="One Vela"
+         onerror="this.parentElement.style.display='none'"></div>
+    <h1>💰 โปรแกรมคำนวณรายได้ &amp; ความสามารถผ่อน</h1>
+    <div class="sub">โครงการ One Vela — บริษัท ทู บิลด์ ดีเวลลอปเมนท์ จำกัด</div>
+    <span class="badge">แยกกลุ่มอัตโนมัติตามฐานเงินเดือน · ≤30,000 หาร 2 · เกิน 30,000 หาร 3</span>
+  </header>
+
+  <!-- ข้อมูลลูกค้า -->
+  <div class="card">
+    <h2>👤 ข้อมูลลูกค้า</h2>
+    <div class="meta">
+      <div><label>ชื่อลูกค้า</label><input id="cName" type="text" placeholder="ชื่อ-นามสกุล"></div>
+      <div><label>แปลง / Sales ผู้คำนวณ</label><input id="cPlot" type="text" placeholder="เช่น แปลง 5 / คุณ___"></div>
+    </div>
+  </div>
+
+  <!-- 1. รายได้ -->
+  <div class="card">
+    <h2>1️⃣ รายได้ต่อเดือน</h2>
+    <div class="hint">กรอกยอดเต็มที่ลูกค้าได้รับจริง — ระบบจะคูณ % การรับรู้ตามเกณฑ์ให้อัตโนมัติ</div>
+
+    <div class="row">
+      <label>ฐานเงินเดือน<small>คำนวณให้ 100%</small></label>
+      <input type="number" id="base" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct full">100%</div>
+    </div>
+    <div class="recog">รับรู้ <b id="r_base">0</b> บาท</div>
+
+    <div class="row">
+      <label>ค่าล่วงเวลา (OT)<small>คำนวณให้ 80%</small></label>
+      <input type="number" id="ot" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct part">80%</div>
+    </div>
+    <div class="recog">รับรู้ <b id="r_ot">0</b> บาท</div>
+
+    <div class="row">
+      <label>ค่าครองชีพ<small>คำนวณให้ 80%</small></label>
+      <input type="number" id="cost" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct part">80%</div>
+    </div>
+    <div class="recog">รับรู้ <b id="r_cost">0</b> บาท</div>
+
+    <div class="row">
+      <label>ค่าอาหาร<small>ไม่นำมาคำนวณ</small></label>
+      <input type="number" id="food" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct zero">0%</div>
+    </div>
+    <div class="recog">รับรู้ <b id="r_food">0</b> บาท</div>
+
+    <div class="row">
+      <label>ค่ากะ<small>คำนวณให้ 80%</small></label>
+      <input type="number" id="shift" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct part">80%</div>
+    </div>
+    <div class="recog">รับรู้ <b id="r_shift">0</b> บาท</div>
+
+    <div class="row">
+      <label>รายได้อื่นๆ<small>คำนวณให้ 80%</small></label>
+      <input type="number" id="other" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct part">80%</div>
+    </div>
+    <div class="recog">รับรู้ <b id="r_other">0</b> บาท</div>
+
+    <div class="subtotal">
+      <span>รวมรายได้ที่รับรู้</span><span id="sumIncome">0</span>
+    </div>
+  </div>
+
+  <!-- 2. รายจ่ายหักจากเงินเดือน -->
+  <div class="card">
+    <h2>2️⃣ รายจ่าย — หักจากเงินเดือน</h2>
+    <div class="hint">ประกันสังคม และรายการหักทุกอย่างจากสลิปเงินเดือน — หักออกหลังคำนวณ % รายได้แล้ว</div>
+
+    <div class="row">
+      <label>ประกันสังคม</label>
+      <input type="number" id="sso" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct zero">หัก</div>
+    </div>
+    <div class="row">
+      <label>รายการหักอื่นๆ ทุกอย่าง<small>เช่น กองทุน, ฌาปนกิจ, สหกรณ์ ฯลฯ</small></label>
+      <input type="number" id="dedOther" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct zero">หัก</div>
+    </div>
+
+    <div class="subtotal">
+      <span>รายได้สุทธิ <span class="text-info">(รับรู้ − รายจ่าย)</span></span>
+      <span id="netIncome">0</span>
+    </div>
+  </div>
+
+  <!-- 3. ภาระหนี้ -->
+  <div class="card">
+    <h2>3️⃣ ภาระหนี้</h2>
+    <div class="hint">ค่างวด (รถ / สินเชื่อบุคคล) หักตามค่างวดจริง · บัตรเครดิตคิด 10% ของยอดหนี้ในบูโร</div>
+
+    <div class="row">
+      <label>ค่างวดรถ<small>หักตามค่างวดจริง</small></label>
+      <input type="number" id="car" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct zero">หัก</div>
+    </div>
+    <div class="row">
+      <label>สินเชื่อบุคคล<small>หักตามค่างวดจริง</small></label>
+      <input type="number" id="ploan" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct zero">หัก</div>
+    </div>
+    <div class="row">
+      <label>ค่างวดอื่นๆ<small>หักตามค่างวดจริง</small></label>
+      <input type="number" id="instOther" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct zero">หัก</div>
+    </div>
+    <div class="row">
+      <label>ยอดหนี้บัตรเครดิตรวม (ในบูโร)<small>คิดภาระ 10% ของยอดนี้</small></label>
+      <input type="number" id="ccDebt" min="0" placeholder="0" inputmode="numeric">
+      <div class="pct part">10%</div>
+    </div>
+    <div class="recog">ภาระบัตรเครดิต <b id="r_cc">0</b> บาท</div>
+
+    <div class="subtotal">
+      <span>รวมภาระหนี้ต่อเดือน</span><span id="sumDebt">0</span>
+    </div>
+  </div>
+
+  <!-- ตัวเลือกคำนวณวงเงินกู้ -->
+  <div class="card">
+    <h2>🏦 ตัวเลือกคำนวณวงเงินกู้</h2>
+    <div class="hint">ค่าเริ่มต้นใช้เกณฑ์ "ผ่อนล้านละ 4,000" — หรือเลือกอัตราดอกเบี้ย + จำนวนปี เพื่อคำนวณแบบละเอียดตามสูตรผ่อนชำระจริง</div>
+    <div class="meta">
+      <div>
+        <label>อัตราดอกเบี้ย</label>
+        <select id="rate">
+          <option value="rule" selected>ผ่อนล้านละ 4,000 (ประมาณ)</option>
+          <option value="3">3% ต่อปี</option>
+          <option value="4">4% ต่อปี</option>
+          <option value="5">5% ต่อปี</option>
+          <option value="6">6% ต่อปี</option>
+          <option value="6.5">6.5% ต่อปี</option>
+          <option value="7">7% ต่อปี</option>
+        </select>
+      </div>
+      <div>
+        <label>จำนวนปีผ่อน</label>
+        <select id="years">
+          <option value="10">10 ปี</option>
+          <option value="15">15 ปี</option>
+          <option value="20">20 ปี</option>
+          <option value="25">25 ปี</option>
+          <option value="30">30 ปี</option>
+          <option value="35">35 ปี</option>
+          <option value="40" selected>40 ปี</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ผลลัพธ์ -->
+  <div class="result">
+    <div class="line"><span>รายได้สุทธิ</span><span id="o_net">0</span></div>
+    <div class="line neg"><span>รวมภาระหนี้</span><span id="o_debt">0</span></div>
+    <div class="line"><span>ดุลบัญชี (เงินคงเหลือ)</span><span id="o_balance">0</span></div>
+
+    <div class="big">
+      <div class="cap">ความสามารถผ่อนชำระต่อเดือน</div>
+      <div class="amt"><span id="afford">0</span> <small>บาท/เดือน</small></div>
+    </div>
+    <div class="loanbox">
+      <div class="cap">🏦 วงเงินกู้โดยประมาณ</div>
+      <div class="amt2"><span id="loan">0</span> <small>บาท</small></div>
+      <div class="loan-th">≈ <span id="loanTh">0.00</span> ล้านบาท · <span id="loanMethod">ผ่อนล้านละ 4,000</span></div>
+    </div>
+    <div class="verdict" id="verdict">กรอกข้อมูลเพื่อคำนวณ</div>
+    <div class="formula">
+      กลุ่ม: <b id="groupLabel">—</b><br>
+      ดุลบัญชี = รายได้สุทธิ − ภาระหนี้ &nbsp;|&nbsp; ความสามารถผ่อน = ดุลบัญชี ÷ <span id="divLabel">2</span><br>
+      วงเงินกู้: <span id="loanFormula">ผ่อนได้/เดือน ÷ 4,000 × 1,000,000</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-print" onclick="window.print()">🖨️ บันทึก / พิมพ์ PDF</button>
+    <button class="btn-line" onclick="shareLine()">📲 แชร์เข้า LINE</button>
+    <button class="btn-reset" onclick="resetAll()">↺ ล้างข้อมูล</button>
+  </div>
+
+  <footer>
+    โปรแกรมคำนวณรายได้ &amp; วงเงินกู้ v1.2 · แยกกลุ่มตามฐานเงินเดือน (≤30,000 ÷2 · เกิน 30,000 ÷3)<br>
+    หมายเหตุ: วงเงินกู้ประเมินจากเกณฑ์ "ผ่อนล้านละ 4,000 บาท" เป็นค่าประมาณเพื่อคัดกรองเบื้องต้น
+  </footer>
+
+</div>
+
+<script>
+  // ===== เกณฑ์การรับรู้รายได้ (แก้ที่นี่ถ้าเกณฑ์เปลี่ยน) =====
+  const RATE = { base:1.00, ot:0.80, cost:0.80, food:0.00, shift:0.80, other:0.80 };
+  const CC_RATE = 0.10;          // ภาระบัตรเครดิต = 10% ของยอดหนี้ในบูโร
+  // ตัวหารแปลงดุลบัญชี → ความสามารถผ่อน/เดือน — แยกตามฐานเงินเดือน
+  const SALARY_THRESHOLD = 30000;
+  const DIV_LOW  = 2;            // ฐานเงินเดือน ≤ 30,000
+  const DIV_HIGH = 3;            // ฐานเงินเดือน > 30,000
+  const PER_MILLION = 4000;      // ผ่อนล้านละ ~4,000 บาท → ใช้แปลงเป็นวงเงินกู้
+
+  const $ = id => document.getElementById(id);
+  const num = id => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const fmt = n => Math.round(n).toLocaleString('th-TH');
+
+  const INPUTS = ['base','ot','cost','food','shift','other',
+                  'sso','dedOther','car','ploan','instOther','ccDebt'];
+
+  function calc(){
+    // 1. รายได้ที่รับรู้
+    const rec = {
+      base : num('base')  * RATE.base,
+      ot   : num('ot')    * RATE.ot,
+      cost : num('cost')  * RATE.cost,
+      food : num('food')  * RATE.food,
+      shift: num('shift') * RATE.shift,
+      other: num('other') * RATE.other,
+    };
+    $('r_base').textContent  = fmt(rec.base);
+    $('r_ot').textContent    = fmt(rec.ot);
+    $('r_cost').textContent  = fmt(rec.cost);
+    $('r_food').textContent  = fmt(rec.food);
+    $('r_shift').textContent = fmt(rec.shift);
+    $('r_other').textContent = fmt(rec.other);
+
+    const sumIncome = rec.base+rec.ot+rec.cost+rec.food+rec.shift+rec.other;
+    $('sumIncome').textContent = fmt(sumIncome) + ' บาท';
+
+    // 2. รายจ่ายหักจากเงินเดือน
+    const deduct = num('sso') + num('dedOther');
+    const netIncome = sumIncome - deduct;
+    $('netIncome').textContent = fmt(netIncome) + ' บาท';
+
+    // 3. ภาระหนี้
+    const ccBurden = num('ccDebt') * CC_RATE;
+    $('r_cc').textContent = fmt(ccBurden);
+    const sumDebt = num('car') + num('ploan') + num('instOther') + ccBurden;
+    $('sumDebt').textContent = fmt(sumDebt) + ' บาท';
+
+    // ผลลัพธ์ — ตัวหารตามกลุ่มฐานเงินเดือน
+    const isHigh  = num('base') > SALARY_THRESHOLD;
+    const divisor = isHigh ? DIV_HIGH : DIV_LOW;
+    const balance = netIncome - sumDebt;
+    const afford  = balance > 0 ? balance / divisor : 0;
+
+    $('groupLabel').textContent = isHigh
+      ? 'ฐานเงินเดือน เกิน 30,000 บาท'
+      : 'ฐานเงินเดือน ไม่เกิน 30,000 บาท';
+    $('divLabel').textContent = divisor;
+
+    // วงเงินกู้โดยประมาณ — เลือกได้ 2 วิธี (ล้านละ 4,000 หรือ ตามดอกเบี้ย+ปี)
+    const rateVal = $('rate').value;
+    const years   = parseInt($('years').value, 10);
+    let loan, loanMethod, loanFormula;
+    if (rateVal === 'rule'){
+      loan = afford / PER_MILLION * 1000000;
+      loanMethod  = 'ผ่อนล้านละ ' + fmt(PER_MILLION);
+      loanFormula = 'ผ่อนได้/เดือน ÷ ' + fmt(PER_MILLION) + ' × 1,000,000 (ผ่อนล้านละ ' + fmt(PER_MILLION) + ')';
+    } else {
+      const r = parseFloat(rateVal) / 100 / 12;   // ดอกเบี้ยต่อเดือน
+      const n = years * 12;                       // จำนวนงวด
+      loan = r > 0 ? afford * (1 - Math.pow(1 + r, -n)) / r : afford * n;
+      loanMethod  = rateVal + '% · ' + years + ' ปี';
+      loanFormula = 'สูตรผ่อนชำระ — ดอกเบี้ย ' + rateVal + '%/ปี · ผ่อน ' + years + ' ปี';
+    }
+    $('loan').textContent       = fmt(loan);
+    $('loanTh').textContent     = (loan / 1000000).toFixed(2);
+    $('loanMethod').textContent = loanMethod;
+    $('loanFormula').textContent = loanFormula;
+
+    $('o_net').textContent     = fmt(netIncome) + ' บาท';
+    $('o_debt').textContent    = '− ' + fmt(sumDebt) + ' บาท';
+    $('o_balance').textContent = fmt(balance) + ' บาท';
+    $('afford').textContent    = fmt(afford);
+
+    const v = $('verdict');
+    if (sumIncome <= 0){
+      v.className = 'verdict'; v.textContent = 'กรอกข้อมูลเพื่อคำนวณ';
+    } else if (balance > 0){
+      v.className = 'verdict ok';
+      v.textContent = '✅ ผ่อนได้ ~' + fmt(afford) + ' บาท/เดือน · กู้ได้ ~' + (loan/1000000).toFixed(2) + ' ล้านบาท';
+    } else {
+      v.className = 'verdict no';
+      v.textContent = '⚠️ ดุลบัญชีติดลบ — รายจ่าย/ภาระหนี้สูงกว่ารายได้';
+    }
+    return { sumIncome, netIncome, sumDebt, balance, afford, divisor, isHigh, loan, loanMethod };
+  }
+
+  function summaryText(){
+    const r = calc();
+    const name = $('cName').value.trim() || '-';
+    const plot = $('cPlot').value.trim() || '-';
+    return [
+      '💰 ผลคำนวณรายได้ — One Vela',
+      'ลูกค้า: ' + name,
+      'แปลง/Sales: ' + plot,
+      '──────────────',
+      'รายได้ที่รับรู้: ' + fmt(r.sumIncome) + ' บาท',
+      'รายได้สุทธิ: ' + fmt(r.netIncome) + ' บาท',
+      'รวมภาระหนี้: ' + fmt(r.sumDebt) + ' บาท',
+      'ดุลบัญชี: ' + fmt(r.balance) + ' บาท',
+      'กลุ่ม: ' + (r.isHigh ? 'เงินเดือน >30,000 (÷3)' : 'เงินเดือน ≤30,000 (÷2)'),
+      '➡️ ผ่อนได้ ~' + fmt(r.afford) + ' บาท/เดือน',
+      '🏦 วงเงินกู้โดยประมาณ ~' + fmt(r.loan) + ' บาท (' + (r.loan/1000000).toFixed(2) + ' ล้าน)',
+      '   วิธีคำนวณ: ' + r.loanMethod
+    ].join('\n');
+  }
+
+  function shareLine(){
+    const txt = summaryText();
+    if (navigator.share){
+      navigator.share({ title:'ผลคำนวณรายได้ One Vela', text:txt })
+        .catch(()=>{});
+    } else {
+      const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(txt);
+      window.open(url, '_blank');
+    }
+  }
+
+  function resetAll(){
+    INPUTS.forEach(id => $(id).value = '');
+    $('cName').value = ''; $('cPlot').value = '';
+    $('rate').value = 'rule'; $('years').value = '40';
+    calc();
+  }
+
+  INPUTS.forEach(id => $(id).addEventListener('input', calc));
+  ['rate','years'].forEach(id => $(id).addEventListener('change', calc));
+  calc();
+</script>
+</body>
+</html>
