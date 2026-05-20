@@ -559,6 +559,36 @@
     });
   }
 
+  // POST ผ่าน hidden form + iframe — เป็นวิธีเดียวที่ผ่าน Apps Script 302 redirect
+  // (fetch POST ถูก browser ลด POST→GET ตอน redirect ทำให้ body หาย)
+  function postViaForm(payload){
+    return new Promise(resolve=>{
+      let frame=document.getElementById('apiUploadFrame');
+      let form=document.getElementById('apiUploadForm');
+      let ta=document.getElementById('apiUploadPayload');
+      if(!frame){
+        frame=document.createElement('iframe');
+        frame.id='apiUploadFrame'; frame.name='apiUploadFrame';
+        frame.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+        document.body.appendChild(frame);
+        form=document.createElement('form');
+        form.id='apiUploadForm'; form.method='POST'; form.target='apiUploadFrame';
+        form.enctype='text/plain'; form.style.display='none';
+        ta=document.createElement('textarea');
+        ta.id='apiUploadPayload'; ta.name='d';
+        form.appendChild(ta);
+        document.body.appendChild(form);
+      }
+      form.action=API_URL;
+      ta.value=JSON.stringify(payload);
+      let done=false;
+      const finish=()=>{ if(!done){ done=true; frame.onload=null; resolve(); } };
+      frame.onload=finish;
+      setTimeout(finish, 20000); // safety timeout
+      form.submit();
+    });
+  }
+
   async function uploadPdfToDrive(){
     if(!window.html2pdf){ console.warn('html2pdf not loaded'); return; }
     const plot=String($('plotNo').value||'').trim() || 'ไม่ระบุแปลง';
@@ -570,19 +600,15 @@
               html2canvas:{scale:2,useCORS:true}, jsPDF:{format:'a4',orientation:'portrait'}})
         .outputPdf('blob');
       const fileBase64=await blobToBase64(blob);
-      await fetch(API_URL, {
-        method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({
-          action:'uploadFile',
-          plot: plot,
-          category:'ใบเสนอราคา',
-          tab:'quotations',
-          docNo:$('docNo').value,
-          fileName:fileName,
-          mimeType:'application/pdf',
-          fileBase64:fileBase64,
-        })
+      await postViaForm({
+        action:'uploadFile',
+        plot: plot,
+        category:'ใบเสนอราคา',
+        tab:'quotations',
+        docNo:$('docNo').value,
+        fileName:fileName,
+        mimeType:'application/pdf',
+        fileBase64:fileBase64,
       });
     }catch(e){ console.warn('uploadPdf failed', e); }
   }

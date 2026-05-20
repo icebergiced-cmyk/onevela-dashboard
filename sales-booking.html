@@ -502,6 +502,31 @@
 
   function _blobToB64(b){return new Promise((res,rej)=>{const fr=new FileReader();
     fr.onload=()=>res(String(fr.result).split(',')[1]);fr.onerror=rej;fr.readAsDataURL(b);});}
+  // POST ผ่าน hidden form + iframe (เลี่ยง Apps Script 302 redirect bug)
+  function _postViaForm(payload){
+    return new Promise(resolve=>{
+      let frame=document.getElementById('apiUploadFrame');
+      let form=document.getElementById('apiUploadForm');
+      let ta=document.getElementById('apiUploadPayload');
+      if(!frame){
+        frame=document.createElement('iframe');
+        frame.id='apiUploadFrame'; frame.name='apiUploadFrame';
+        frame.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+        document.body.appendChild(frame);
+        form=document.createElement('form');
+        form.id='apiUploadForm'; form.method='POST'; form.target='apiUploadFrame';
+        form.enctype='text/plain'; form.style.display='none';
+        ta=document.createElement('textarea');
+        ta.id='apiUploadPayload'; ta.name='d';
+        form.appendChild(ta); document.body.appendChild(form);
+      }
+      form.action=API_URL; ta.value=JSON.stringify(payload);
+      let done=false;
+      const finish=()=>{ if(!done){ done=true; frame.onload=null; resolve(); } };
+      frame.onload=finish; setTimeout(finish, 20000);
+      form.submit();
+    });
+  }
   async function _uploadPdf(opts){
     if(!window.html2pdf) return;
     try{
@@ -510,11 +535,9 @@
               html2canvas:{scale:2,useCORS:true},jsPDF:{format:'a4',orientation:'portrait'}})
         .outputPdf('blob');
       const fileBase64=await _blobToB64(blob);
-      await fetch(API_URL,{method:'POST',mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({action:'uploadFile',plot:opts.plot,category:opts.category,
-          tab:opts.tab,docNo:opts.docNo,fileName:opts.fileName,
-          mimeType:'application/pdf',fileBase64})});
+      await _postViaForm({action:'uploadFile',plot:opts.plot,category:opts.category,
+        tab:opts.tab,docNo:opts.docNo,fileName:opts.fileName,
+        mimeType:'application/pdf',fileBase64});
     }catch(e){console.warn('upload pdf failed',e);}
   }
   async function printAndUpload(){

@@ -50,7 +50,8 @@ function doGet(e){
 
 function doPost(e){
   try {
-    const body = JSON.parse(e.postData.contents);
+    const body = parsePostBody(e);
+    if(!body || !body.action) return json({ok:false, error:'invalid body'});
     switch(body.action){
       case 'saveQuotation':return json(saveQuotation(body.data));
       case 'saveBooking':  return json(saveRow('bookings',  body.data));
@@ -61,6 +62,32 @@ function doPost(e){
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
+}
+
+// รองรับทั้ง JSON body (fetch) และ text/plain form body (hidden form trick)
+// form ส่งมาเป็นรูป "d=<JSON>\r\n" — ตัด prefix แล้ว parse
+function parsePostBody(e){
+  let raw = (e && e.postData && e.postData.contents) || '';
+  if(!raw){
+    // บางครั้ง form-encoded จะอ่านจาก e.parameter
+    if(e && e.parameter && e.parameter.d){
+      try { return JSON.parse(e.parameter.d); } catch(err){}
+    }
+    return null;
+  }
+  raw = raw.trim();
+  if(raw.charAt(0) === '{'){
+    try { return JSON.parse(raw); } catch(err){}
+  }
+  // form text/plain: "d={...}\r\n" — ตัด "d=" แล้ว parse
+  const m = raw.match(/^d=([\s\S]+)$/);
+  if(m){
+    let s = m[1];
+    // ตัด CRLF/LF ท้ายถ้ามี
+    s = s.replace(/[\r\n]+$/, '');
+    try { return JSON.parse(s); } catch(err){}
+  }
+  return null;
 }
 
 function parseData(s){
