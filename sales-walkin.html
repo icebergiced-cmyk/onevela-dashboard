@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ลูกค้าวอร์คอิน — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;
+    --grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:1140px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .logo img{height:38px;width:auto;display:block}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;
+    padding:9px 14px;cursor:pointer;background:var(--gold);color:#fff;text-decoration:none}
+  .topbar a.ghost{background:rgba(255,255,255,.15)}
+
+  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:20px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px}
+
+  .card{background:#fff;border-radius:13px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06);
+    margin-bottom:14px}
+  .form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}
+  .form .f-full{grid-column:1/-1}
+  .lbl{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:3px;letter-spacing:.3px}
+  .inp{width:100%;font-family:inherit;font-size:14px;padding:9px 12px;border:1.5px solid var(--line);
+    border-radius:9px;background:#fff}
+  .inp:focus{outline:none;border-color:var(--gold)}
+  textarea.inp{resize:vertical;min-height:60px}
+  .btn{font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:10px;
+    padding:11px 22px;cursor:pointer;background:var(--gold);color:#fff}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:#efeae1;color:var(--charcoal);border:1px solid #ddd5c6}
+  .btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+  .stat{background:#fff;border-radius:11px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .stat .n{font-size:22px;font-weight:800;line-height:1.1;color:var(--gold)}
+  .stat .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .pill.s1{background:#fef3e2;color:var(--amber)}
+  .pill.s2{background:#e8eefc;color:var(--blue)}
+  .pill.s3{background:#e6f4ea;color:var(--green)}
+  .pill.s4{background:#eef1f4;color:var(--muted)}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#fff;font-weight:700;padding:10px 20px;
+    border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,.2);z-index:99999;display:none}
+  .toast.err{background:var(--red)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .filters input,.filters select{font-family:inherit;font-size:13px;padding:7px 12px;
+    border:1.5px solid var(--line);border-radius:20px;background:#fff}
+  .filters label{font-size:12px;color:var(--muted);font-weight:600}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28)}
+  body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
+    url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}
+  @media(max-width:720px){.form{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab">🏠 หน้าแรก</a>
+<div id="toast" class="toast"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
+      onerror="this.style.display='none'"></div>
+    <div class="ttl">ลูกค้าวอร์คอิน<small>WALK-IN CUSTOMERS · ONE VELA</small></div>
+    <a href="sales-dashboard.html" class="ghost">← แดชบอร์ดงานขาย</a>
+  </div>
+
+  <h2 class="sec">📝 บันทึกลูกค้าใหม่</h2>
+  <div class="card">
+    <div class="form">
+      <div>
+        <label class="lbl">วันที่เข้าชม</label>
+        <input type="date" id="visitDate" class="inp">
+      </div>
+      <div>
+        <label class="lbl">เซลล์ผู้ดูแล</label>
+        <input type="text" id="salesPerson" class="inp" placeholder="ชื่อเซลล์">
+      </div>
+      <div>
+        <label class="lbl">ชื่อ-สกุลลูกค้า *</label>
+        <input type="text" id="cName" class="inp" placeholder="ชื่อ นามสกุล">
+      </div>
+      <div>
+        <label class="lbl">เบอร์โทร</label>
+        <input type="tel" id="cPhone" class="inp" placeholder="08X-XXX-XXXX">
+      </div>
+      <div>
+        <label class="lbl">แปลงที่สนใจ</label>
+        <input type="text" id="plotInterest" class="inp" placeholder="เช่น 140, 215">
+      </div>
+      <div>
+        <label class="lbl">แหล่งที่มา</label>
+        <select id="source" class="inp">
+          <option value="">เลือก...</option>
+          <option>Facebook</option>
+          <option>TikTok</option>
+          <option>Line</option>
+          <option>Google</option>
+          <option>ป้ายโฆษณา</option>
+          <option>เพื่อนแนะนำ</option>
+          <option>ผ่านมา</option>
+          <option>นายหน้า</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="f-full">
+        <label class="lbl">หมายเหตุ / ความสนใจ</label>
+        <textarea id="note" class="inp" placeholder="งบประมาณ, แบบบ้านที่สนใจ, สิ่งที่ลูกค้าถาม..."></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="clearForm()">ล้างฟอร์ม</button>
+      <button class="btn" onclick="save()">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <h2 class="sec">📊 สรุปวันนี้</h2>
+  <div class="stats" id="stats"></div>
+
+  <h2 class="sec">📋 รายการวอร์คอิน</h2>
+  <div class="card">
+    <div class="filters">
+      <label>ช่วงเวลา:</label>
+      <select id="fRange" class="inp">
+        <option value="today">วันนี้</option>
+        <option value="7">7 วันล่าสุด</option>
+        <option value="30">30 วันล่าสุด</option>
+        <option value="all">ทั้งหมด</option>
+      </select>
+      <input id="fSearch" type="text" placeholder="ค้นหาชื่อ/แปลง/เซลล์">
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>วันที่</th><th>ลูกค้า</th><th>เบอร์</th><th>แปลงที่สนใจ</th>
+          <th>แหล่งที่มา</th><th>เซลล์</th><th>หมายเหตุ</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>ลูกค้าวอร์คอิน · One Vela — Two Build Development</footer>
+</div>
+
+<script>
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $=id=>document.getElementById(id);
+  const today=new Date().toISOString().slice(0,10);
+  let WALKINS=[];
+
+  $('visitDate').value=today;
+
+  function toast(msg, err){
+    const t=$('toast'); t.textContent=msg; t.className='toast'+(err?' err':'');
+    t.style.display='block';
+    setTimeout(()=>{t.style.display='none'},2800);
+  }
+
+  function clearForm(){
+    $('visitDate').value=today;
+    ['salesPerson','cName','cPhone','plotInterest','note'].forEach(k=>$(k).value='');
+    $('source').value='';
+  }
+
+  async function save(){
+    const name=$('cName').value.trim();
+    if(!name){ toast('กรุณากรอกชื่อลูกค้า', true); $('cName').focus(); return; }
+    const data={
+      visitDate: $('visitDate').value || today,
+      cName: name,
+      cPhone: $('cPhone').value.trim(),
+      plotInterest: $('plotInterest').value.trim(),
+      source: $('source').value,
+      note: $('note').value.trim(),
+      salesPerson: $('salesPerson').value.trim(),
+    };
+    try{
+      await fetch(API_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({action:'saveWalkIn', data})
+      });
+      // localStorage backup
+      const log=JSON.parse(localStorage.getItem('onevela_walkins')||'[]');
+      log.push({...data, createdAt:new Date().toISOString()});
+      localStorage.setItem('onevela_walkins', JSON.stringify(log));
+
+      toast('✅ บันทึกลูกค้า '+name+' เรียบร้อย');
+      clearForm();
+      setTimeout(load, 800);
+    }catch(e){
+      toast('บันทึกไม่สำเร็จ — ลองใหม่', true);
+    }
+  }
+
+  async function load(){
+    try{
+      const res=await fetch(API_URL+'?action=getSalesData');
+      const data=await res.json();
+      WALKINS=(data && data.ok && data.walkins) ? data.walkins : [];
+    }catch(e){
+      WALKINS=[];
+    }
+    render();
+  }
+
+  function render(){
+    const range=$('fRange').value;
+    const q=($('fSearch').value||'').trim().toLowerCase();
+    const cutoff=(()=>{
+      if(range==='all') return '';
+      if(range==='today') return today;
+      const d=new Date(); d.setDate(d.getDate()-Number(range)+1);
+      return d.toISOString().slice(0,10);
+    })();
+
+    const list=WALKINS.filter(w=>{
+      const vd=String(w.visitDate||'').slice(0,10);
+      if(cutoff && vd && vd<cutoff) return false;
+      if(range==='today' && vd!==today) return false;
+      if(q){
+        const hay=((w.cName||'')+' '+(w.plotInterest||'')+' '+(w.salesPerson||'')+' '+(w.cPhone||'')).toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    }).sort((a,b)=>String(b.visitDate||'').localeCompare(String(a.visitDate||'')));
+
+    const todayList=WALKINS.filter(w=>String(w.visitDate||'').slice(0,10)===today);
+    const week=WALKINS.filter(w=>{
+      const vd=String(w.visitDate||'').slice(0,10);
+      const d=new Date(); d.setDate(d.getDate()-6);
+      return vd>=d.toISOString().slice(0,10);
+    });
+    const uniqSource={}; WALKINS.forEach(w=>{ if(w.source) uniqSource[w.source]=(uniqSource[w.source]||0)+1; });
+    const topSrc=Object.entries(uniqSource).sort((a,b)=>b[1]-a[1])[0];
+
+    $('stats').innerHTML=
+      stat(todayList.length, 'วอร์คอินวันนี้')+
+      stat(week.length, '7 วันล่าสุด')+
+      stat(WALKINS.length, 'ทั้งหมด')+
+      stat(topSrc?topSrc[0]+' ('+topSrc[1]+')':'-', 'แหล่งที่มาอันดับ 1');
+
+    $('tb').innerHTML=list.length?list.map(w=>{
+      const plot=String(w.plotInterest||'').trim();
+      const plotCell=plot ? plot.split(/[,\s]+/).filter(Boolean).map(p=>
+        '<a href="plot-detail.html?plot='+encodeURIComponent(p)+'" style="color:var(--gold);text-decoration:none;font-weight:700">'+p+'</a>'
+      ).join(', ') : '-';
+      return '<tr>'+
+        '<td>'+(String(w.visitDate||'').slice(0,10)||'-')+'</td>'+
+        '<td><b>'+(w.cName||'-')+'</b></td>'+
+        '<td>'+(w.cPhone||'-')+'</td>'+
+        '<td>'+plotCell+'</td>'+
+        '<td>'+(w.source?'<span class="pill s1">'+w.source+'</span>':'-')+'</td>'+
+        '<td>'+(w.salesPerson||'-')+'</td>'+
+        '<td>'+(w.note||'-')+'</td>'+
+      '</tr>';
+    }).join(''):'<tr><td colspan="7" class="empty">ยังไม่มีข้อมูลในช่วงที่เลือก</td></tr>';
+  }
+
+  function stat(n, l){
+    return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';
+  }
+
+  $('fRange').addEventListener('change', render);
+  $('fSearch').addEventListener('input', render);
+  load();
+</script>
+</body>
+</html>

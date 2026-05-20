@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>สัญญาจะซื้อจะขาย — One Vela</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -85,7 +86,7 @@
 
   <div class="toolbar no-print">
     <div class="ttl">สัญญาจะซื้อจะขาย<small>CONTRACT</small></div>
-    <button class="b-print" onclick="printDoc()">🖨️ พิมพ์ / PDF</button>
+    <button class="b-print" onclick="printAndUpload()">🖨️ พิมพ์ / บันทึก / อัปโหลด</button>
     <button class="b-log" onclick="saveToFolder()">💾 เก็บเข้าโฟลเดอร์</button>
     <button class="b-line" onclick="shareLine()">📲 แชร์ LINE</button>
     <button class="b-save" onclick="saveLog()">💾 บันทึก Log</button>
@@ -520,6 +521,39 @@
     document.title='สัญญาจะซื้อจะขาย_แปลง'+plot+'_'+cust;
     window.print();
     setTimeout(()=>{document.title=o;},800);
+  }
+
+  function _blobToB64(b){return new Promise((res,rej)=>{const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result).split(',')[1]);fr.onerror=rej;fr.readAsDataURL(b);});}
+  async function _uploadPdf(opts){
+    if(!window.html2pdf) return;
+    try{
+      const blob=await html2pdf().from($('doc'))
+        .set({margin:8,filename:opts.fileName,image:{type:'jpeg',quality:.94},
+              html2canvas:{scale:2,useCORS:true},jsPDF:{format:'a4',orientation:'portrait'}})
+        .outputPdf('blob');
+      const fileBase64=await _blobToB64(blob);
+      await fetch(API_URL,{method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'uploadFile',plot:opts.plot,category:opts.category,
+          tab:opts.tab,docNo:opts.docNo,fileName:opts.fileName,
+          mimeType:'application/pdf',fileBase64})});
+    }catch(e){console.warn('upload pdf failed',e);}
+  }
+  async function printAndUpload(){
+    const btn=document.querySelector('.b-print');
+    const orig=btn.textContent; btn.disabled=true; btn.textContent='⏳ บันทึก...';
+    try{ if(typeof saveLog==='function') saveLog(); }catch(e){}
+    btn.textContent='⏳ อัปโหลด PDF...';
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    await _uploadPdf({
+      plot:$('plotNo').value||'อื่นๆ',
+      category:'สัญญา', tab:'contracts', docNo:$('docNo').value,
+      fileName:'สัญญา_'+($('docNo').value||'')+'_แปลง'+(clean($('plotNo').value)||'-')+
+               '_'+(clean($('bName').value)||'ลูกค้า')+'.pdf',
+    });
+    btn.disabled=false; btn.textContent=orig;
+    printDoc();
   }
 
   async function saveToFolder(){

@@ -64,7 +64,9 @@
   .filters input:focus{outline:none;border-color:var(--gold)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:10px}
   .plot{background:#fff;border-radius:11px;padding:12px 13px;box-shadow:0 1px 4px rgba(0,0,0,.06);
-    border-left:4px solid var(--grey)}
+    border-left:4px solid var(--grey);text-decoration:none;color:inherit;display:block;
+    transition:transform .12s ease, box-shadow .12s ease}
+  .plot:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.12);cursor:pointer}
   .plot.s-จอง{border-left-color:var(--amber)}
   .plot.s-สัญญา,.plot.s-ขายดาวน์{border-left-color:var(--blue)}
   .plot.s-โอนแล้ว{border-left-color:var(--green)}
@@ -98,6 +100,7 @@
     <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
       onerror="this.style.display='none'"></div>
     <div class="ttl">แดชบอร์ดงานขาย<small>SALES DASHBOARD · ONE VELA</small></div>
+    <a href="sales-walkin.html" style="background:rgba(255,255,255,.15);color:#fff;text-decoration:none;font-family:inherit;font-size:13px;font-weight:700;border-radius:9px;padding:9px 14px;display:inline-block">👥 วอร์คอิน</a>
     <button class="ghost" onclick="window.print()">🖨️ พิมพ์รายงาน</button>
     <button onclick="load()">↻ รีเฟรชข้อมูล</button>
   </div>
@@ -292,12 +295,12 @@
       const st=(p.status||'ว่าง').trim();
       const cust=(p.cName)?'<div class="pcust"><span class="nm">'+p.cName+'</span>'+
         (p.cPhone?' · '+p.cPhone:'')+'</div>':'';
-      return '<div class="plot s-'+st+'">'+
+      return '<a class="plot s-'+st+'" href="plot-detail.html?plot='+encodeURIComponent(p.plot)+'">'+
         '<div class="ph"><span class="pno">แปลง '+p.plot+'</span>'+
         '<span class="pst">'+st+'</span></div>'+
         '<div class="pd">บ้านเลขที่ <b>'+(p.houseNo||'-')+'</b> · TYPE <b>'+(p.typeCode||'-')+'</b><br>'+
         'โฉนด <b>'+(p.deed||'-')+'</b><br>'+
-        'ราคาสุทธิ <b>'+fmt(p.priceNet)+'</b> บาท</div>'+cust+'</div>';
+        'ราคาสุทธิ <b>'+fmt(p.priceNet)+'</b> บาท</div>'+cust+'</a>';
     }).join('') || '<div class="empty">ไม่พบแปลงที่ตรงเงื่อนไข</div>';
   }
 

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รายละเอียดแปลง — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;
+    --grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--soft:#f7f8fa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:1140px;margin:0 auto}
+  .topbar{
+    background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .topbar .logo img{height:38px;width:auto;display:block}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;
+    padding:9px 14px;cursor:pointer;background:var(--gold);color:#fff;text-decoration:none}
+  .topbar a.ghost,.topbar button.ghost{background:rgba(255,255,255,.15)}
+  .topbar a:hover,.topbar button:hover{filter:brightness(1.08)}
+
+  .state{text-align:center;padding:50px 20px;color:var(--muted);font-size:15px}
+  .state .sp{font-size:30px;margin-bottom:10px}
+
+  .hero{background:#fff;border-radius:14px;padding:20px 22px;margin-bottom:14px;
+    box-shadow:0 1px 6px rgba(0,0,0,.06);border-left:6px solid var(--grey)}
+  .hero.s-จอง{border-left-color:var(--amber)}
+  .hero.s-สัญญา,.hero.s-ขายดาวน์{border-left-color:var(--blue)}
+  .hero.s-โอนแล้ว{border-left-color:var(--green)}
+  .hero h1{font-size:24px;font-weight:800;color:var(--charcoal);margin-bottom:4px}
+  .hero .pst{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:20px;
+    background:#eef1f4;color:var(--muted);margin-left:6px;vertical-align:middle}
+  .hero.s-จอง .pst{background:#fef3e2;color:var(--amber)}
+  .hero.s-สัญญา .pst,.hero.s-ขายดาวน์ .pst{background:#e8eefc;color:var(--blue)}
+  .hero.s-โอนแล้ว .pst{background:#e6f4ea;color:var(--green)}
+  .hero .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 18px;
+    margin-top:12px;font-size:13px}
+  .hero .meta .lbl{color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.5px;margin-bottom:1px}
+  .hero .meta .val{color:var(--ink);font-weight:600}
+  .hero .meta .val b{color:var(--gold);font-weight:800}
+  .customer{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);
+    display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline;font-size:13.5px}
+  .customer .nm{font-weight:800;color:var(--charcoal)}
+  .customer .ph{color:var(--muted)}
+
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+  .actions a{font-family:inherit;font-size:13px;font-weight:700;text-decoration:none;
+    background:#efeae1;color:var(--charcoal);border:1px solid #ddd5c6;
+    border-radius:9px;padding:9px 14px;display:inline-flex;align-items:center;gap:6px}
+  .actions a:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:22px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:8px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+
+  .docTbl{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px}
+  td.r,th.r{text-align:right}
+  td.c,th.c{text-align:center}
+  .docNo{font-weight:800;color:var(--charcoal)}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  .lnk{display:inline-block;background:var(--gold);color:#fff;text-decoration:none;
+    font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:14px}
+  .lnk:hover{filter:brightness(1.1)}
+  .lnk.muted{background:#eef1f4;color:var(--muted)}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28)}
+  .home-fab:hover{background:#b08d57}
+  body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
+    url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}
+  @media print{
+    .topbar,.actions,.home-fab{display:none!important}
+    body{background:#fff!important;padding:0}
+    .docTbl,.hero{box-shadow:none;border:1px solid var(--line)}
+  }
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
+      onerror="this.style.display='none'"></div>
+    <div class="ttl">รายละเอียดแปลง<small>PLOT DETAIL · ONE VELA</small></div>
+    <a href="sales-dashboard.html" class="ghost">← แดชบอร์ดงานขาย</a>
+    <button onclick="load()">↻ รีเฟรช</button>
+  </div>
+
+  <div id="state" class="state"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>
+  <div id="content" style="display:none">
+
+    <div id="hero" class="hero"></div>
+
+    <div class="actions" id="actions"></div>
+
+    <h2 class="sec">📄 ใบเสนอราคา <span class="ct" id="ctQuote">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันที่</th><th>ลูกค้า</th>
+          <th class="r">ราคาสุทธิ</th><th class="r">เงินดาวน์</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbQuote"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">📋 ใบจอง <span class="ct" id="ctBook">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันจอง</th><th>ลูกค้า</th>
+          <th class="r">เงินจอง</th><th>สถานะ</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbBook"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">📑 สัญญาจะซื้อจะขาย <span class="ct" id="ctCont">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันที่ทำสัญญา</th><th>ลูกค้า</th>
+          <th class="r">ราคารวม</th><th class="r">งวดดาวน์</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbCont"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">🧾 ใบเสร็จรับเงิน <span class="ct" id="ctPay">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันที่</th><th>ประเภท</th>
+          <th class="r">ยอดรับ (บาท)</th><th>วิธีจ่าย</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbPay"></tbody>
+      </table>
+    </div>
+
+  </div>
+  <footer>รายละเอียดแปลง · One Vela — Two Build Development</footer>
+</div>
+
+<script>
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $=id=>document.getElementById(id);
+  const fmt=n=>Number(n||0).toLocaleString('th-TH');
+  const dt=v=>v?String(v).slice(0,10):'-';
+  const plotKey=new URLSearchParams(location.search).get('plot');
+
+  async function load(){
+    if(!plotKey){
+      $('state').innerHTML='<div class="sp">⚠️</div>ไม่ได้ระบุเลขแปลง — เปิดผ่าน ?plot=N';
+      return;
+    }
+    $('state').style.display=''; $('content').style.display='none';
+    $('state').innerHTML='<div class="sp">⏳</div>กำลังโหลดข้อมูลแปลง '+plotKey+'...';
+    try{
+      const res=await fetch(API_URL+'?action=getSalesData');
+      const data=await res.json();
+      if(!data || !data.ok) throw new Error('bad data');
+      render(data);
+      $('state').style.display='none'; $('content').style.display='';
+    }catch(e){
+      $('state').innerHTML='<div class="sp">⚠️</div>โหลดข้อมูลไม่สำเร็จ<br><br>'+
+        '<button onclick="load()" style="padding:8px 16px;border:none;border-radius:8px;'+
+        'background:#b08d57;color:#fff;font-weight:700;cursor:pointer">ลองใหม่</button>';
+    }
+  }
+
+  function match(rows, fields){
+    if(!rows) return [];
+    return rows.filter(r => fields.some(f => String(r[f]||'').trim() === String(plotKey).trim()));
+  }
+
+  function render(data){
+    const plot=(data.plots||[]).find(p=>String(p.plot).trim()===String(plotKey).trim());
+    if(!plot){
+      $('state').style.display='';
+      $('content').style.display='none';
+      $('state').innerHTML='<div class="sp">❓</div>ไม่พบแปลงเลข <b>'+plotKey+'</b> ในฐานข้อมูล';
+      return;
+    }
+    const status=(plot.status||'ว่าง').trim();
+    $('hero').className='hero s-'+status;
+    $('hero').innerHTML=
+      '<h1>แปลง '+plot.plot+' <span class="pst">'+status+'</span></h1>'+
+      '<div class="meta">'+
+        cell('บ้านเลขที่', plot.houseNo)+
+        cell('TYPE', plot.typeCode)+
+        cell('โฉนดเลขที่', plot.deed)+
+        cell('เนื้อที่', plot.area ? plot.area+' ตร.ว.' : '-')+
+        cell('ราคาสุทธิ', '<b>'+fmt(plot.priceNet)+'</b> บาท')+
+      '</div>'+
+      (plot.cName ? '<div class="customer">'+
+        '<span class="nm">👤 '+plot.cName+'</span>'+
+        (plot.cPhone?'<span class="ph">📞 '+plot.cPhone+'</span>':'')+
+        '</div>' : '');
+
+    const enc=encodeURIComponent(plot.plot);
+    $('actions').innerHTML=
+      '<a href="sales-quotation.html?plot='+enc+'">📄 ออกใบเสนอราคา</a>'+
+      '<a href="sales-booking.html?plot='+enc+'">📋 ออกใบจอง</a>'+
+      '<a href="sales-contract.html?plot='+enc+'">📑 ทำสัญญา</a>'+
+      '<a href="sales-receipt.html?plot='+enc+'">🧾 ออกใบเสร็จ</a>';
+
+    const quotes=match(data.quotations, ['plot']);
+    const books=match(data.bookings, ['plot']);
+    const conts=match(data.contracts, ['plot','plotNo']);
+    const pays=match(data.payments, ['plot']);
+
+    $('ctQuote').textContent=quotes.length+' ฉบับ';
+    $('ctBook').textContent=books.length+' ฉบับ';
+    $('ctCont').textContent=conts.length+' ฉบับ';
+    $('ctPay').textContent=pays.length+' ฉบับ';
+
+    $('tbQuote').innerHTML=quotes.length?quotes.sort(byDate('createdAt')).map(q=>
+      '<tr><td class="docNo">'+(q.docNo||'-')+'</td>'+
+      '<td>'+dt(q.createdAt)+'</td>'+
+      '<td>'+(q.cName||'-')+'</td>'+
+      '<td class="r">'+fmt(q.priceNet)+'</td>'+
+      '<td class="r">'+fmt(q.downPmt)+'</td>'+
+      '<td class="c">'+fileLink(q.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีใบเสนอราคาของแปลงนี้');
+
+    $('tbBook').innerHTML=books.length?books.sort(byDate('bookDate')).map(b=>
+      '<tr><td class="docNo">'+(b.bookingNo||b.docNo||'-')+'</td>'+
+      '<td>'+dt(b.bookDate)+'</td>'+
+      '<td>'+(b.cName||'-')+'</td>'+
+      '<td class="r">'+fmt(b.bookAmount)+'</td>'+
+      '<td>'+(b.status||'-')+'</td>'+
+      '<td class="c">'+fileLink(b.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีใบจองของแปลงนี้');
+
+    $('tbCont').innerHTML=conts.length?conts.sort(byDate('contractDate')).map(c=>
+      '<tr><td class="docNo">'+(c.contractNo||c.docNo||'-')+'</td>'+
+      '<td>'+dt(c.contractDate)+'</td>'+
+      '<td>'+(c.cName||'-')+'</td>'+
+      '<td class="r">'+fmt(c.priceNet||c.priceTotal)+'</td>'+
+      '<td class="r">'+(c.months?c.months+' งวด':'-')+'</td>'+
+      '<td class="c">'+fileLink(c.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีสัญญาของแปลงนี้');
+
+    $('tbPay').innerHTML=pays.length?pays.sort(byDate('payDate')).map(p=>
+      '<tr><td class="docNo">'+(p.receiptNo||p.docNo||'-')+'</td>'+
+      '<td>'+dt(p.payDate)+'</td>'+
+      '<td>'+(p.payType||p.category||'-')+'</td>'+
+      '<td class="r">'+fmt(p.amount)+'</td>'+
+      '<td>'+(p.method||'-')+'</td>'+
+      '<td class="c">'+fileLink(p.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีใบเสร็จของแปลงนี้');
+  }
+
+  function cell(lbl, val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+  function empty(cols, msg){
+    return '<tr><td colspan="'+cols+'" class="empty">'+msg+'</td></tr>';
+  }
+  function fileLink(url){
+    return url ? '<a class="lnk" href="'+url+'" target="_blank">เปิดไฟล์ ↗</a>'
+               : '<span class="lnk muted">ไม่มีไฟล์</span>';
+  }
+  function byDate(key){
+    return (a,b)=>String(b[key]||'').localeCompare(String(a[key]||''));
+  }
+
+  load();
+</script>
+</body>
+</html>
