@@ -11,6 +11,11 @@
  * 5. Deploy → New deployment → ประเภท "Web app"
  *    → Execute as: Me  ·  Who has access: Anyone
  * 6. คัดลอก Web app URL ที่ได้ — ส่งให้ Claude ใส่ในแดชบอร์ด
+ *
+ * ── ต้องเพิ่ม tabs ใหม่ใน Sheet (เวอร์ชันนี้) ───────────────
+ *  - quotations : docNo | plot | cName | cPhone | priceNet | downPmt | months | createdAt | fileUrl
+ *  - walkins    : visitDate | cName | cPhone | plotInterest | source | note | salesPerson | createdAt
+ *  - counters   : key | value   (ใช้เก็บลำดับเลขใบเสนอราคารายวัน)
  * ───────────────────────────────────────────────────────
  */
 
@@ -24,9 +29,11 @@ const FILES_FOLDER_ID = '1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
 function doGet(e){
   const action = (e && e.parameter && e.parameter.action) || 'ping';
   try {
-    if (action === 'ping')         return json({ok:true, msg:'One Vela Sales API พร้อมใช้งาน'});
-    if (action === 'getSalesData') return json(getSalesData());
-    if (action === 'getNextNo')    return json({ok:true, no:getNextNo(e.parameter.type, e.parameter.plot)});
+    if (action === 'ping')          return json({ok:true, msg:'One Vela Sales API พร้อมใช้งาน'});
+    if (action === 'getSalesData')  return json(getSalesData());
+    if (action === 'getNextNo')     return json({ok:true, no:getNextNo(e.parameter.type, e.parameter.plot)});
+    if (action === 'getNextQuoteNo')return json({ok:true, no:getNextQuoteNo()});
+    if (action === 'getDocsByPlot') return json(getDocsByPlot(e.parameter.plot));
     return json({ok:false, error:'ไม่รู้จัก action: '+action});
   } catch(err){ return json({ok:false, error:String(err)}); }
 }
@@ -35,9 +42,11 @@ function doPost(e){
   try {
     const body = JSON.parse(e.postData.contents);
     switch(body.action){
+      case 'saveQuotation':return json(saveQuotation(body.data));
       case 'saveBooking':  return json(saveRow('bookings',  body.data));
       case 'saveContract': return json(saveRow('contracts', body.data));
       case 'savePayment':  return json(saveRow('payments',  body.data));
+      case 'saveWalkIn':   return json(saveRow('walkins',   body.data));
       case 'uploadFile':   return json(uploadFile(body));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
@@ -73,6 +82,25 @@ function getSalesData(){
     contracts:    readTab('contracts'),
     installments: readTab('installments'),
     payments:     readTab('payments'),
+    quotations:   readTab('quotations'),
+    walkins:      readTab('walkins'),
+  };
+}
+
+// ===== เอกสารทั้งหมดของแปลงหนึ่ง =====
+function getDocsByPlot(plot){
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  const key = String(plot).trim();
+  const match = (rows, fields) => rows.filter(r =>
+    fields.some(f => String(r[f]||'').trim() === key)
+  );
+  return {
+    ok:true,
+    plot:key,
+    quotations: match(readTab('quotations'), ['plot']),
+    bookings:   match(readTab('bookings'),   ['plot']),
+    contracts:  match(readTab('contracts'),  ['plot','plotNo']),
+    payments:   match(readTab('payments'),   ['plot']),
   };
 }
 
@@ -81,12 +109,19 @@ function saveRow(tabName, data){
   const sh = sheet(tabName);
   if(!sh) return {ok:false, error:'ไม่พบ tab: '+tabName};
   const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  if(!data.createdAt) data.createdAt = new Date().toISOString();
   const row = keys.map(k => (data[k]!==undefined && data[k]!==null) ? data[k] : '');
   sh.appendRow(row);
   return {ok:true, tab:tabName, saved:data};
 }
 
-// ===== เลขรันเอกสาร — รูปแบบ ddmmyy-C{แปลง} =====
+// ===== บันทึกใบเสนอราคา (ออกเลขให้อัตโนมัติถ้าไม่ส่งมา) =====
+function saveQuotation(data){
+  if(!data.docNo) data.docNo = getNextQuoteNo();
+  return saveRow('quotations', data);
+}
+
+// ===== เลขรันเอกสาร — รูปแบบเดิม ddmmyy-C{แปลง} (ใบจอง/สัญญา/ใบเสร็จ) =====
 function getNextNo(type, plot){
   const d = new Date();
   const dd = ('0'+d.getDate()).slice(-2);
@@ -95,17 +130,73 @@ function getNextNo(type, plot){
   return dd+mm+yy+'-C'+(plot||'');
 }
 
+// ===== เลขใบเสนอราคา — รูปแบบ ddmmyy-N (N = ลำดับในวันนั้น 1,2,3,...) =====
+// ใช้ tab "counters" เก็บค่า — atomic ด้วย LockService
+function getNextQuoteNo(){
+  const d = new Date();
+  const dd = ('0'+d.getDate()).slice(-2);
+  const mm = ('0'+(d.getMonth()+1)).slice(-2);
+  const yy = (''+((d.getFullYear()+543)%100)).slice(-2);
+  const dateKey = 'quote_'+dd+mm+yy;
+  const next = incrementCounter(dateKey);
+  return dd+mm+yy+'-'+next;
+}
+
+function incrementCounter(key){
+  const lock = LockService.getScriptLock();
+  lock.waitLock(5000);
+  try{
+    const sh = sheet('counters');
+    if(!sh) throw new Error('ไม่พบ tab: counters');
+    const vals = sh.getDataRange().getValues();
+    let row = -1, current = 0;
+    for(let i=1;i<vals.length;i++){
+      if(String(vals[i][0]).trim() === key){ row = i+1; current = Number(vals[i][1])||0; break; }
+    }
+    const next = current + 1;
+    if(row > 0) sh.getRange(row, 2).setValue(next);
+    else        sh.appendRow([key, next]);
+    return next;
+  } finally { lock.releaseLock(); }
+}
+
 // ===== อัปโหลดไฟล์แนบ → โฟลเดอร์รายแปลง → คืนลิงก์ =====
-// body: {plot, category('จอง'/'สัญญา'/'ผ่อนดาวน์'), fileName, mimeType, fileBase64}
+// body: {plot, category, fileName, mimeType, fileBase64,
+//        tab?, docNo?}  ← ถ้ามี tab+docNo จะ update fileUrl ใน row นั้น
 function uploadFile(body){
   const root = DriveApp.getFolderById(FILES_FOLDER_ID);
-  const plotFolder = getOrCreateFolder(root, 'แปลง ' + body.plot);
+  const plotFolder = getOrCreateFolder(root, 'แปลง ' + (body.plot||'อื่นๆ'));
   const catFolder  = getOrCreateFolder(plotFolder, body.category || 'อื่นๆ');
   const bytes = Utilities.base64Decode(body.fileBase64);
   const blob  = Utilities.newBlob(bytes, body.mimeType, body.fileName);
   const file  = catFolder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  // เชื่อม fileUrl เข้า row ในตาราง (ถ้ามี tab + docNo)
+  if(body.tab && body.docNo){
+    try { updateFileUrl(body.tab, body.docNo, file.getUrl()); } catch(e){}
+  }
   return {ok:true, link:file.getUrl(), name:file.getName()};
+}
+
+// ===== อัปเดตคอลัมน์ fileUrl ของแถวที่เลขเอกสารตรง =====
+function updateFileUrl(tabName, docNo, url){
+  const sh = sheet(tabName);
+  if(!sh) return;
+  const vals = sh.getDataRange().getValues();
+  if(vals.length < 3) return;
+  const keys = vals[0];
+  // หา col เลขเอกสาร (ลองหลายชื่อ)
+  const docCol = keys.findIndex(k =>
+    ['docNo','bookingNo','contractNo','receiptNo'].indexOf(String(k)) >= 0);
+  const urlCol = keys.findIndex(k => String(k) === 'fileUrl');
+  if(docCol < 0 || urlCol < 0) return;
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][docCol]).trim() === String(docNo).trim()){
+      sh.getRange(i+1, urlCol+1).setValue(url);
+      return;
+    }
+  }
 }
 
 function getOrCreateFolder(parent, name){
