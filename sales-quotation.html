@@ -542,12 +542,11 @@
       createdAt:new Date().toISOString(),
     };
     try{
-      await fetch(API_URL, {
-        method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({action:'saveQuotation', data})
-      });
-      return true;
+      // ใช้ GET แทน POST เพื่อเลี่ยง 302 redirect ที่ทำให้ body หาย
+      const url=API_URL+'?action=saveQuotation&data='+encodeURIComponent(JSON.stringify(data));
+      const r=await fetch(url);
+      const j=await r.json();
+      return j && j.ok;
     }catch(e){ console.warn('saveQuotation failed', e); return false; }
   }
 

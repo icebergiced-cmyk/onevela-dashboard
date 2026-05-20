@@ -497,10 +497,10 @@
     const data={contractNo:$('docNo').value,plot:$('plotNo').value,bookingNo:$('bookingNo').value,
       contractDate:$('docDate').value,customer:$('bName').value,priceNet:r.price,
       transferDate:'',contractFileLink:'',status:'ทำสัญญา',note:''};
-    fetch(API_URL,{method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({action:'saveContract',data})})
-      .then(()=>alert('บันทึกแล้ว ✅\nในเครื่อง + ส่งเข้าฐานข้อมูลกลาง (Sheet)\n'+
+    // GET แทน POST เลี่ยง 302 redirect bug
+    const url=API_URL+'?action=saveContract&data='+encodeURIComponent(JSON.stringify(data));
+    fetch(url).then(r=>r.json())
+      .then(j=>alert((j&&j.ok?'บันทึกแล้ว ✅\n':'⚠️ บันทึกในเครื่อง · ส่ง Sheet ไม่สำเร็จ\n')+
         $('docNo').value+' · '+$('bName').value))
       .catch(()=>alert('บันทึกในเครื่องแล้ว ✅\n⚠️ ส่งเข้า Sheet ไม่สำเร็จ — เช็คอินเทอร์เน็ต'));
   }

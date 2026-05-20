@@ -269,10 +269,10 @@
       installmentSeq:$('instSeq').value,amount:r.total,channel:$('channel').value,
       slipLink:'',receiptNo:$('docNo').value,receiptLink:'',recordedBy:$('receiver').value,
       note:($('d1').value||'')};
-    fetch(API_URL,{method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({action:'savePayment',data})})
-      .then(()=>alert('บันทึกแล้ว ✅\nในเครื่อง + ส่งเข้าฐานข้อมูลกลาง (แท็บ payments)\n'+
+    // GET แทน POST เลี่ยง 302 redirect bug
+    const url=API_URL+'?action=savePayment&data='+encodeURIComponent(JSON.stringify(data));
+    fetch(url).then(r2=>r2.json())
+      .then(j=>alert((j&&j.ok?'บันทึกแล้ว ✅\n':'⚠️ บันทึกในเครื่อง · ส่ง Sheet ไม่สำเร็จ\n')+
         $('docNo').value+' · '+fmt(r.total)+' บาท'))
       .catch(()=>alert('บันทึกในเครื่องแล้ว ✅\n⚠️ ส่งเข้า Sheet ไม่สำเร็จ — เช็คอินเทอร์เน็ต'));
   }

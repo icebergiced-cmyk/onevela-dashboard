@@ -26,14 +26,24 @@ const SHEET_ID = '1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0';
 const FILES_FOLDER_ID = '1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
 
 // ===== Router =====
+// หมายเหตุ: ใช้ GET เป็นช่องทางหลักของ save actions ด้วย เพราะ Apps Script Web App POST
+// ส่ง 302 redirect ทำให้ browser fetch (no-cors) สูญเสีย body ระหว่าง redirect ฉะนั้น
+// ส่งข้อมูลเป็น URL params แทน (URL length limit ~8KB เพียงพอสำหรับ 1 แถว Sheet)
 function doGet(e){
-  const action = (e && e.parameter && e.parameter.action) || 'ping';
+  const p = (e && e.parameter) || {};
+  const action = p.action || 'ping';
   try {
     if (action === 'ping')          return json({ok:true, msg:'One Vela Sales API พร้อมใช้งาน'});
     if (action === 'getSalesData')  return json(getSalesData());
-    if (action === 'getNextNo')     return json({ok:true, no:getNextNo(e.parameter.type, e.parameter.plot)});
+    if (action === 'getNextNo')     return json({ok:true, no:getNextNo(p.type, p.plot)});
     if (action === 'getNextQuoteNo')return json({ok:true, no:getNextQuoteNo()});
-    if (action === 'getDocsByPlot') return json(getDocsByPlot(e.parameter.plot));
+    if (action === 'getDocsByPlot') return json(getDocsByPlot(p.plot));
+    // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
+    if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
+    if (action === 'saveBooking')   return json(saveRow('bookings',  parseData(p.data)));
+    if (action === 'saveContract')  return json(saveRow('contracts', parseData(p.data)));
+    if (action === 'savePayment')   return json(saveRow('payments',  parseData(p.data)));
+    if (action === 'saveWalkIn')    return json(saveRow('walkins',   parseData(p.data)));
     return json({ok:false, error:'ไม่รู้จัก action: '+action});
   } catch(err){ return json({ok:false, error:String(err)}); }
 }
@@ -51,6 +61,11 @@ function doPost(e){
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
+}
+
+function parseData(s){
+  if(!s) return {};
+  try { return JSON.parse(s); } catch(e){ return {}; }
 }
 
 function json(obj){

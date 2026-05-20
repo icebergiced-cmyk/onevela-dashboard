@@ -196,11 +196,9 @@
       salesPerson: $('salesPerson').value.trim(),
     };
     try{
-      await fetch(API_URL, {
-        method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({action:'saveWalkIn', data})
-      });
+      // GET แทน POST เลี่ยง 302 redirect bug
+      const url=API_URL+'?action=saveWalkIn&data='+encodeURIComponent(JSON.stringify(data));
+      await fetch(url);
       // localStorage backup
       const log=JSON.parse(localStorage.getItem('onevela_walkins')||'[]');
       log.push({...data, createdAt:new Date().toISOString()});
