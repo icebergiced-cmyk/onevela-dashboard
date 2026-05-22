@@ -324,10 +324,9 @@
     const pno = $('plotNo').value.trim();
     if(!pno){ alert('กรอกหมายเลขแปลงก่อน'); return; }
     try{
-      if(!PLOTS_CACHE){
-        const r = await fetch(API_URL+'?action=getSalesData');
-        PLOTS_CACHE = (await r.json()).plots || [];
-      }
+      // ดึงข้อมูลสดจากฐานข้อมูลทุกครั้ง — ราคาที่แก้ใน Sheet อัปเดตทันที (ไม่แคช)
+      const r = await fetch(API_URL+'?action=getSalesData');
+      PLOTS_CACHE = (await r.json()).plots || [];
       const p = PLOTS_CACHE.find(x=>String(x.plot)===pno);
       if(!p){ alert('ไม่พบแปลง '+pno+' ในฐานข้อมูล'); return; }
       const area=parseFloat(p.area)||0, aAdd=parseFloat(p.areaAdd)||0;
