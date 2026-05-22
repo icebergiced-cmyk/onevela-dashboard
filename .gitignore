@@ -5,3 +5,11 @@ dashboard-deploy/
 dashboard-deploy 2/
 _audit_reports/
 assets/photos/village/*.png
+
+# secrets — ห้าม commit เด็ดขาด (กันพลาด ถ้ามีใครสร้างไฟล์เหล่านี้)
+.env
+.env.*
+.dev.vars
+*.secret
+_tools/inbox/
+_tools/.sync_log/
