@@ -124,6 +124,47 @@ def round2(x):
     return round(float(x or 0) + 1e-9, 2)
 
 
+def _cell(row, idx):
+    """อ่านค่าเซลล์อย่างปลอดภัย — กัน index เกินความยาวแถว"""
+    if idx is None or idx >= len(row):
+        return None
+    return row[idx]
+
+
+def detect_columns(header_row):
+    """
+    ตรวจหาตำแหน่งคอลัมน์จากแถวหัวตาราง — รองรับไฟล์ Ecount หลายรูปแบบ
+    เช่น  รูปแบบเดิม : ประจำวัน | ลูกค้า/ผู้ขาย | ตามสินค้า | จำนวน | จำนวนเงิน | ภาษี | ยอดรวม
+         รูปแบบใหม่ : วันที่-ลำดับ | ชื่อสินค้า | ชื่อลูกค้า/ผู้ขาย | จำนวน | ราคาต่อหน่วย | จำนวนเงิน | ภาษี | ยอดรวม
+    คืน dict {date, plot, item, qty, amount, total} → ดัชนีคอลัมน์ (0-based)
+    ถ้าตรวจไม่พบ ใช้ค่าเริ่มต้น = รูปแบบเดิม
+    """
+    cols = {'date': 0, 'plot': 1, 'item': 2, 'qty': 3, 'amount': 4, 'total': 6}
+    if not header_row:
+        return cols
+    found = {}
+    for i, h in enumerate(header_row):
+        if h is None:
+            continue
+        t = str(h).strip()
+        if not t:
+            continue
+        if 'วัน' in t and 'date' not in found:
+            found['date'] = i
+        elif 'สินค้า' in t and 'item' not in found:
+            found['item'] = i
+        elif ('ลูกค้า' in t or 'ผู้ขาย' in t) and 'plot' not in found:
+            found['plot'] = i
+        elif t == 'จำนวน' and 'qty' not in found:
+            found['qty'] = i
+        elif 'จำนวนเงิน' in t and 'amount' not in found:
+            found['amount'] = i
+        elif 'ยอดรวม' in t and 'total' not in found:
+            found['total'] = i
+    cols.update(found)
+    return cols
+
+
 # ───────────────────────────────────────────────
 # Main
 # ───────────────────────────────────────────────
@@ -142,6 +183,11 @@ def convert(excel_path: Path):
     rows = list(ws.iter_rows(values_only=True))
     print(f"   Excel: '{ws.title}', {len(rows)} rows")
 
+    # ─── ตรวจหาคอลัมน์จากหัวตาราง (รองรับ Ecount หลายรูปแบบ) ───
+    C = detect_columns(rows[1] if len(rows) > 1 else None)
+    print(f"   คอลัมน์ที่ใช้: วันที่=#{C['date']} แปลง=#{C['plot']} สินค้า=#{C['item']} "
+          f"จำนวน=#{C['qty']} ยอดรวม=#{C['total']}")
+
     # ─── Group transactions by plot — with audit trail ───
     plot_txns = defaultdict(list)
     excluded_rows = []   # (row_num, reason, A, B, C, qty, amount, total)
@@ -155,14 +201,14 @@ def convert(excel_path: Path):
     footer_re = re.compile(r'^\d{1,2}\s+[ก-๙.]+\s+\d{4}.*\d{1,2}:\d{2}')
 
     for excel_row_idx, row in enumerate(rows[2:], start=3):  # excel row index (1-based, accounting for header)
-        col_a = (row[0] or '').strip() if row[0] else ''
-        col_b = (row[1] or '').strip() if row[1] else ''
-        col_c = (row[2] or '').strip() if row[2] else ''
+        va = _cell(row, C['date']); col_a = (str(va) or '').strip() if va else ''
+        vb = _cell(row, C['plot']); col_b = (str(vb) or '').strip() if vb else ''
+        vc = _cell(row, C['item']); col_c = (str(vc) or '').strip() if vc else ''
 
         # Summary row "...ทั้งหมด" — only count per-plot summaries for cross-check
         if 'ทั้งหมด' in col_a:
             if per_plot_sum_re.search(col_a):
-                excel_total_from_summary += round2(row[6])
+                excel_total_from_summary += round2(_cell(row, C['total']))
             continue
         # Footer timestamp row at end of Ecount export — skip silently
         if col_a and not col_b and not col_c and footer_re.match(col_a):
@@ -170,22 +216,22 @@ def convert(excel_path: Path):
         # Empty/incomplete row
         if not col_a or not col_b or not col_c:
             if any([col_a, col_b, col_c]):
-                excluded_rows.append((excel_row_idx, 'ข้อมูลไม่ครบ', col_a, col_b, col_c, row[3], row[4], row[6]))
+                excluded_rows.append((excel_row_idx, 'ข้อมูลไม่ครบ', col_a, col_b, col_c, _cell(row, C['qty']), _cell(row, C['amount']), _cell(row, C['total'])))
             continue
         # Parse plot identifier
         m = re.match(r'^(.+?)\s*แปลง\s*(\d+)', col_b)
         if not m:
-            excluded_rows.append((excel_row_idx, 'ไม่ใช่รายการของแปลง (overhead)', col_a, col_b, col_c, row[3], row[4], row[6]))
+            excluded_rows.append((excel_row_idx, 'ไม่ใช่รายการของแปลง (overhead)', col_a, col_b, col_c, _cell(row, C['qty']), _cell(row, C['amount']), _cell(row, C['total'])))
             continue
         type_str = m.group(1).strip()
         plot_num = int(m.group(2))
         if plot_num not in plot_metadata:
-            excluded_rows.append((excel_row_idx, f'ไม่พบแปลง {plot_num} ในระบบ', col_a, col_b, col_c, row[3], row[4], row[6]))
+            excluded_rows.append((excel_row_idx, f'ไม่พบแปลง {plot_num} ในระบบ', col_a, col_b, col_c, _cell(row, C['qty']), _cell(row, C['amount']), _cell(row, C['total'])))
             continue
 
         iso_date, short_date = parse_thai_date(col_a)
         if not iso_date:
-            excluded_rows.append((excel_row_idx, 'อ่านวันที่ไม่ได้', col_a, col_b, col_c, row[3], row[4], row[6]))
+            excluded_rows.append((excel_row_idx, 'อ่านวันที่ไม่ได้', col_a, col_b, col_c, _cell(row, C['qty']), _cell(row, C['amount']), _cell(row, C['total'])))
             continue
 
         # Track new items (not in dictionary)
@@ -197,8 +243,8 @@ def convert(excel_path: Path):
             'date': iso_date,
             'dateText': short_date,
             'name': col_c,
-            'qty': round2(row[3]),
-            'total': round2(row[6]),
+            'qty': round2(_cell(row, C['qty'])),
+            'total': round2(_cell(row, C['total'])),
             'category': category,
             'isLabor': category == 'ค่าแรง',
             '_excel_row': excel_row_idx,
@@ -215,6 +261,11 @@ def convert(excel_path: Path):
     duplicates = {k: v for k, v in dup_key_count.items() if len(v) > 1}
 
     txn_count = sum(len(v) for v in plot_txns.values())
+    # ─── Safety: ถ้าอ่านไม่ได้เลย ยกเลิก ไม่เขียนทับ index.html (กันข้อมูลกลายเป็นศูนย์) ───
+    if txn_count == 0:
+        print("   ❌ ไม่พบรายการต้นทุนเลยสักรายการ — ไฟล์อาจผิดรูปแบบ/ผิดชนิด")
+        print("      ยกเลิกการทำงาน ไม่เขียน index.html (ป้องกันข้อมูลถดถอยเป็นศูนย์)")
+        sys.exit(1)
     print(f"   Captured: {txn_count} transactions across {len(plot_txns)} plots")
     print(f"   Excluded: {len(excluded_rows)} rows (overhead / incomplete / parse error)")
     print(f"   New items needing review: {len(new_items)}")
