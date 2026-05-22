@@ -165,6 +165,46 @@ def detect_columns(header_row):
     return cols
 
 
+def load_master_txns(html_path):
+    """
+    อ่าน items สะสมเดิมจาก index.html → {plot_num: [item,...]}
+    ใช้สำหรับโหมด merge (อัปไฟล์รายวัน — รวมกับข้อมูลเดิม)
+    คืน {} ถ้ายังไม่มี PROJECT_DATA · คืน None ถ้า parse ไม่ได้ (ผู้เรียกควรยกเลิก)
+    """
+    try:
+        html = html_path.read_text(encoding='utf-8')
+    except Exception:
+        return None
+    marker = 'const PROJECT_DATA = '
+    idx = html.find(marker)
+    if idx < 0:
+        return {}
+    start = idx + len(marker)
+    depth = 0
+    end = -1
+    for i in range(start, len(html)):
+        c = html[i]
+        if c == '{':
+            depth += 1
+        elif c == '}':
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+    if end < 0:
+        return None
+    try:
+        obj = json.loads(html[start:end])
+    except Exception:
+        return None
+    master = {}
+    for h in obj.get('houses', []):
+        items = h.get('items') or []
+        if items:
+            master[h['plot']] = [dict(it) for it in items]
+    return master
+
+
 # ───────────────────────────────────────────────
 # Main
 # ───────────────────────────────────────────────
@@ -270,6 +310,28 @@ def convert(excel_path: Path):
     print(f"   Excluded: {len(excluded_rows)} rows (overhead / incomplete / parse error)")
     print(f"   New items needing review: {len(new_items)}")
     print(f"   Duplicate groups: {len(duplicates)}")
+
+    # ─── โหมด MERGE — รวมรายการใหม่กับข้อมูลสะสมเดิมใน index.html ───
+    # รองรับการอัปไฟล์รายวัน: ไฟล์ใหม่จะ "แทนที่" เฉพาะคู่ (แปลง, วันที่) ที่มันครอบคลุม
+    # ส่วน (แปลง, วันที่) อื่นที่มีอยู่เดิมจะคงไว้ — จึงสะสมข้อมูลข้ามวันได้
+    # (อัปไฟล์เดิมซ้ำ = แทนที่ค่าเดิมด้วยค่าเดิม ไม่นับซ้ำ · อัปไฟล์แก้ไข = แทนที่ด้วยค่าใหม่)
+    master = load_master_txns(TEMPLATE_HTML)
+    if master is None:
+        print("   ❌ อ่านข้อมูลสะสมเดิมจาก index.html ไม่ได้ — ยกเลิก (กันข้อมูลสะสมหาย)")
+        sys.exit(1)
+    covered = set()
+    for pnum, txns in plot_txns.items():
+        for t in txns:
+            covered.add((pnum, t['date']))
+    merged = {}
+    for p in set(master.keys()) | set(plot_txns.keys()):
+        kept = [it for it in master.get(p, []) if (p, it.get('date')) not in covered]
+        merged[p] = kept + list(plot_txns.get(p, []))
+    master_count = sum(len(v) for v in master.values())
+    plot_txns = {p: v for p, v in merged.items() if v}
+    merged_count = sum(len(v) for v in plot_txns.values())
+    print(f"   🔗 MERGE: เดิม {master_count} รายการ + ไฟล์ใหม่ {txn_count} รายการ "
+          f"(ครอบคลุม {len(covered)} แปลง-วัน) → รวม {merged_count} รายการ / {len(plot_txns)} แปลง")
 
     # ─── Build houses array (483) ───
     houses = []

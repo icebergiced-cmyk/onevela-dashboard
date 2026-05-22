@@ -3,13 +3,15 @@
 CI helper — ใช้โดย GitHub Actions (.github/workflows/cost-sync.yml)
 
 ขั้นตอน:
-  1. เรียก Apps Script `listCostInbox` ดูว่ามีไฟล์ Excel ต้นทุนใหม่ใน Drive ไหม
-  2. ถ้ามี — ดาวน์โหลดไฟล์ใหม่สุด (`getCostInboxFile`) มาเก็บที่ _tools/inbox/
-  3. รัน excel_to_dashboard.py → อัปเดต index.html
-  4. ถ้า index.html เปลี่ยนจริง — mark ไฟล์ทุกไฟล์ใน inbox เป็น done (ย้ายเข้า _done)
-     (แต่ละไฟล์เป็น snapshot เต็ม ไฟล์ใหม่สุด supersede ไฟล์เก่า — กันประมวลผลย้อน)
+  1. เรียก Apps Script `listCostInbox` ดูไฟล์ Excel ต้นทุนใน Drive
+  2. ประมวลผล "ทุกไฟล์" เรียงเก่า→ใหม่ (excel_to_dashboard.py ทำงานโหมด merge —
+     ไฟล์รายวันจะสะสมเข้าข้อมูลเดิม ไม่ทับทิ้ง)
+  3. ไฟล์ที่ประมวลผลสำเร็จ → mark done (ย้ายเข้า _done)
 
-exit 0 = สำเร็จ หรือไม่มีงาน · exit 1 = ผิดพลาด (Action จะไม่ commit, retry รอบหน้า)
+ทำไมต้องทุกไฟล์: excel_to_dashboard.py ทำงานแบบ merge ตาม (แปลง, วันที่)
+ถ้าข้ามไฟล์เก่าไป ข้อมูลวันนั้นจะหาย — จึงต้องประมวลผลครบทุกไฟล์
+
+exit 0 = สำเร็จ/ไม่มีงาน · exit 1 = ผิดพลาด (Action จะไม่ commit, retry รอบหน้า)
 """
 import json, base64, sys, subprocess, urllib.request, urllib.parse
 from pathlib import Path
@@ -17,10 +19,8 @@ from pathlib import Path
 API_URL  = 'https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec'
 CI_TOKEN = 'onevela-ci-7f3a9k2x'   # ต้องตรงกับ CI_TOKEN ใน sales_api.gs
 
-TOOLS     = Path(__file__).resolve().parent
-DASHBOARD = TOOLS.parent
-INBOX     = TOOLS / 'inbox'
-INDEX     = DASHBOARD / 'index.html'
+TOOLS = Path(__file__).resolve().parent
+INBOX = TOOLS / 'inbox'
 
 
 def api(action, **params):
@@ -45,40 +45,32 @@ def main():
         print('✅ ไม่มีไฟล์ใหม่ — ไม่ต้องทำอะไร')
         return
 
-    newest = files[0]   # listCostInbox เรียงใหม่สุดก่อนแล้ว
-    print(f"📄 ไฟล์ใหม่สุด: {newest['name']}  ({newest['size']:,} bytes)")
-    if len(files) > 1:
-        print(f"   (มีอีก {len(files)-1} ไฟล์เก่ากว่า — จะ mark done ทั้งหมดหลังประมวลผล)")
-
-    got = api('getCostInboxFile', fileId=newest['id'])
-    if not got.get('ok'):
-        print('❌ getCostInboxFile ล้มเหลว:', got.get('error'))
-        sys.exit(1)
-
+    # listCostInbox เรียงใหม่→เก่า · พลิกเป็นเก่า→ใหม่ เพื่อ merge ตามลำดับเวลา
+    files = list(reversed(files))
+    print(f'📋 พบ {len(files)} ไฟล์ — ประมวลผลเรียงเก่า→ใหม่ (โหมด merge)')
     INBOX.mkdir(exist_ok=True)
-    local = INBOX / newest['name']
-    local.write_bytes(base64.b64decode(got['base64']))
-    print(f"⬇️  ดาวน์โหลดแล้ว: {local.name}")
 
-    # snapshot index.html ก่อน เพื่อเช็คว่าประมวลผลสำเร็จจริง
-    before = INDEX.read_bytes() if INDEX.exists() else b''
-
-    print('🚀 รัน excel_to_dashboard.py ...')
-    subprocess.run([sys.executable, str(TOOLS / 'excel_to_dashboard.py'), str(local)])
-
-    after = INDEX.read_bytes() if INDEX.exists() else b''
-    if after == before:
-        print('❌ index.html ไม่เปลี่ยนแปลง — การประมวลผลอาจล้มเหลว (ไม่ mark done, retry รอบหน้า)')
-        sys.exit(1)
-
-    print('✅ index.html อัปเดตแล้ว')
-
-    # mark ทุกไฟล์ใน inbox เป็น done (ไฟล์ใหม่สุด supersede ของเก่า)
+    done = 0
     for f in files:
-        res = api('markCostInboxDone', fileId=f['id'])
-        print(f"   📦 mark done: {f['name']} → {'ok' if res.get('ok') else res.get('error')}")
+        print(f"\n── {f['name']}  ({f['size']:,} bytes) ──")
+        got = api('getCostInboxFile', fileId=f['id'])
+        if not got.get('ok'):
+            print('❌ ดาวน์โหลดไม่สำเร็จ:', got.get('error'))
+            sys.exit(1)
+        local = INBOX / f['name']
+        local.write_bytes(base64.b64decode(got['base64']))
 
-    print('🎉 เสร็จสมบูรณ์')
+        r = subprocess.run([sys.executable, str(TOOLS / 'excel_to_dashboard.py'), str(local)])
+        if r.returncode != 0:
+            print(f"❌ ประมวลผล '{f['name']}' ไม่สำเร็จ (exit {r.returncode})")
+            print('   หยุด — ไม่ mark done ไฟล์นี้ จะ retry รอบถัดไป')
+            sys.exit(1)
+
+        res = api('markCostInboxDone', fileId=f['id'])
+        print(f"   📦 mark done: {'ok' if res.get('ok') else res.get('error')}")
+        done += 1
+
+    print(f"\n🎉 เสร็จสมบูรณ์ — ประมวลผล {done} ไฟล์ (merge เข้าข้อมูลสะสม)")
 
 
 if __name__ == '__main__':
