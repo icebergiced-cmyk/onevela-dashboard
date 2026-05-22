@@ -44,6 +44,16 @@ function doGet(e){
     if (action === 'saveContract')  return json(saveRow('contracts', parseData(p.data)));
     if (action === 'savePayment')   return json(saveRow('payments',  parseData(p.data)));
     if (action === 'saveWalkIn')    return json(saveRow('walkins',   parseData(p.data)));
+    // ===== sync history endpoints =====
+    if (action === 'getSyncHistory')return json(getSyncHistory(Number(p.limit)||20));
+    if (action === 'pushSyncHistory')return json(pushSyncHistory(parseData(p.data)));
+    // ===== cost inbox (สะพานให้ GitHub Actions — ต้องมี token) =====
+    if (action === 'listCostInbox')
+      return json(p.token===CI_TOKEN ? listCostInbox() : {ok:false,error:'unauthorized'});
+    if (action === 'getCostInboxFile')
+      return json(p.token===CI_TOKEN ? getCostInboxFile(p.fileId) : {ok:false,error:'unauthorized'});
+    if (action === 'markCostInboxDone')
+      return json(p.token===CI_TOKEN ? markCostInboxDone(p.fileId) : {ok:false,error:'unauthorized'});
     return json({ok:false, error:'ไม่รู้จัก action: '+action});
   } catch(err){ return json({ok:false, error:String(err)}); }
 }
@@ -59,6 +69,7 @@ function doPost(e){
       case 'savePayment':  return json(saveRow('payments',  body.data));
       case 'saveWalkIn':   return json(saveRow('walkins',   body.data));
       case 'uploadFile':   return json(uploadFile(body));
+      case 'pushSyncHistory':return json(pushSyncHistory(body.data));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
@@ -244,4 +255,119 @@ function updateFileUrl(tabName, docNo, url){
 function getOrCreateFolder(parent, name){
   const it = parent.getFoldersByName(name);
   return it.hasNext() ? it.next() : parent.createFolder(name);
+}
+
+// ============================================================
+// ===== Sync History — บันทึก/อ่านประวัติการ sync Excel ต้นทุน
+// ============================================================
+// schema (header แถว 1): at | file | result | plotsAffected | totalCost | totalDelta | newItems | duplicates | auditFile | topPlots | note
+// แถว 2 (ป้ายไทย): วันเวลา | ไฟล์ | ผลลัพธ์ | จำนวนแปลงที่กระทบ | ต้นทุนรวม | ส่วนต่าง | สินค้าใหม่ | รายการซ้ำ | ไฟล์ audit | แปลงเด่น (JSON) | หมายเหตุ
+
+const SYNC_HISTORY_TAB = 'sync_history';
+const SYNC_HISTORY_KEYS = ['at','file','result','plotsAffected','totalCost','totalDelta','newItems','duplicates','auditFile','topPlots','note'];
+const SYNC_HISTORY_LABELS = ['วันเวลา','ไฟล์','ผลลัพธ์','จำนวนแปลงที่กระทบ','ต้นทุนรวม','ส่วนต่าง','สินค้าใหม่','รายการซ้ำ','ไฟล์ audit','แปลงเด่น (JSON)','หมายเหตุ'];
+
+function ensureSyncHistoryTab(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(SYNC_HISTORY_TAB);
+  if(!sh){
+    sh = ss.insertSheet(SYNC_HISTORY_TAB);
+    sh.getRange(1,1,1,SYNC_HISTORY_KEYS.length).setValues([SYNC_HISTORY_KEYS]);
+    sh.getRange(2,1,1,SYNC_HISTORY_LABELS.length).setValues([SYNC_HISTORY_LABELS]);
+    sh.setFrozenRows(2);
+  }
+  return sh;
+}
+
+function pushSyncHistory(data){
+  if(!data || typeof data !== 'object') return {ok:false, error:'ต้องมี data object'};
+  const sh = ensureSyncHistoryTab();
+  if(!data.at) data.at = new Date().toISOString();
+  // serialize topPlots ถ้าเป็น array
+  if(data.topPlots && typeof data.topPlots !== 'string'){
+    try { data.topPlots = JSON.stringify(data.topPlots); } catch(e){ data.topPlots = String(data.topPlots); }
+  }
+  const row = SYNC_HISTORY_KEYS.map(k => (data[k]!==undefined && data[k]!==null) ? data[k] : '');
+  sh.appendRow(row);
+  return {ok:true, saved:data};
+}
+
+function getSyncHistory(limit){
+  const sh = ensureSyncHistoryTab();
+  const vals = sh.getDataRange().getValues();
+  if(vals.length < 3) return {ok:true, items:[]};
+  const keys = vals[0];
+  const out = [];
+  for(let i = vals.length - 1; i >= 2; i--){
+    const row = {};
+    let empty = true;
+    keys.forEach((k,j)=>{
+      row[k] = vals[i][j];
+      if(vals[i][j]!=='' && vals[i][j]!=null) empty = false;
+    });
+    if(empty) continue;
+    // parse topPlots JSON string → array
+    if(row.topPlots && typeof row.topPlots === 'string' && row.topPlots.charAt(0) === '['){
+      try { row.topPlots = JSON.parse(row.topPlots); } catch(e){}
+    }
+    out.push(row);
+    if(out.length >= limit) break;
+  }
+  return {ok:true, items:out};
+}
+
+// ============================================================
+// ===== Cost Inbox — สะพานให้ GitHub Actions ดึงไฟล์ Excel ต้นทุน
+// ============================================================
+// admin-upload.html อัปไฟล์เข้า: FILES_FOLDER / "แปลง _excel_inbox" / "ต้นทุน_Ecount"
+// GitHub Actions เรียก endpoint เหล่านี้ดึงไฟล์ไปประมวลผล (repo private — token ฝังในโค้ดได้)
+const CI_TOKEN        = 'onevela-ci-7f3a9k2x';   // shared secret กับ GitHub Actions
+const COST_INBOX_PLOT = '_excel_inbox';
+const COST_INBOX_CAT  = 'ต้นทุน_Ecount';
+const COST_INBOX_DONE = '_done';
+
+function costInboxFolder(){
+  const root  = DriveApp.getFolderById(FILES_FOLDER_ID);
+  const plotF = getOrCreateFolder(root, 'แปลง ' + COST_INBOX_PLOT);
+  return getOrCreateFolder(plotF, COST_INBOX_CAT);
+}
+
+// list ไฟล์ .xlsx ที่ยังไม่ประมวลผล (เรียงใหม่สุดก่อน)
+function listCostInbox(){
+  try{
+    const folder = costInboxFolder();
+    const it = folder.getFiles();
+    const files = [];
+    while(it.hasNext()){
+      const f = it.next();
+      const nm = f.getName();
+      if(/\.xlsx$/i.test(nm)){
+        files.push({id:f.getId(), name:nm, size:f.getSize(),
+                    modified:f.getLastUpdated().toISOString()});
+      }
+    }
+    files.sort(function(a,b){ return a.name < b.name ? 1 : (a.name > b.name ? -1 : 0); });
+    return {ok:true, files:files};
+  }catch(err){ return {ok:false, error:String(err)}; }
+}
+
+// คืนเนื้อไฟล์เป็น base64
+function getCostInboxFile(fileId){
+  if(!fileId) return {ok:false, error:'ต้องระบุ fileId'};
+  try{
+    const f = DriveApp.getFileById(fileId);
+    return {ok:true, name:f.getName(),
+            base64:Utilities.base64Encode(f.getBlob().getBytes())};
+  }catch(err){ return {ok:false, error:String(err)}; }
+}
+
+// ย้ายไฟล์เข้าโฟลเดอร์ _done (กันประมวลผลซ้ำ)
+function markCostInboxDone(fileId){
+  if(!fileId) return {ok:false, error:'ต้องระบุ fileId'};
+  try{
+    const doneF = getOrCreateFolder(costInboxFolder(), COST_INBOX_DONE);
+    const f = DriveApp.getFileById(fileId);
+    f.moveTo(doneF);
+    return {ok:true, moved:f.getName()};
+  }catch(err){ return {ok:false, error:String(err)}; }
 }

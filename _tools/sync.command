@@ -89,6 +89,8 @@ if [ "$RESULT" = "success" ]; then
         echo "   ℹ️  index.html ไม่มีการเปลี่ยนแปลง — ไม่ต้อง push"
       else
         git commit index.html -m "sync: อัปเดตข้อมูลต้นทุนจาก $FILE_NAME ($NOW)" >/dev/null 2>&1
+        # ดึงของใหม่จาก remote ก่อน (เผื่อ GitHub Actions push มาระหว่างนั้น)
+        git pull --rebase --autostash origin main >/dev/null 2>&1 || true
         TOKEN=""
         [ -x "$GH_BIN" ] && TOKEN="$("$GH_BIN" auth token 2>/dev/null)"
         if [ -n "$TOKEN" ]; then

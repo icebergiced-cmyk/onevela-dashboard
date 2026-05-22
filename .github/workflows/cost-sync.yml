@@ -1,0 +1,53 @@
+name: Cost Dashboard Sync
+
+# ซิงก์ข้อมูลต้นทุนอัตโนมัติ — ดึงไฟล์ Excel ที่ทีมอัปผ่าน admin-upload.html
+# (เก็บใน Google Drive) มาประมวลผลด้วย excel_to_dashboard.py แล้ว commit index.html
+# → Cloudflare auto-deploy
+#
+# Trigger:
+#   - schedule: ทุก 30 นาที (เช็ค inbox อัตโนมัติ)
+#   - workflow_dispatch: กดรันเองได้ทันทีจากแท็บ Actions
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'   # UTC — ทุก 30 นาที (นาที :07 และ :37)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cost-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Fetch newest cost Excel & rebuild dashboard
+        run: python3 _tools/ci_cost_sync.py
+
+      - name: Commit & push if index.html changed
+        run: |
+          if git diff --quiet index.html; then
+            echo "index.html ไม่เปลี่ยนแปลง — ไม่ต้อง commit"
+          else
+            git config user.name  "OneVela CI"
+            git config user.email "ci@onevela.local"
+            git add index.html
+            git commit -m "auto-sync: อัปเดตต้นทุนจาก Excel inbox ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+            git pull --rebase --autostash origin main || true
+            git push
+            echo "✅ push แล้ว — Cloudflare จะ deploy ใน 1-2 นาที"
+          fi

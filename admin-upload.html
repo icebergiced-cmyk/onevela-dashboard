@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>อัปโหลด Excel ต้นทุน — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:900px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a{font-family:inherit;font-size:13px;font-weight:700;border-radius:9px;
+    padding:9px 14px;background:var(--gold);color:#fff;text-decoration:none}
+  .topbar a.ghost{background:rgba(255,255,255,.15)}
+
+  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:18px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px}
+
+  .card{background:#fff;border-radius:13px;padding:22px 24px;box-shadow:0 1px 6px rgba(0,0,0,.06);
+    margin-bottom:14px}
+
+  /* Drop zone */
+  .dropzone{
+    border:2.5px dashed #c9d0d8;border-radius:14px;padding:36px 22px;text-align:center;
+    background:#fafbfc;cursor:pointer;transition:all .15s ease;
+  }
+  .dropzone:hover, .dropzone.over{border-color:var(--gold);background:#fff8ef}
+  .dropzone .ic{font-size:48px;margin-bottom:8px}
+  .dropzone .ttl{font-size:16px;font-weight:700;color:var(--charcoal);margin-bottom:4px}
+  .dropzone .sub{font-size:13px;color:var(--muted)}
+  .dropzone .browse{color:var(--gold);text-decoration:underline;cursor:pointer;font-weight:600}
+  .dropzone input[type=file]{display:none}
+
+  .fileinfo{margin-top:14px;padding:14px 18px;background:#f6f9fc;border-radius:10px;
+    border:1px solid #e2e8f0;display:none;align-items:center;gap:12px}
+  .fileinfo.show{display:flex}
+  .fileinfo .ic{font-size:28px}
+  .fileinfo .nm{font-weight:700;font-size:14px;color:var(--charcoal);word-break:break-all}
+  .fileinfo .sz{font-size:12px;color:var(--muted);margin-top:2px}
+  .fileinfo .x{margin-left:auto;background:#fee2e2;color:var(--red);
+    border:none;border-radius:8px;padding:6px 11px;cursor:pointer;font-weight:700;font-size:12px}
+
+  .btn{font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:11px;
+    padding:13px 28px;cursor:pointer;background:var(--gold);color:#fff;
+    box-shadow:0 2px 6px rgba(176,141,87,.3);transition:all .15s}
+  .btn:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 4px 10px rgba(176,141,87,.4)}
+  .btn:disabled{background:#999;cursor:wait;box-shadow:none}
+  .btn.ghost{background:#efeae1;color:var(--charcoal);border:1px solid #ddd5c6;box-shadow:none}
+  .btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+
+  .status{padding:12px 16px;border-radius:10px;font-size:13.5px;margin-top:14px;display:none}
+  .status.show{display:block}
+  .status.info{background:#eef6ff;color:#0a4ea0;border:1px solid #cfe3ff}
+  .status.success{background:#ecfdf5;color:#066044;border:1px solid #b8eed3}
+  .status.error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+
+  .step{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed #eee}
+  .step:last-child{border-bottom:0}
+  .step .n{width:26px;height:26px;min-width:26px;border-radius:50%;background:var(--gold);color:#fff;
+    font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .step .b{font-size:13.5px;color:var(--charcoal)}
+  .step .b code{background:#f4f4f5;padding:1px 6px;border-radius:4px;
+    font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#fff;font-weight:700;padding:10px 22px;
+    border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,.2);z-index:99999;display:none}
+  .toast.err{background:var(--red)}
+
+  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28)}
+
+  body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
+    url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab">🏠 หน้าแรก</a>
+<div id="toast" class="toast"></div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ttl">📤 อัปโหลด Excel ต้นทุน<small>EXCEL UPLOAD · ONE VELA</small></div>
+    <a href="home.html" class="ghost">← กลับ</a>
+  </div>
+
+  <h2 class="sec">📥 อัปโหลดไฟล์</h2>
+  <div class="card">
+    <div class="dropzone" id="dz">
+      <div class="ic">📄</div>
+      <div class="ttl">ลากไฟล์ Excel มาวางตรงนี้</div>
+      <div class="sub">หรือ <span class="browse" onclick="document.getElementById('file').click()">เลือกไฟล์จากเครื่อง</span> (รับเฉพาะ .xlsx)</div>
+      <input type="file" id="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    </div>
+
+    <div class="fileinfo" id="fileinfo">
+      <div class="ic">📄</div>
+      <div>
+        <div class="nm" id="fname">-</div>
+        <div class="sz" id="fsize">-</div>
+      </div>
+      <button class="x" onclick="clearFile()">ลบ</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="upBtn" onclick="doUpload()" disabled>⬆️ อัปโหลดเข้า Drive</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <h2 class="sec">📖 หลังจากอัปโหลดเสร็จ — ระบบทำต่อให้อัตโนมัติ</h2>
+  <div class="card">
+    <div class="step">
+      <div class="n">1</div>
+      <div class="b">ไฟล์ Excel ถูกเก็บใน Google Drive — โฟลเดอร์ <code>แปลง _excel_inbox / ต้นทุน_Ecount</code></div>
+    </div>
+    <div class="step">
+      <div class="n">2</div>
+      <div class="b">
+        <strong>ระบบจะประมวลผลให้อัตโนมัติภายใน ~30 นาที</strong> — GitHub Actions ดึงไฟล์
+        ไปรัน แล้วอัปเดตแดชบอร์ดออนไลน์เอง<br>
+        <span style="color:#777;font-size:12.5px">ไม่ต้องทำอะไรเพิ่ม — รอสักครู่แล้วเปิดแดชบอร์ดดูได้เลย</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">3</div>
+      <div class="b">
+        อยากให้อัปเดต<strong>ทันที</strong> ไม่ต้องรอ 30 นาที — แจ้งผู้ดูแลให้กดรัน
+        workflow "Cost Dashboard Sync" ในแท็บ GitHub Actions (หรือบอก Cowork)
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec">📊 ประวัติ Sync — ตรวจย้อนหลังได้</h2>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+      <button class="btn ghost" onclick="reloadHistory()" style="font-size:13px;padding:7px 14px">↻ รีเฟรช</button>
+      <span style="font-size:12.5px;color:var(--muted)">คลิกแถวเพื่อขยายดู top แปลงที่ยอดเปลี่ยน</span>
+    </div>
+    <div id="histContainer"><div style="text-align:center;padding:14px;color:var(--muted);font-size:13px">⏳ กำลังโหลด...</div></div>
+  </div>
+
+</div>
+
+<script>
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $=id=>document.getElementById(id);
+  let SELECTED_FILE=null;
+
+  function fmtSize(n){
+    if(n<1024) return n+' B';
+    if(n<1024*1024) return (n/1024).toFixed(1)+' KB';
+    return (n/(1024*1024)).toFixed(2)+' MB';
+  }
+  function showToast(msg,err){
+    const t=$('toast');
+    t.textContent=msg; t.className='toast'+(err?' err':''); t.style.display='block';
+    setTimeout(()=>{t.style.display='none'},4000);
+  }
+  function setStatus(kind,html){
+    const el=$('status'); el.className='status show '+kind; el.innerHTML=html;
+  }
+  function clearStatus(){ $('status').className='status'; }
+  function clearFile(){
+    SELECTED_FILE=null;
+    $('file').value='';
+    $('fileinfo').classList.remove('show');
+    $('upBtn').disabled=true;
+    clearStatus();
+  }
+  function selectFile(f){
+    if(!f) return;
+    if(!/\.xlsx$/i.test(f.name) && f.type.indexOf('spreadsheet')<0){
+      showToast('รองรับเฉพาะไฟล์ .xlsx',true); return;
+    }
+    if(f.size > 25*1024*1024){
+      showToast('ไฟล์ใหญ่เกิน 25 MB',true); return;
+    }
+    SELECTED_FILE=f;
+    $('fname').textContent=f.name;
+    $('fsize').textContent=fmtSize(f.size);
+    $('fileinfo').classList.add('show');
+    $('upBtn').disabled=false;
+    clearStatus();
+  }
+
+  // Drop zone events
+  const dz=$('dz');
+  dz.addEventListener('click',()=>$('file').click());
+  $('file').addEventListener('change',e=>selectFile(e.target.files[0]));
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{
+    e.preventDefault(); e.stopPropagation(); dz.classList.add('over');
+  }));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{
+    e.preventDefault(); e.stopPropagation(); dz.classList.remove('over');
+  }));
+  dz.addEventListener('drop',e=>selectFile(e.dataTransfer.files[0]));
+
+  function blobToBase64(blob){
+    return new Promise((res,rej)=>{
+      const fr=new FileReader();
+      fr.onload=()=>res(String(fr.result).split(',')[1]);
+      fr.onerror=rej;
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  // hidden form + iframe trick — bypass POST 302 redirect issue
+  function postViaForm(payload){
+    return new Promise(resolve=>{
+      let frame=document.getElementById('apiUploadFrame');
+      let form=document.getElementById('apiUploadForm');
+      let ta=document.getElementById('apiUploadPayload');
+      if(!frame){
+        frame=document.createElement('iframe');
+        frame.id='apiUploadFrame'; frame.name='apiUploadFrame';
+        frame.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+        document.body.appendChild(frame);
+        form=document.createElement('form');
+        form.id='apiUploadForm'; form.method='POST'; form.target='apiUploadFrame';
+        form.enctype='text/plain'; form.style.display='none';
+        ta=document.createElement('textarea');
+        ta.id='apiUploadPayload'; ta.name='d';
+        form.appendChild(ta);
+        document.body.appendChild(form);
+      }
+      form.action=API_URL;
+      ta.value=JSON.stringify(payload);
+      let done=false;
+      const finish=()=>{ if(!done){ done=true; frame.onload=null; resolve(); } };
+      frame.onload=finish;
+      setTimeout(finish, 30000); // safety timeout
+      form.submit();
+    });
+  }
+
+  async function doUpload(){
+    if(!SELECTED_FILE){ showToast('เลือกไฟล์ก่อน',true); return; }
+    const btn=$('upBtn');
+    const orig=btn.textContent;
+    btn.disabled=true; btn.textContent='⏳ กำลังอัปโหลด...';
+    setStatus('info','⏳ กำลังเข้ารหัสและอัปโหลดไฟล์ขนาด '+fmtSize(SELECTED_FILE.size)+' ... อาจใช้เวลา 10-30 วินาที');
+    try{
+      const b64=await blobToBase64(SELECTED_FILE);
+      const ts=new Date().toISOString().replace(/[:T.]/g,'-').slice(0,19);
+      const fname=ts+'__'+SELECTED_FILE.name; // prepend timestamp so newest comes first
+      await postViaForm({
+        action:'uploadFile',
+        plot:'_excel_inbox',
+        category:'ต้นทุน_Ecount',
+        fileName:fname,
+        mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        fileBase64:b64,
+      });
+      setStatus('success',
+        '✅ อัปโหลดสำเร็จ! ไฟล์ <strong>'+fname+'</strong> อยู่ใน Drive แล้ว<br>'+
+        '<span style="font-size:12.5px;color:#555">'+
+        'ระบบจะประมวลผลและอัปเดตแดชบอร์ดออนไลน์ให้อัตโนมัติภายใน ~30 นาที — ไม่ต้องทำอะไรเพิ่ม</span>'
+      );
+      showToast('อัปโหลดสำเร็จ');
+      btn.textContent='✅ เสร็จ — อัปโหลดไฟล์ใหม่';
+      setTimeout(()=>{ clearFile(); btn.textContent=orig; }, 3000);
+    }catch(e){
+      setStatus('error','❌ อัปโหลดล้มเหลว: '+(e&&e.message?e.message:String(e)));
+      showToast('อัปโหลดล้มเหลว',true);
+      btn.textContent=orig; btn.disabled=false;
+    }
+  }
+
+  // ============================================================
+  // ===== ประวัติ Sync (Level 3c)
+  // ============================================================
+  function escapeHtml(s){
+    if(s==null) return '';
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  }
+  function fmtNumber(n){ if(n==null||n==='') return '-'; return Number(n).toLocaleString('th-TH'); }
+  function fmtMoney(n){ if(n==null||n==='') return '-'; return '฿'+Number(n).toLocaleString('th-TH',{maximumFractionDigits:0}); }
+  function fmtDelta(n){
+    if(n==null||n===''||n===0) return '-';
+    const sign = n > 0 ? '+' : '−';
+    return sign+'฿'+Math.abs(Number(n)).toLocaleString('th-TH',{maximumFractionDigits:0});
+  }
+  function fmtDate(s){
+    if(!s) return '-';
+    const d = new Date(s);
+    if(isNaN(d.getTime())) return s;
+    return d.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
+  }
+  async function fetchHistory(){
+    const r=await fetch(API_URL+'?action=getSyncHistory&limit=20');
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.error||'getSyncHistory failed');
+    return j.items||[];
+  }
+  function renderHistory(items){
+    const c=$('histContainer');
+    if(!items||items.length===0){
+      c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">📭 ยังไม่มีประวัติ Sync — อัปโหลดไฟล์แล้วกด Sync ผ่าน Cowork artifact</div>';
+      return;
+    }
+    let html='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>'+
+      '<th style="text-align:left;font-size:11px;color:var(--muted);padding:8px 6px;border-bottom:1.5px solid var(--line);font-weight:700;text-transform:uppercase;letter-spacing:.3px">วันเวลา</th>'+
+      '<th style="text-align:left;font-size:11px;color:var(--muted);padding:8px 6px;border-bottom:1.5px solid var(--line);font-weight:700;text-transform:uppercase;letter-spacing:.3px">ไฟล์</th>'+
+      '<th style="text-align:left;font-size:11px;color:var(--muted);padding:8px 6px;border-bottom:1.5px solid var(--line);font-weight:700;text-transform:uppercase;letter-spacing:.3px">ผล</th>'+
+      '<th style="text-align:right;font-size:11px;color:var(--muted);padding:8px 6px;border-bottom:1.5px solid var(--line);font-weight:700;text-transform:uppercase;letter-spacing:.3px">แปลง</th>'+
+      '<th style="text-align:right;font-size:11px;color:var(--muted);padding:8px 6px;border-bottom:1.5px solid var(--line);font-weight:700;text-transform:uppercase;letter-spacing:.3px">ต้นทุนรวม</th>'+
+      '<th style="text-align:right;font-size:11px;color:var(--muted);padding:8px 6px;border-bottom:1.5px solid var(--line);font-weight:700;text-transform:uppercase;letter-spacing:.3px">Δ</th>'+
+      '</tr></thead><tbody>';
+    items.forEach((it,idx)=>{
+      const pillBg = it.result==='success' ? '#d1fae5' : '#fee2e2';
+      const pillColor = it.result==='success' ? '#065f46' : '#991b1b';
+      const pillText = it.result==='success' ? '✓ สำเร็จ' : '✗ '+(it.result||'error');
+      const fileShort = (it.file||'-').length>30 ? (it.file||'').slice(0,28)+'…' : (it.file||'-');
+      const deltaColor = Number(it.totalDelta)>0?'#16a34a':Number(it.totalDelta)<0?'#dc2626':'#999';
+      html += '<tr style="cursor:pointer" onclick="toggleDetail('+idx+')" onmouseover="this.style.background=\'#fafafa\'" onmouseout="this.style.background=\'\'">'+
+        '<td style="padding:9px 6px;border-bottom:1px solid #f0f0f2">'+fmtDate(it.at)+'</td>'+
+        '<td style="padding:9px 6px;border-bottom:1px solid #f0f0f2;word-break:break-all" title="'+escapeHtml(it.file||'')+'">'+escapeHtml(fileShort)+'</td>'+
+        '<td style="padding:9px 6px;border-bottom:1px solid #f0f0f2"><span style="display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:600;background:'+pillBg+';color:'+pillColor+'">'+pillText+'</span></td>'+
+        '<td style="padding:9px 6px;border-bottom:1px solid #f0f0f2;text-align:right">'+fmtNumber(it.plotsAffected)+'</td>'+
+        '<td style="padding:9px 6px;border-bottom:1px solid #f0f0f2;text-align:right">'+fmtMoney(it.totalCost)+'</td>'+
+        '<td style="padding:9px 6px;border-bottom:1px solid #f0f0f2;text-align:right;font-weight:600;color:'+deltaColor+'">'+fmtDelta(it.totalDelta)+'</td>'+
+      '</tr>'+
+      '<tr id="detail-'+idx+'" style="display:none"><td colspan="6" id="detail-body-'+idx+'" style="background:#fafafa;padding:14px 16px;font-size:12.5px;border-bottom:1px solid var(--line)"></td></tr>';
+    });
+    html+='</tbody></table></div>';
+    c.innerHTML=html;
+    window.__HIST_ITEMS=items;
+  }
+  function toggleDetail(idx){
+    const detail=$('detail-'+idx);
+    const body=$('detail-body-'+idx);
+    if(!detail) return;
+    if(detail.style.display==='none'){
+      detail.style.display='table-row';
+      const item=window.__HIST_ITEMS[idx];
+      let html='';
+      if(item.topPlots&&Array.isArray(item.topPlots)&&item.topPlots.length>0){
+        html += '<div style="font-weight:700;margin-bottom:8px;color:var(--charcoal)">📍 Top แปลงที่มียอดเปลี่ยน</div>';
+        html += '<div style="display:grid;grid-template-columns:80px 1fr 1fr 110px;gap:8px;padding:4px 0;border-bottom:1.5px solid var(--line);font-weight:700;font-size:11px;color:var(--muted);text-transform:uppercase">'+
+          '<div>แปลง</div><div style="text-align:right;font-family:ui-monospace,Menlo,monospace">ก่อน</div><div style="text-align:right;font-family:ui-monospace,Menlo,monospace">หลัง</div><div style="text-align:right;font-family:ui-monospace,Menlo,monospace">Δ</div></div>';
+        item.topPlots.forEach(p=>{
+          const cls = Number(p.delta)>0 ? 'color:#16a34a' : Number(p.delta)<0 ? 'color:#dc2626' : '';
+          const sign = Number(p.delta)>0 ? '+' : '';
+          html += '<div style="display:grid;grid-template-columns:80px 1fr 1fr 110px;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);align-items:center">'+
+            '<div style="font-weight:700">'+escapeHtml(String(p.plot||'-'))+'</div>'+
+            '<div style="text-align:right;font-family:ui-monospace,Menlo,monospace">'+fmtMoney(p.before)+'</div>'+
+            '<div style="text-align:right;font-family:ui-monospace,Menlo,monospace">'+fmtMoney(p.after)+'</div>'+
+            '<div style="text-align:right;font-family:ui-monospace,Menlo,monospace;font-weight:700;'+cls+'">'+sign+fmtMoney(p.delta||0)+'</div>'+
+          '</div>';
+        });
+      } else {
+        html += '<div style="color:var(--muted)">ไม่มีข้อมูล top แปลง</div>';
+      }
+      if(item.auditFile) html += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">📎 audit Excel: <code>'+escapeHtml(item.auditFile)+'</code></div>';
+      const counters=[];
+      if(item.newItems) counters.push('สินค้าใหม่ '+item.newItems+' รายการ');
+      if(item.duplicates) counters.push('รายการซ้ำ '+item.duplicates+' กลุ่ม');
+      if(item.note) counters.push(item.note);
+      if(counters.length) html += '<div style="margin-top:8px;color:var(--amber);font-size:12.5px">⚠️ '+counters.map(escapeHtml).join(' · ')+'</div>';
+      body.innerHTML=html;
+    } else {
+      detail.style.display='none';
+    }
+  }
+  window.toggleDetail = toggleDetail;
+  async function reloadHistory(){
+    const c=$('histContainer');
+    c.innerHTML='<div style="text-align:center;padding:14px;color:var(--muted);font-size:13px">⏳ กำลังโหลด...</div>';
+    try{
+      const items=await fetchHistory();
+      renderHistory(items);
+    }catch(e){
+      c.innerHTML='<div style="text-align:center;padding:20px;color:var(--red)">❌ โหลดประวัติไม่สำเร็จ: '+escapeHtml(e.message||String(e))+'</div>';
+    }
+  }
+  window.reloadHistory = reloadHistory;
+  reloadHistory();
+</script>
+</body>
+</html>
