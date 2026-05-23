@@ -40,8 +40,8 @@ function doGet(e){
     if (action === 'getDocsByPlot') return json(getDocsByPlot(p.plot));
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
-    if (action === 'saveBooking')   return json(saveRow('bookings',  parseData(p.data)));
-    if (action === 'saveContract')  return json(saveRow('contracts', parseData(p.data)));
+    if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
+    if (action === 'saveContract')  return json(saveContract(parseData(p.data)));
     if (action === 'savePayment')   return json(saveRow('payments',  parseData(p.data)));
     if (action === 'saveWalkIn')    return json(saveRow('walkins',   parseData(p.data)));
     // ===== sync history endpoints =====
@@ -64,8 +64,8 @@ function doPost(e){
     if(!body || !body.action) return json({ok:false, error:'invalid body'});
     switch(body.action){
       case 'saveQuotation':return json(saveQuotation(body.data));
-      case 'saveBooking':  return json(saveRow('bookings',  body.data));
-      case 'saveContract': return json(saveRow('contracts', body.data));
+      case 'saveBooking':  return json(saveBooking(body.data));
+      case 'saveContract': return json(saveContract(body.data));
       case 'savePayment':  return json(saveRow('payments',  body.data));
       case 'saveWalkIn':   return json(saveRow('walkins',   body.data));
       case 'uploadFile':   return json(uploadFile(body));
@@ -172,6 +172,102 @@ function saveRow(tabName, data){
 function saveQuotation(data){
   if(!data.docNo) data.docNo = getNextQuoteNo();
   return saveRow('quotations', data);
+}
+
+// ============================================================
+// ===== Smart Save: ตรวจสถานะแปลง + กันขายซ้ำ + อัปเดต metadata
+// ============================================================
+// statuses ที่ถือว่า "ขายไปแล้ว" — ห้ามจองซ้ำ
+const BOOKED_STATUSES = ['จอง','สัญญา','ขายดาวน์','โอนแล้ว'];
+
+// อ่านสถานะปัจจุบันของแปลง (จาก metadata) คืน {row, status} หรือ null
+function getPlotStatus(plotId){
+  const sh = sheet('metadata');
+  if(!sh) return null;
+  const vals = sh.getDataRange().getValues();
+  if(vals.length < 3) return null;
+  const keys = vals[0];
+  const plotCol   = keys.indexOf('plot');
+  const statusCol = keys.indexOf('status');
+  if(plotCol < 0 || statusCol < 0) return null;
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][plotCol]).trim() === String(plotId).trim()){
+      const s = String(vals[i][statusCol]||'ว่าง').trim() || 'ว่าง';
+      return {row: i+1, status: s};
+    }
+  }
+  return null;
+}
+
+// อัปเดตหลายคอลัมน์ใน metadata ของแปลงเดียว (เฉพาะคอลัมน์ที่ส่ง+มีค่า)
+function updatePlotFields(plotId, fields){
+  const sh = sheet('metadata');
+  if(!sh) return false;
+  const vals = sh.getDataRange().getValues();
+  if(vals.length < 3) return false;
+  const keys = vals[0];
+  const plotCol = keys.indexOf('plot');
+  if(plotCol < 0) return false;
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][plotCol]).trim() === String(plotId).trim()){
+      Object.keys(fields).forEach(function(k){
+        const col = keys.indexOf(k);
+        if(col >= 0 && fields[k] !== undefined && fields[k] !== '' && fields[k] !== null){
+          sh.getRange(i+1, col+1).setValue(fields[k]);
+        }
+      });
+      return true;
+    }
+  }
+  return false;
+}
+
+// ===== บันทึกใบจอง — ตรวจก่อนว่าแปลงว่างจริง กันขายซ้ำ =====
+function saveBooking(data){
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุเลขแปลง'};
+  const cur = getPlotStatus(data.plot);
+  if(!cur) return {ok:false, error:'ไม่พบแปลง '+data.plot+' ใน metadata'};
+  if(BOOKED_STATUSES.indexOf(cur.status) >= 0){
+    return {ok:false, error:
+      '⚠️ แปลง '+data.plot+' มีสถานะ "'+cur.status+'" อยู่แล้ว — กันการขายซ้ำ\n'+
+      '(ถ้าต้องการจองใหม่ ปรับ status ใน Sheet เป็น "ว่าง" หรือ "หลุดจอง" ก่อน)'};
+  }
+  const r = saveRow('bookings', data);
+  if(r.ok){
+    updatePlotFields(data.plot, {
+      status: 'จอง',
+      cName:  data.cName,
+      cPhone: data.cPhone,
+      dateBook: data.bookDate || (new Date()).toISOString().slice(0,10),
+      bookAmount: data.bookAmount,
+      agent: data.salesAgent
+    });
+    r.statusUpdated = 'จอง';
+  }
+  return r;
+}
+
+// ===== บันทึกสัญญา — ตรวจว่าจองแล้วก่อน + อัปเดตสถานะเป็น "สัญญา" =====
+function saveContract(data){
+  const plot = data && (data.plot || data.plotNo);
+  if(!plot) return {ok:false, error:'ต้องระบุเลขแปลง'};
+  const cur = getPlotStatus(plot);
+  if(!cur) return {ok:false, error:'ไม่พบแปลง '+plot+' ใน metadata'};
+  if(cur.status !== 'จอง'){
+    return {ok:false, error:
+      '⚠️ แปลง '+plot+' มีสถานะ "'+cur.status+'" — ต้องเป็น "จอง" ก่อนทำสัญญา\n'+
+      '(ถ้ายังไม่จอง ออกใบจองก่อน)'};
+  }
+  data.plot = plot;  // normalize
+  const r = saveRow('contracts', data);
+  if(r.ok){
+    updatePlotFields(plot, {
+      status: 'สัญญา',
+      dateContract: data.contractDate || (new Date()).toISOString().slice(0,10)
+    });
+    r.statusUpdated = 'สัญญา';
+  }
+  return r;
 }
 
 // ===== เลขรันเอกสาร — รูปแบบเดิม ddmmyy-C{แปลง} (ใบจอง/สัญญา/ใบเสร็จ) =====
