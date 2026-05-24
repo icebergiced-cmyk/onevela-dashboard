@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🏗️ จัดการแปลงก่อสร้าง — One Vela Admin</title>
+<title>🏗️ จัดการแปลงก่อสร้าง — One Vela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/brand/logo-icon.png">
@@ -90,6 +90,30 @@
   .row-actions button.danger:hover{border-color:var(--red);color:var(--red)}
 
   .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:18px}
+  .typ-card{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    border-top:4px solid var(--gold)}
+  .typ-card.t-A{border-top-color:#9a3412}
+  .typ-card.t-B{border-top-color:#075985}
+  .typ-card.t-C{border-top-color:#1e40af}
+  .typ-card.t-D{border-top-color:#6b21a8}
+  .typ-card .head{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+  .typ-card .badge{font-size:18px;font-weight:800;color:#fff;background:var(--charcoal);
+    width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .typ-card.t-A .badge{background:#9a3412}
+  .typ-card.t-B .badge{background:#075985}
+  .typ-card.t-C .badge{background:#1e40af}
+  .typ-card.t-D .badge{background:#6b21a8}
+  .typ-card .nm{font-size:14px;font-weight:800;color:var(--charcoal);line-height:1.2}
+  .typ-card .nm small{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}
+  .typ-card .total{margin-left:auto;font-size:24px;font-weight:800;color:var(--gold);line-height:1}
+  .typ-card .total small{font-size:11px;color:var(--muted);font-weight:600;margin-left:2px}
+  .typ-card .rows{display:grid;gap:5px;font-size:12.5px}
+  .typ-card .rows .r{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted var(--line)}
+  .typ-card .rows .r:last-child{border-bottom:none}
+  .typ-card .rows .lbl{color:var(--muted);font-weight:600}
+  .typ-card .rows .v{font-weight:700;color:var(--charcoal)}
+  .typ-card .rows .v.act{color:var(--amber)}
+  .typ-card .rows .v.empty{color:var(--green)}
   .team-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 5px rgba(0,0,0,.06);
     display:flex;align-items:center;gap:14px}
   .team-card .av{width:48px;height:48px;background:var(--gold);color:#fff;border-radius:50%;
@@ -231,6 +255,10 @@
       </div>
     </div>
 
+    <!-- Breakdown รายไทป์ -->
+    <h2 class="sec">📐 บ้านแยกตามไทป์ <span class="ct">จากฐานข้อมูลงานขาย</span></h2>
+    <div id="typeBreakdown" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px"></div>
+
     <h2 class="sec">
       🏗️ แปลงที่กำลังก่อสร้าง <span class="ct" id="ctActive">— แปลง</span>
       <button class="btn" onclick="openModal()">+ เริ่มก่อสร้างแปลงใหม่</button>
@@ -288,7 +316,16 @@
         <div class="qres" id="qres">แสดง 0 แปลง</div>
       </div>
 
-      <div class="plot-grid" id="plotGrid"></div>
+      <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="selectAllFiltered()" style="font-family:inherit;font-size:12px;font-weight:700;
+          padding:6px 12px;border:1px solid var(--gold);background:#fff8e6;color:var(--gold-dk);
+          border-radius:7px;cursor:pointer">✓ เลือกทั้งหมดที่กรองได้</button>
+        <button onclick="clearSelection()" style="font-family:inherit;font-size:12px;font-weight:700;
+          padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--muted);
+          border-radius:7px;cursor:pointer">✕ ล้างการเลือก</button>
+      </div>
+
+      <div class="plot-grid" id="plotGrid" style="max-height:380px"></div>
 
       <div class="auto-info" id="autoInfo" style="display:none">
         <b>🤖 ระบบจะ assign โฟร์แมนอัตโนมัติตามไทป์:</b><br>
@@ -419,6 +456,7 @@
     $('ctActive').textContent = activePlots.length + ' แปลง';
     $('loadKo').innerHTML = koLoad+'<small> แปลง</small>';
     $('loadYai').innerHTML = yaiLoad+'<small> แปลง</small>';
+    renderTypeBreakdown();
 
     // table
     const tb = $('activeRows');
@@ -455,6 +493,40 @@
     }).join('');
   }
 
+  function renderTypeBreakdown(){
+    const TYPES = [
+      {key:'ULTRA',   prefix:'A', name:'บ้านเดี่ยว 2 ชั้น',  foreman:'โก้'},
+      {key:'MINUTES', prefix:'B', name:'บ้านเดี่ยวชั้นเดียว', foreman:'ใหญ่'},
+      {key:'SECOND',  prefix:'C', name:'บ้านแฝด',           foreman:'ใหญ่'},
+      {key:'MOMENT',  prefix:'D', name:'ทาวน์โฮม',           foreman:'ใหญ่'}
+    ];
+    const el = $('typeBreakdown');
+    const activeByType = {};
+    activePlots.forEach(p => {
+      activeByType[p.type] = (activeByType[p.type]||0) + 1;
+    });
+    el.innerHTML = TYPES.map(t => {
+      const all = allPlots.filter(p => p.type === t.key);
+      const active = activeByType[t.key] || 0;
+      const sold = all.filter(p => ['จอง','สัญญา','ขายดาวน์','โอนแล้ว'].includes(p.status)).length;
+      const empty = all.length - active;
+      return `
+        <div class="typ-card t-${t.prefix}">
+          <div class="head">
+            <div class="badge">${t.prefix}</div>
+            <div class="nm">ไทป์ ${t.prefix} · ${t.key}<small>${t.name}</small></div>
+            <div class="total">${all.length}<small>หลัง</small></div>
+          </div>
+          <div class="rows">
+            <div class="r"><span class="lbl">🏗️ กำลังก่อสร้าง</span><span class="v act">${active}</span></div>
+            <div class="r"><span class="lbl">📭 ยังไม่เริ่ม</span><span class="v empty">${empty}</span></div>
+            <div class="r"><span class="lbl">💰 ขายแล้ว</span><span class="v">${sold}</span></div>
+            <div class="r"><span class="lbl">👷 โฟร์แมน</span><span class="v">${t.foreman}</span></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
   function thaiDate(d){
     const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     const dt = new Date(d);
@@ -479,19 +551,37 @@
     const sf = $('statusFilter').value;
     const activeIds = new Set(activePlots.map(p => String(p.plot)));
 
+    // 1. base pool — ไม่รวมแปลงที่กำลังก่อสร้าง
     let pool = allPlots.filter(p => !activeIds.has(p.plot));
-    if(q) pool = pool.filter(p => p.plot.includes(q));
+    if(q) pool = pool.filter(p => p.plot.includes(q) || plotCode(p).toLowerCase().includes(q.toLowerCase()));
     if(tf) pool = pool.filter(p => p.type === tf);
     if(sf) pool = pool.filter(p => p.status === sf);
 
+    // เรียงตามเลขแปลง
+    pool.sort((a,b) => {
+      const na = parseInt(a.plot,10), nb = parseInt(b.plot,10);
+      if(!isNaN(na) && !isNaN(nb)) return na - nb;
+      return String(a.plot).localeCompare(String(b.plot));
+    });
+
     const total = pool.length;
-    pool = pool.slice(0, 100);
-    $('qres').textContent = `แสดง ${pool.length} จาก ${total} แปลงที่ยังไม่ก่อสร้าง`;
+    // breakdown ตามไทป์
+    const byType = {ULTRA:0, MINUTES:0, SECOND:0, MOMENT:0};
+    pool.forEach(p => { byType[p.type] = (byType[p.type]||0) + 1; });
+    const breakLabel = [
+      byType.ULTRA?`A:${byType.ULTRA}`:'',
+      byType.MINUTES?`B:${byType.MINUTES}`:'',
+      byType.SECOND?`C:${byType.SECOND}`:'',
+      byType.MOMENT?`D:${byType.MOMENT}`:''
+    ].filter(Boolean).join(' · ');
+
+    $('qres').innerHTML = `📋 พบ <b style="color:var(--gold)">${total}</b> แปลงที่ยังไม่ก่อสร้าง${breakLabel?' ('+breakLabel+')':''}`;
 
     const grid = $('plotGrid');
-    if(pool.length === 0){
+    if(total === 0){
       grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">ไม่พบแปลงที่ตรงเงื่อนไข</div>';
     } else {
+      // แสดงครบทุกแปลง — virtual scroll ผ่าน CSS max-height + overflow ที่มีอยู่แล้ว
       grid.innerHTML = pool.map(p => `
         <div class="plot-row ${selected.has(p.plot)?'on':''}" onclick="toggleSelect('${p.plot}')">
           <div class="cb">${selected.has(p.plot)?'✓':''}</div>
@@ -506,6 +596,25 @@
   function toggleSelect(pid){
     if(selected.has(pid)) selected.delete(pid);
     else selected.add(pid);
+    filterPlots();
+  }
+
+  function selectAllFiltered(){
+    const q = $('searchBox').value.trim();
+    const tf = $('typeFilter').value;
+    const sf = $('statusFilter').value;
+    const activeIds = new Set(activePlots.map(p => String(p.plot)));
+    let pool = allPlots.filter(p => !activeIds.has(p.plot));
+    if(q) pool = pool.filter(p => p.plot.includes(q) || plotCode(p).toLowerCase().includes(q.toLowerCase()));
+    if(tf) pool = pool.filter(p => p.type === tf);
+    if(sf) pool = pool.filter(p => p.status === sf);
+    if(pool.length > 50 && !confirm(`เลือก ${pool.length} แปลงพร้อมกัน?\n(จะใช้เวลาหลายวินาทีตอนบันทึก)`)) return;
+    pool.forEach(p => selected.add(p.plot));
+    filterPlots();
+  }
+
+  function clearSelection(){
+    selected.clear();
     filterPlots();
   }
 
