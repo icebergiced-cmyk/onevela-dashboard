@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🏗️ แดชบอร์ดก่อสร้างรายแปลง — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/brand/logo-icon.png">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-dk:#8d6d3f;
+    --bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;--soft:#f7f8fa;
+    --grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px;
+    background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
+      url('assets/photos/village/hero.jpg') center/cover fixed no-repeat;min-height:100vh}
+  .wrap{max-width:1140px;margin:0 auto}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .logo img{height:38px;width:auto;display:block}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:9px 14px;cursor:pointer;background:var(--gold);color:#fff;
+    text-decoration:none}
+  .topbar a.ghost,.topbar button.ghost{background:rgba(255,255,255,.15)}
+  .topbar a:hover,.topbar button:hover{filter:brightness(1.08)}
+
+  .state{text-align:center;padding:50px 20px;color:var(--muted);font-size:15px}
+  .state .sp{font-size:30px;margin-bottom:10px}
+
+  .hero{background:#fff;border-radius:14px;padding:20px 22px;margin-bottom:14px;
+    box-shadow:0 1px 6px rgba(0,0,0,.06);border-left:6px solid var(--gold)}
+  .hero h1{font-size:24px;font-weight:800;color:var(--charcoal);margin-bottom:4px}
+  .hero .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:10px 18px;margin-top:12px;font-size:13px}
+  .hero .meta .lbl{color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.5px}
+  .hero .meta .val{color:var(--ink);font-weight:600}
+  .hero .meta .val b{color:var(--gold);font-weight:800}
+
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+  .actions a,.actions button{font-family:inherit;font-size:13px;font-weight:700;text-decoration:none;
+    background:#efeae1;color:var(--charcoal);border:1px solid #ddd5c6;border-radius:9px;
+    padding:9px 14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .actions a:hover,.actions button:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .actions a.db{background:#e0e7ff;color:#1e3a8a;border-color:#c7d2fe}
+  .actions a.db:hover{background:#1e3a8a;color:#fff;border-color:#1e3a8a}
+
+  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:22px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:8px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+
+  /* Tracker */
+  .trk{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .trk-hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .trk-pct{font-size:34px;font-weight:800;color:var(--gold);line-height:1}
+  .trk-pct small{font-size:13px;color:var(--muted);margin-left:4px;font-weight:600}
+  .trk-cur{flex:1;min-width:200px}
+  .trk-cur .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+  .trk-cur .nm{font-size:16px;font-weight:700;color:var(--charcoal);margin-top:2px}
+  .trk-cur .cat{font-size:12px;color:var(--muted);margin-top:1px}
+  .trk-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;
+    font-size:12.5px;margin-top:4px}
+  .trk-meta .lbl{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .trk-meta .val{color:var(--ink);font-weight:600}
+  .trk-bar{height:12px;background:#eef1f4;border-radius:6px;overflow:hidden;margin:10px 0 14px}
+  .trk-bar>div{height:100%;background:linear-gradient(90deg,var(--gold),#d4b274);transition:width .6s}
+  .trk-sub{font-size:12.5px;font-weight:700;color:var(--muted);margin:18px 0 10px;
+    text-transform:uppercase;letter-spacing:.7px;display:flex;align-items:center;gap:6px}
+  .trk-sub .ct{font-size:11px;color:var(--gold);background:#fff8e6;padding:2px 8px;
+    border-radius:8px;margin-left:auto;font-weight:700}
+
+  .trk-tl{list-style:none;padding:0;margin:0;border-left:2px solid var(--line);padding-left:14px}
+  .trk-tl li{position:relative;padding:7px 0 7px 4px;font-size:13px;line-height:1.4}
+  .trk-tl li::before{content:'';position:absolute;left:-21px;top:11px;width:10px;height:10px;
+    border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .trk-tl li.done::before{background:var(--green);border-color:var(--green)}
+  .trk-tl li.curr::before{background:var(--gold);border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(176,141,87,.25)}
+  .trk-tl li.done{color:var(--muted)}
+  .trk-tl li.done .nm{text-decoration:line-through}
+  .trk-tl li.curr{font-weight:700;color:var(--charcoal)}
+  .trk-tl .cat{font-size:11px;color:var(--muted);margin-left:6px;font-weight:500}
+  .trk-tl .wt{font-size:11px;color:var(--gold);margin-left:6px;font-weight:700}
+
+  .trk-up{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .trk-up li{background:var(--soft);border-radius:8px;padding:10px 14px;font-size:13px;
+    border-left:3px solid var(--line)}
+  .trk-up li.issue{border-left-color:var(--red);background:#fef2f2}
+  .trk-up li.fresh{border-left-color:var(--green);background:#f0fdf4}
+  .trk-up .ut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .trk-up .dt{font-weight:700;color:var(--charcoal)}
+  .trk-up .who{color:var(--muted);font-size:12px}
+  .trk-up .nt{margin-top:4px;color:var(--ink)}
+  .trk-up .iss{margin-top:5px;font-size:12px;color:var(--red);font-weight:600}
+  .trk-up .ms{margin-top:4px;font-size:12px;color:var(--green);font-weight:600}
+  .trk-up .ph{margin-top:4px;font-size:12px;color:var(--muted)}
+
+  .trk-ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .trk-ph a{display:block;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--soft)}
+  .trk-ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .trk-ph .box{aspect-ratio:1;background:linear-gradient(135deg,#dfd7c8,#b08d57);
+    border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px}
+
+  .trk-empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:14px}
+  .trk-empty .big{font-size:48px;margin-bottom:8px}
+
+  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:var(--charcoal);color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28)}
+  .home-fab:hover{background:var(--gold)}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+
+  @media print{
+    .topbar,.actions,.home-fab{display:none!important}
+    body{background:#fff!important;padding:0}
+    .trk,.hero{box-shadow:none;border:1px solid var(--line)}
+  }
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
+      onerror="this.style.display='none'"></div>
+    <div class="ttl">แดชบอร์ดก่อสร้างรายแปลง<small>CONSTRUCTION DETAIL · ONE VELA</small></div>
+    <a href="javascript:history.back()" class="ghost">← ย้อนกลับ</a>
+    <button onclick="load(true)">↻ รีเฟรช</button>
+  </div>
+
+  <div id="state" class="state"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>
+  <div id="content" style="display:none">
+    <div id="hero" class="hero"></div>
+    <div class="actions" id="actions"></div>
+
+    <h2 class="sec">🏗️ ความคืบหน้างานก่อสร้าง <span class="ct" id="ctTrk">—</span></h2>
+    <div id="tracker" class="trk"></div>
+  </div>
+
+  <footer>แดชบอร์ดก่อสร้างรายแปลง · One Vela — Two Build Development</footer>
+</div>
+
+<script>
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const PHOTOS_FOLDER='1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk'; // One Vela Sales Files
+  const $=id=>document.getElementById(id);
+  const fmt=n=>Number(n||0).toLocaleString('th-TH');
+  const dt=v=>v?String(v).slice(0,10):'-';
+  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const plotKey=new URLSearchParams(location.search).get('plot');
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  const TYPE_NAMES={
+    ULTRA:'บ้านเดี่ยว 2 ชั้น (ไทป์ A)',
+    MINUTES:'บ้านเดี่ยวชั้นเดียว (ไทป์ B)',
+    SECOND:'บ้านแฝดชั้นเดียว (ไทป์ C)',
+    MOMENT:'ทาวน์โฮม 2 ชั้น (ไทป์ D)'
+  };
+  function plotCode(plot,type){
+    return (TYPE_PREFIX[type]||'?') + String(plot||'').replace(/^0+/,'');
+  }
+  function thaiDate(d){
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt=new Date(d);
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543);
+  }
+
+  // ── Cache 30 วินาที ──
+  const CACHE_KEY='ov_cdet_'+plotKey;
+  const CACHE_TTL=30*1000;
+  function getCache(){
+    try{
+      const raw=sessionStorage.getItem(CACHE_KEY);
+      if(!raw) return null;
+      const o=JSON.parse(raw);
+      if(Date.now()-o.t > CACHE_TTL) return null;
+      return o.d;
+    }catch(e){return null}
+  }
+  function setCache(data){
+    try{sessionStorage.setItem(CACHE_KEY,JSON.stringify({t:Date.now(),d:data}))}catch(e){}
+  }
+
+  async function load(forceRefresh){
+    if(!plotKey){
+      $('state').innerHTML='<div class="sp">⚠️</div>ไม่ได้ระบุเลขแปลง — เปิดผ่าน ?plot=N';
+      return;
+    }
+    // render จาก cache ก่อน (instant)
+    const cached=!forceRefresh && getCache();
+    if(cached){
+      render(cached);
+      $('state').style.display='none';$('content').style.display='';
+    }
+
+    try{
+      const controller=new AbortController();
+      const t=setTimeout(()=>controller.abort(),18000);
+      const res=await fetch(API_URL+'?action=getTrackerData&plot='+encodeURIComponent(plotKey),
+        {signal:controller.signal});
+      clearTimeout(t);
+      const r=await res.json();
+      if(!r || !r.ok) throw new Error(r.error||'load failed');
+      setCache(r);
+      render(r);
+      $('state').style.display='none';$('content').style.display='';
+    }catch(e){
+      if(!cached){
+        $('state').innerHTML='<div class="sp">⚠️</div>โหลดข้อมูลไม่สำเร็จ: '+esc(e.message||'')+'<br><br>'+
+          '<button onclick="load(true)" style="padding:8px 16px;border:none;border-radius:8px;'+
+          'background:var(--gold);color:#fff;font-weight:700;cursor:pointer">ลองใหม่</button>';
+      }
+    }
+  }
+
+  function render(t){
+    const p=t.plotMeta||{};
+    const cons=t.construction||{};
+    const ms=t.milestones||[];
+    const updates=t.updates||[];
+    const photos=t.photos||[];
+    const completed=new Set((t.completedIds||[]).map(String));
+    const curId=cons.current_milestone_id||0;
+    const code=plotCode(t.plot, t.houseType);
+
+    // Hero
+    const pct=Number(cons.progress_percent)||0;
+    $('hero').innerHTML=
+      '<h1>🏠 '+code+' <span style="font-size:13px;font-weight:600;color:var(--muted);'+
+        'margin-left:6px;letter-spacing:1px">'+(t.houseType||'')+'</span></h1>'+
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:2px">'+(TYPE_NAMES[t.houseType]||'-')+'</div>'+
+      '<div class="meta">'+
+        cell('เลขแปลง', t.plot)+
+        cell('สถานะขาย', p.status||'-')+
+        cell('โฉนดเลขที่', p.deed)+
+        cell('เนื้อที่', p.area ? p.area+' ตร.ว.' : '-')+
+        cell('ราคาสุทธิ', '<b>'+fmt(p.priceNet)+'</b> บาท')+
+        (p.cName ? cell('ลูกค้า', '👤 '+esc(p.cName)) : '')+
+      '</div>';
+
+    // Action buttons
+    const enc=encodeURIComponent(t.plot);
+    const driveFolder='https://drive.google.com/drive/folders/'+PHOTOS_FOLDER;
+    $('actions').innerHTML=
+      '<a href="plot-detail.html?plot='+enc+'">📊 ดูข้อมูลงานขาย</a>'+
+      '<a href="index.html?plot='+enc+'">💰 ดูต้นทุนแปลงนี้</a>'+
+      '<a href="'+driveFolder+'" target="_blank" class="db">📁 Data base (Drive)</a>'+
+      '<button onclick="window.print()">🖨️ พิมพ์/PDF</button>';
+
+    // Tracker section
+    if(!cons || (!cons.status && updates.length===0)){
+      $('ctTrk').textContent='ยังไม่เริ่ม';
+      $('tracker').innerHTML='<div class="trk-empty">'+
+        '<div class="big">🚧</div>'+
+        '<b>ยังไม่ได้เริ่มก่อสร้างแปลงนี้</b><br>'+
+        '<span style="font-size:12px">รอ admin เริ่มก่อสร้างจากหน้า <a href="admin-construction.html" style="color:var(--gold);font-weight:700">จัดการแปลงก่อสร้าง</a></span>'+
+        '</div>';
+      return;
+    }
+
+    $('ctTrk').textContent=pct+'% · '+(cons.status||'-');
+
+    const cur=t.currentMilestone;
+    let html='';
+    html+='<div class="trk-hd">';
+    html+='<div class="trk-pct">'+pct+'<small>%</small></div>';
+    html+='<div class="trk-cur">';
+    html+='<div class="lbl">MILESTONE ปัจจุบัน</div>';
+    if(cur){
+      html+='<div class="nm">'+(cur.milestone_order||'')+'. '+esc(cur.milestone_name||'-')+'</div>';
+      html+='<div class="cat">'+esc(cur.milestone_category||'')+
+            (cur.expected_days?' · คาด '+cur.expected_days+' วัน':'')+'</div>';
+    } else {
+      html+='<div class="nm" style="color:var(--muted)">ยังไม่ระบุ</div>';
+    }
+    html+='</div></div>';
+
+    html+='<div class="trk-bar"><div style="width:'+pct+'%"></div></div>';
+
+    html+='<div class="trk-meta">';
+    html+=metaCell('สถานะ', cons.status);
+    html+=metaCell('ไทป์บ้าน', t.houseType);
+    html+=metaCell('โฟร์แมน', cons.assigned_foreman_id?'โฟร์แมน'+cons.assigned_foreman_id:'-');
+    html+=metaCell('วันเริ่ม', dt(cons.actual_start_date));
+    html+=metaCell('คาดเสร็จ', dt(cons.estimated_completion_date));
+    html+=metaCell('อัปเดตล่าสุด', dt(cons.last_update_at));
+    html+='</div>';
+
+    // Timeline
+    if(ms.length){
+      html+='<div class="trk-sub">📋 รายการงาน <span class="ct">'+ms.length+' รายการ · เสร็จ '+completed.size+'</span></div>';
+      html+='<ul class="trk-tl">';
+      ms.forEach(m=>{
+        const id=Number(m.template_id);
+        const isDone=completed.has(String(id));
+        const isCurr=id===curId;
+        const cls=isDone?'done':(isCurr?'curr':'');
+        html+='<li class="'+cls+'">'+
+          '<span class="nm">'+id+'. '+esc(m.milestone_name)+'</span>'+
+          '<span class="cat">'+esc(m.milestone_category||'')+'</span>'+
+          (m.weight_percent?'<span class="wt">'+m.weight_percent+'%</span>':'')+
+          '</li>';
+      });
+      html+='</ul>';
+    }
+
+    // Updates
+    if(updates.length){
+      html+='<div class="trk-sub">📝 บันทึกจากโฟร์แมน <span class="ct">'+updates.length+' ครั้ง</span></div>';
+      html+='<ul class="trk-up">';
+      updates.slice(0,15).forEach((u,idx)=>{
+        const hasIssue=String(u.has_issue||'').match(/^(1|true|yes|มี)$/i);
+        const isFresh=idx===0;
+        const cls=hasIssue?'issue':(isFresh?'fresh':'');
+        html+='<li class="'+cls+'">';
+        html+='<div class="ut"><span class="dt">'+(u.created_at||'-').slice(0,16).replace('T',' ')+'</span>'+
+              '<span class="who">โดย '+esc(u.foreman_id||'-')+'</span></div>';
+        if(u.text_note) html+='<div class="nt">'+esc(u.text_note)+'</div>';
+        try{
+          const arr=u.milestones_completed?JSON.parse(u.milestones_completed):[];
+          if(arr.length){
+            const names=arr.map(id=>{
+              const found=ms.find(x=>Number(x.template_id)===Number(id));
+              return found?found.milestone_name:'#'+id;
+            });
+            html+='<div class="ms">✓ เสร็จ: '+esc(names.join(', '))+'</div>';
+          }
+        }catch(e){}
+        if(hasIssue && u.issue_description){
+          html+='<div class="iss">⚠️ '+esc(u.issue_description)+
+                (u.issue_severity?' (ระดับ '+esc(u.issue_severity)+')':'')+'</div>';
+        }
+        html+='</li>';
+      });
+      html+='</ul>';
+    }
+
+    // Photos
+    if(photos.length){
+      html+='<div class="trk-sub">📸 ภาพหน้างาน <span class="ct">'+photos.length+' รูป</span></div>';
+      html+='<div class="trk-ph">';
+      photos.slice(0,24).forEach(ph=>{
+        const url=ph.drive_url||'';
+        const thumb=ph.thumbnail_url||url;
+        if(url){
+          html+='<a href="'+url+'" target="_blank" title="'+(ph.taken_at||'')+'">'+
+                (thumb?'<img src="'+thumb+'" alt="" loading="lazy">':'<div class="box">📷</div>')+
+                '</a>';
+        }
+      });
+      html+='</div>';
+    }
+
+    $('tracker').innerHTML=html;
+  }
+
+  function cell(lbl,val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+  function metaCell(lbl,val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+
+  // Auto-refresh
+  let autoTimer=null;
+  function startAuto(){
+    if(autoTimer) return;
+    autoTimer=setInterval(()=>{
+      if(document.visibilityState==='visible') load(true);
+    }, 30*1000);
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){ load(true); startAuto(); }
+    else if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+  });
+
+  load();
+  startAuto();
+</script>
+</body>
+</html>

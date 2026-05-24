@@ -206,6 +206,9 @@
       onerror="this.style.display='none'"></div>
     <div class="ttl">จัดการแปลงก่อสร้าง<small>ADMIN · ONE VELA</small></div>
     <a href="home.html">← กลับ</a>
+    <a href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank"
+       style="color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:8px 14px;
+       border-radius:9px;background:rgba(176,141,87,.4)">📁 Data base</a>
     <button onclick="clearCache();loadAll(true)" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:9px;cursor:pointer">↻ รีเฟรช</button>
   </div>
 
@@ -335,7 +338,48 @@
     <div class="modal-ft">
       <div class="sel-count">เลือกแล้ว <b id="selN">0</b> แปลง</div>
       <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn-go" id="btnGo" onclick="confirmStart()" disabled>✓ เริ่มก่อสร้าง</button>
+      <button class="btn-go" id="btnGo" onclick="openConfirmStep()" disabled>ถัดไป →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL 2: Confirm + Assign โฟร์แมน ─── -->
+<div class="modal-bg" id="modalConfirm">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-hd">
+      <button class="x" onclick="backToSelect()" style="margin-right:auto">←</button>
+      <div class="ttl">✓ ยืนยัน + Assign โฟร์แมน</div>
+      <button class="x" onclick="closeConfirm()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div style="background:#fff8e6;border:1px solid #f5d8a0;border-radius:10px;padding:10px 14px;
+        margin-bottom:14px;font-size:12.5px;color:#7a5a2e">
+        💡 <b>ระบบ default ตามไทป์</b> — ULTRA → โก้, อื่นๆ → ใหญ่ ·
+        แต่บางแปลงอาจไม่เป็นไปตามนี้ — ปรับโฟร์แมนรายแปลงได้ก่อนยืนยัน
+      </div>
+
+      <!-- Quick override ทั้งหมด -->
+      <div style="margin-bottom:12px;padding:10px 12px;background:var(--soft);border-radius:9px;
+        display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:700;color:var(--charcoal)">เปลี่ยนพร้อมกัน:</span>
+        <button onclick="bulkAssign('โก้')" style="font-family:inherit;font-size:12px;font-weight:700;
+          padding:5px 10px;border:1px solid var(--gold);background:#fff;color:var(--gold-dk);
+          border-radius:6px;cursor:pointer">→ ทั้งหมดให้ โก้</button>
+        <button onclick="bulkAssign('ใหญ่')" style="font-family:inherit;font-size:12px;font-weight:700;
+          padding:5px 10px;border:1px solid #6b21a8;background:#fff;color:#6b21a8;
+          border-radius:6px;cursor:pointer">→ ทั้งหมดให้ ใหญ่</button>
+        <button onclick="bulkAssignAuto()" style="font-family:inherit;font-size:12px;font-weight:700;
+          padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--muted);
+          border-radius:6px;cursor:pointer">↻ คืนค่า auto</button>
+      </div>
+
+      <div id="confirmList" style="max-height:340px;overflow-y:auto;border:1px solid var(--line);
+        border-radius:10px"></div>
+    </div>
+    <div class="modal-ft">
+      <div class="sel-count">ยืนยัน <b id="confirmN">0</b> แปลง</div>
+      <button class="btn-cancel" onclick="backToSelect()">← กลับไปแก้</button>
+      <button class="btn-go" id="btnConfirmGo" onclick="confirmStart()">✓ เริ่มก่อสร้าง</button>
     </div>
   </div>
 </div>
@@ -384,9 +428,10 @@
     return prefix + String(p.plot||'').replace(/^0+/, '') || prefix+'0';
   }
 
-  // ── Cache layer (5 นาที — sales data) ──
-  const CACHE_KEY = 'ov_admin_v2_';
-  const CACHE_TTL = 5 * 60 * 1000;
+  // ── Cache layer (30 วินาที — แค่กัน double-load) ──
+  const CACHE_KEY = 'ov_admin_v3_';
+  const CACHE_TTL = 30 * 1000;
+  const AUTO_REFRESH_MS = 30 * 1000;
   function getCache(key){
     try {
       const raw = sessionStorage.getItem(CACHE_KEY+key);
@@ -637,15 +682,100 @@
     }
   }
 
+  // ── State สำหรับ confirm step ──
+  let confirmAssignments = {};  // plot → foreman ('โก้' | 'ใหญ่')
+
+  function openConfirmStep(){
+    if(selected.size === 0) return;
+    // เตรียม default assignments
+    confirmAssignments = {};
+    selected.forEach(pid => {
+      const p = allPlots.find(x => x.plot === pid);
+      if(p) confirmAssignments[pid] = foremanOf(p.type);
+    });
+    renderConfirmList();
+    $('modal').classList.remove('on');
+    $('modalConfirm').classList.add('on');
+  }
+
+  function backToSelect(){
+    $('modalConfirm').classList.remove('on');
+    $('modal').classList.add('on');
+  }
+
+  function closeConfirm(){
+    $('modalConfirm').classList.remove('on');
+    selected.clear();
+    confirmAssignments = {};
+  }
+
+  function renderConfirmList(){
+    const el = $('confirmList');
+    const list = [...selected].map(pid => {
+      const p = allPlots.find(x => x.plot === pid);
+      return p ? p : {plot:pid, type:'?'};
+    }).sort((a,b) => parseInt(a.plot,10) - parseInt(b.plot,10));
+
+    $('confirmN').textContent = list.length;
+
+    el.innerHTML = list.map(p => {
+      const cur = confirmAssignments[p.plot] || foremanOf(p.type);
+      const recommended = foremanOf(p.type);
+      const changed = cur !== recommended;
+      const avBg = cur === 'โก้' ? 'var(--gold)' : '#6b21a8';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+          border-bottom:1px solid var(--line);font-size:13px">
+          <div style="font-weight:800;color:var(--charcoal);min-width:55px">${plotCode(p)}</div>
+          <span class="typ-badge typ-${p.type}">${p.type||'?'}</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--muted)">โฟร์แมน:</span>
+            <select onchange="setAssign('${p.plot}', this.value)"
+              style="font-family:inherit;font-size:13px;font-weight:700;
+              padding:5px 10px;border:1.5px solid ${changed?'var(--amber)':'var(--line)'};
+              border-radius:7px;background:${changed?'#fef3e2':'#fff'};color:var(--charcoal);
+              cursor:pointer">
+              <option value="โก้" ${cur==='โก้'?'selected':''}>👷 โก้ (ULTRA)</option>
+              <option value="ใหญ่" ${cur==='ใหญ่'?'selected':''}>👷 ใหญ่ (B/C/D)</option>
+            </select>
+            ${changed ? '<span style="font-size:10px;color:var(--amber);font-weight:700" title="เปลี่ยนจากค่า default">⚠️</span>' : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function setAssign(pid, foreman){
+    confirmAssignments[pid] = foreman;
+    renderConfirmList();
+  }
+
+  function bulkAssign(foreman){
+    Object.keys(confirmAssignments).forEach(pid => {
+      confirmAssignments[pid] = foreman;
+    });
+    renderConfirmList();
+  }
+
+  function bulkAssignAuto(){
+    Object.keys(confirmAssignments).forEach(pid => {
+      const p = allPlots.find(x => x.plot === pid);
+      if(p) confirmAssignments[pid] = foremanOf(p.type);
+    });
+    renderConfirmList();
+  }
+
   async function confirmStart(){
     if(selected.size === 0) return;
     const n = selected.size;
-    $('btnGo').disabled = true;
-    $('btnGo').textContent = '⏳ กำลังบันทึก...';
+    $('btnConfirmGo').disabled = true;
+    $('btnConfirmGo').textContent = '⏳ กำลังบันทึก...';
     try {
-      // ส่งขนานเพื่อความเร็ว (ถ้าหลายแปลง)
+      // ส่งขนาน — pass foreman override ด้วย (Apps Script จะรับหรือไม่ก็ใช้ default)
       const results = await Promise.allSettled(
-        [...selected].map(pid => api('startBuilding', {plot: pid}))
+        [...selected].map(pid => api('startBuilding', {
+          plot: pid,
+          foreman: confirmAssignments[pid] || ''
+        }))
       );
       const failed = results.filter(r => r.status !== 'fulfilled' || !r.value.ok);
       if(failed.length){
@@ -653,14 +783,15 @@
       }
       clearCache();
       selected.clear();
-      closeModal();
+      confirmAssignments = {};
+      $('modalConfirm').classList.remove('on');
       showToast(`✅ เริ่มก่อสร้าง ${n} แปลงแล้ว — โฟร์แมนเห็นใน dropdown ทันที`);
       await loadAll(true);
     } catch(e){
       alert('บันทึกไม่สำเร็จ: '+e.message);
     } finally {
-      $('btnGo').disabled = false;
-      $('btnGo').textContent = '✓ เริ่มก่อสร้าง';
+      $('btnConfirmGo').disabled = false;
+      $('btnConfirmGo').textContent = '✓ เริ่มก่อสร้าง';
     }
   }
 
@@ -687,6 +818,29 @@
   }
 
   loadAll();
+
+  // ── Auto-refresh — ทุก 30 วิ ถ้า tab active ──
+  let autoTimer = null;
+  function startAutoRefresh(){
+    if(autoTimer) return;
+    autoTimer = setInterval(() => {
+      if(document.visibilityState === 'visible' && !document.getElementById('modal').classList.contains('on')){
+        loadAll(true);
+      }
+    }, AUTO_REFRESH_MS);
+  }
+  function stopAutoRefresh(){
+    if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible'){
+      loadAll(true);  // refresh ทันทีเมื่อกลับมา
+      startAutoRefresh();
+    } else {
+      stopAutoRefresh();
+    }
+  });
+  startAutoRefresh();
 </script>
 </body>
 </html>

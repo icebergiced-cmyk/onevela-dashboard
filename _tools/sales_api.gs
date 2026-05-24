@@ -45,7 +45,7 @@ function doGet(e){
     if (action === 'getActivePlots')    return json(getActivePlots());
     if (action === 'getPlotsByForeman') return json(getPlotsByForeman(p.foreman));
     if (action === 'getCounts')         return json(getConstructionCounts());
-    if (action === 'startBuilding')     return json(startBuilding(p.plot));
+    if (action === 'startBuilding')     return json(startBuilding(p.plot, p.foreman));
     if (action === 'stopBuilding')      return json(stopBuilding(p.plot));
     if (action === 'saveUpdate')        return json(saveConstructionUpdate(parseData(p.data)));
     if (action === 'foremanLogin')      return json(foremanLogin(p.foreman, p.pin));
@@ -84,7 +84,7 @@ function doPost(e){
       case 'uploadFile':   return json(uploadFile(body));
       case 'pushSyncHistory':return json(pushSyncHistory(body.data));
       case 'saveUpdate':   return json(saveConstructionUpdate(body.data));
-      case 'startBuilding':return json(startBuilding(body.plot));
+      case 'startBuilding':return json(startBuilding(body.plot, body.foreman));
       case 'stopBuilding': return json(stopBuilding(body.plot));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
@@ -634,7 +634,8 @@ function getConstructionCounts(){
 }
 
 // ===== startBuilding — เพิ่ม/อัปเดต row ใน plot_construction =====
-function startBuilding(plot){
+// foremanOverride: ถ้าส่งมา (เช่น 'โก้' / 'ใหญ่') จะใช้แทน default ตามไทป์
+function startBuilding(plot, foremanOverride){
   if(!plot) return {ok:false, error:'ต้องระบุ plot'};
   const sh = sheet('plot_construction');
   if(!sh) return {ok:false, error:'ไม่พบ tab: plot_construction'};
@@ -647,7 +648,10 @@ function startBuilding(plot){
   // หา type ของแปลง
   const typeKey = plotTypeKey_(plot);
   if(!typeKey) return {ok:false, error:'ไม่พบแปลง '+plot+' หรือไม่ทราบ typeCode'};
-  const foreman = foremanOfType_(typeKey);
+  // ใช้ override ถ้าส่งมา ไม่งั้น auto-assign ตามไทป์
+  const foreman = (foremanOverride && String(foremanOverride).trim())
+    ? String(foremanOverride).trim()
+    : foremanOfType_(typeKey);
 
   // หา row เดิม
   const today = new Date().toISOString().slice(0,10);

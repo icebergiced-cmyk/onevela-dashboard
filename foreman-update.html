@@ -428,8 +428,12 @@
     return (TYPE_PREFIX[type]||'?') + String(pid||'').replace(/^0+/, '');
   }
 
-  // ── Persistent session (เก็บ login ข้ามรอบเปิดเว็บ) ──
-  const SS_KEY = 'ov_foreman_session_v2';
+  // ── Persistent session (เก็บ login ใน 8 ชั่วโมง — กะกลางวันงาน) ──
+  // หมายเหตุ: เก็บไว้แค่ login state กับ milestones template (ไม่เปลี่ยน)
+  // plots จะ refresh จาก server เสมอเมื่อเปิดหน้า
+  const SS_KEY = 'ov_foreman_session_v3';
+  const SESSION_TTL = 8 * 60 * 60 * 1000;  // 8 ชั่วโมง
+  const AUTO_REFRESH_MS = 30 * 1000;        // refresh plots ทุก 30 วินาที
   function saveSession(){
     try {
       sessionStorage.setItem(SS_KEY, JSON.stringify({
@@ -445,7 +449,7 @@
       const raw = sessionStorage.getItem(SS_KEY);
       if(!raw) return null;
       const o = JSON.parse(raw);
-      if(Date.now() - o.at > 30*60*1000) return null; // 30 นาที
+      if(Date.now() - o.at > SESSION_TTL) return null;
       return o;
     } catch(e){ return null; }
   }
@@ -1295,7 +1299,7 @@
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
 
-  // resume session ถ้ามี (ไม่ต้อง login ใหม่ทุกครั้งใน 30 นาที)
+  // resume session ถ้ามี (ไม่ต้อง login ใหม่ทุกครั้งใน 8 ชั่วโมง)
   const sess = loadSession();
   if(sess && sess.foreman){
     currentForeman = sess.foreman;
@@ -1307,6 +1311,49 @@
     // refresh เบื้องหลัง
     loadPlots(false);
   }
+
+  // ── Auto-refresh + pull-to-refresh (mobile) ──
+  let autoTimer = null;
+  function startAutoRefresh(){
+    if(autoTimer) return;
+    autoTimer = setInterval(() => {
+      if(document.visibilityState === 'visible' && currentForeman){
+        // refresh เฉพาะหน้า home — ไม่กวน form ที่กำลังกรอก
+        if($('pg-home').classList.contains('on')){
+          loadPlots(false);
+        }
+      }
+    }, AUTO_REFRESH_MS);
+  }
+  function stopAutoRefresh(){
+    if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && currentForeman){
+      if($('pg-home').classList.contains('on')){ loadPlots(false); }
+      startAutoRefresh();
+    } else {
+      stopAutoRefresh();
+    }
+  });
+  startAutoRefresh();
+
+  // Pull-to-refresh แบบเรียบง่าย (touch event)
+  let pullStart = 0, pullActive = false;
+  document.addEventListener('touchstart', e => {
+    if(window.scrollY === 0 && $('pg-home').classList.contains('on')){
+      pullStart = e.touches[0].clientY;
+      pullActive = true;
+    }
+  }, {passive: true});
+  document.addEventListener('touchend', e => {
+    if(!pullActive) return;
+    const delta = (e.changedTouches[0].clientY - pullStart);
+    if(delta > 80 && currentForeman){
+      loadPlots(true);
+    }
+    pullActive = false;
+  }, {passive: true});
 </script>
 </body>
 </html>

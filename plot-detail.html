@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>รายละเอียดแปลง — One Vela</title>
+<title>รายละเอียดแปลง · One Vela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -158,11 +158,6 @@
 
     <div class="actions" id="actions"></div>
 
-    <h2 class="sec">🏗️ งานก่อสร้าง <span class="ct" id="ctTrk">—</span></h2>
-    <div id="tracker" class="trk">
-      <div class="trk-empty">⏳ กำลังโหลดข้อมูลก่อสร้าง...</div>
-    </div>
-
     <h2 class="sec">📄 ใบเสนอราคา <span class="ct" id="ctQuote">0 ฉบับ</span></h2>
     <div class="docTbl">
       <table>
@@ -243,21 +238,10 @@
     $('state').style.display=''; $('content').style.display='none';
     $('state').innerHTML='<div class="sp">⏳</div>กำลังโหลดข้อมูลแปลง '+plotKey+'...';
     try{
-      // โหลด sales data + tracker data ขนาน (tracker fail ไม่ทำให้ทั้งหน้าพัง)
-      const [salesRes, trkRes] = await Promise.allSettled([
-        fetch(API_URL+'?action=getSalesData').then(r=>r.json()),
-        fetch(API_URL+'?action=getTrackerData&plot='+encodeURIComponent(plotKey)).then(r=>r.json())
-      ]);
-      if(salesRes.status!=='fulfilled' || !salesRes.value || !salesRes.value.ok)
-        throw new Error('bad sales data');
-      render(salesRes.value);
-      // tracker แยก — ไม่มีไม่เป็นไร
-      if(trkRes.status==='fulfilled' && trkRes.value && trkRes.value.ok){
-        renderTracker(trkRes.value);
-      } else {
-        $('tracker').innerHTML='<div class="trk-empty">⚠️ โหลดข้อมูลก่อสร้างไม่สำเร็จ</div>';
-        $('ctTrk').textContent='—';
-      }
+      const res=await fetch(API_URL+'?action=getSalesData');
+      const data=await res.json();
+      if(!data || !data.ok) throw new Error('bad data');
+      render(data);
       $('state').style.display='none'; $('content').style.display='';
     }catch(e){
       $('state').innerHTML='<div class="sp">⚠️</div>โหลดข้อมูลไม่สำเร็จ<br><br>'+
@@ -298,11 +282,15 @@
         '</div>' : '');
 
     const enc=encodeURIComponent(plot.plot);
+    const driveFolder='https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
     $('actions').innerHTML=
       '<a href="sales-quotation.html?plot='+enc+'">📄 ออกใบเสนอราคา</a>'+
       '<a href="sales-booking.html?plot='+enc+'">📋 ออกใบจอง</a>'+
       '<a href="sales-contract.html?plot='+enc+'">📑 ทำสัญญา</a>'+
-      '<a href="sales-receipt.html?plot='+enc+'">🧾 ออกใบเสร็จ</a>';
+      '<a href="sales-receipt.html?plot='+enc+'">🧾 ออกใบเสร็จ</a>'+
+      '<a href="construction-detail.html?plot='+enc+'" style="background:#fff8e6;border-color:#f5d8a0;color:#7a5a2e">🏗️ แดชบอร์ดก่อสร้าง</a>'+
+      '<a href="index.html?plot='+enc+'" style="background:#e0e7ff;border-color:#c7d2fe;color:#1e3a8a">💰 แดชบอร์ดต้นทุน</a>'+
+      '<a href="'+driveFolder+'" target="_blank" style="background:#e6f4ea;border-color:#b6dbc1;color:#15803d">📁 Data base (Drive)</a>';
 
     const quotes=match(data.quotations, ['plot']);
     const books=match(data.bookings, ['plot']);
