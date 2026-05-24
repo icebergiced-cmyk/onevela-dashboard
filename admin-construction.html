@@ -182,7 +182,7 @@
       onerror="this.style.display='none'"></div>
     <div class="ttl">จัดการแปลงก่อสร้าง<small>ADMIN · ONE VELA</small></div>
     <a href="home.html">← กลับ</a>
-    <button onclick="loadAll()" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:9px;cursor:pointer">↻ รีเฟรช</button>
+    <button onclick="clearCache();loadAll(true)" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:9px;cursor:pointer">↻ รีเฟรช</button>
   </div>
 
   <div id="errBox"></div>
@@ -317,12 +317,16 @@
   let selected = new Set();
 
   // ── API ──
-  async function api(action, params){
+  async function api(action, params, timeoutMs){
     const url = new URL(API_URL);
     url.searchParams.set('action', action);
     Object.keys(params||{}).forEach(k => url.searchParams.set(k, params[k]));
-    const res = await fetch(url.toString());
-    return res.json();
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), timeoutMs || 20000);
+    try {
+      const res = await fetch(url.toString(), {signal: controller.signal});
+      return res.json();
+    } finally { clearTimeout(t); }
   }
 
   function resolveType(typeCode){
@@ -336,10 +340,46 @@
   }
   function foremanOf(type){ return type === 'ULTRA' ? 'โก้' : 'ใหญ่'; }
 
-  async function loadAll(){
-    $('loadingState').style.display = '';
-    $('content').style.display = 'none';
+  // ── รหัสบ้านตามไทป์: A=ULTRA, B=MINUTES, C=SECOND, D=MOMENT ──
+  const TYPE_PREFIX = {ULTRA:'A', MINUTES:'B', SECOND:'C', MOMENT:'D'};
+  function plotCode(p){
+    const prefix = TYPE_PREFIX[p.type] || '?';
+    return prefix + String(p.plot||'').replace(/^0+/, '') || prefix+'0';
+  }
+
+  // ── Cache layer (5 นาที — sales data) ──
+  const CACHE_KEY = 'ov_admin_v2_';
+  const CACHE_TTL = 5 * 60 * 1000;
+  function getCache(key){
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY+key);
+      if(!raw) return null;
+      const o = JSON.parse(raw);
+      if(Date.now() - o.t > CACHE_TTL) return null;
+      return o.d;
+    } catch(e){ return null; }
+  }
+  function setCache(key, data){
+    try { sessionStorage.setItem(CACHE_KEY+key, JSON.stringify({t:Date.now(), d:data})); } catch(e){}
+  }
+  function clearCache(){
+    Object.keys(sessionStorage).filter(k=>k.startsWith(CACHE_KEY)).forEach(k=>sessionStorage.removeItem(k));
+  }
+
+  async function loadAll(forceRefresh){
     $('errBox').innerHTML = '';
+    // ใช้ cache เป็นข้อมูลโชว์ก่อน (instant) แล้วค่อย refresh เบื้องหลัง
+    const cachedAll = !forceRefresh && getCache('all');
+    if(cachedAll){
+      allPlots = cachedAll.allPlots;
+      activePlots = cachedAll.activePlots;
+      renderAll();
+      $('loadingState').style.display = 'none';
+      $('content').style.display = '';
+    } else {
+      $('loadingState').style.display = '';
+      $('content').style.display = 'none';
+    }
     try {
       const [salesRes, activeRes] = await Promise.all([
         api('getSalesData'),
@@ -355,13 +395,17 @@
         cName: p.cName, cPhone: p.cPhone
       })).filter(p => p.plot);
       activePlots = activeRes.plots || [];
+      setCache('all', {allPlots, activePlots});
       renderAll();
       $('loadingState').style.display = 'none';
       $('content').style.display = '';
     } catch(e){
-      $('errBox').innerHTML = '<div class="err-banner">⚠️ '+esc(e.message||'โหลดข้อมูลไม่สำเร็จ')+
-        '<br><button class="btn-go" onclick="loadAll()" style="margin-top:8px;padding:6px 12px;font-size:12px">ลองใหม่</button></div>';
-      $('loadingState').style.display = 'none';
+      if(!cachedAll){
+        $('errBox').innerHTML = '<div class="err-banner">⚠️ '+esc(e.message||'โหลดข้อมูลไม่สำเร็จ')+
+          '<br><button class="btn-go" onclick="loadAll(true)" style="margin-top:8px;padding:6px 12px;font-size:12px">ลองใหม่</button></div>';
+        $('loadingState').style.display = 'none';
+      }
+      // ถ้ามี cache แล้ว — แค่แสดง warning เล็กๆ
     }
   }
 
@@ -392,7 +436,7 @@
       const isWarn = p.lastUpdateAt && (Date.now() - new Date(p.lastUpdateAt)) > 3*86400000;
       return `
         <tr>
-          <td><span class="pid">C${p.plot}</span></td>
+          <td><span class="pid">${plotCode(p)}</span></td>
           <td><span class="typ-badge typ-${p.type}">${p.type}</span></td>
           <td><span class="foreman-tag"><span class="av" style="${avBg}">${av}</span>โฟร์แมน${esc(fm)}</span></td>
           <td>
@@ -451,7 +495,7 @@
       grid.innerHTML = pool.map(p => `
         <div class="plot-row ${selected.has(p.plot)?'on':''}" onclick="toggleSelect('${p.plot}')">
           <div class="cb">${selected.has(p.plot)?'✓':''}</div>
-          <div class="pid">C${p.plot}</div>
+          <div class="pid">${plotCode(p)}</div>
           <span class="typ-badge typ-${p.type}">${p.type||'?'}</span>
           <div class="st s-${p.status}">${esc(p.status)}</div>
         </div>`).join('');
@@ -490,14 +534,19 @@
     $('btnGo').disabled = true;
     $('btnGo').textContent = '⏳ กำลังบันทึก...';
     try {
-      for(const pid of selected){
-        const r = await api('startBuilding', {plot: pid});
-        if(!r.ok) throw new Error(r.error||'failed at '+pid);
+      // ส่งขนานเพื่อความเร็ว (ถ้าหลายแปลง)
+      const results = await Promise.allSettled(
+        [...selected].map(pid => api('startBuilding', {plot: pid}))
+      );
+      const failed = results.filter(r => r.status !== 'fulfilled' || !r.value.ok);
+      if(failed.length){
+        throw new Error(`${failed.length} แปลงบันทึกไม่สำเร็จ`);
       }
+      clearCache();
       selected.clear();
       closeModal();
       showToast(`✅ เริ่มก่อสร้าง ${n} แปลงแล้ว — โฟร์แมนเห็นใน dropdown ทันที`);
-      await loadAll();
+      await loadAll(true);
     } catch(e){
       alert('บันทึกไม่สำเร็จ: '+e.message);
     } finally {
@@ -507,12 +556,15 @@
   }
 
   async function stopPlot(pid){
-    if(!confirm(`หยุดการก่อสร้างแปลง C${pid}?\n(จะออกจาก dropdown โฟร์แมน — ข้อมูลความคืบหน้ายังอยู่)`)) return;
+    const p = activePlots.find(x=>x.plot===pid);
+    const code = p ? plotCode(p) : pid;
+    if(!confirm(`หยุดการก่อสร้างแปลง ${code}?\n(จะออกจาก dropdown โฟร์แมน — ข้อมูลความคืบหน้ายังอยู่)`)) return;
     try {
       const r = await api('stopBuilding', {plot: pid});
       if(!r.ok) throw new Error(r.error||'failed');
-      showToast(`⏸️ หยุดก่อสร้างแปลง C${pid} แล้ว`);
-      await loadAll();
+      clearCache();
+      showToast(`⏸️ หยุดก่อสร้างแปลง ${code} แล้ว`);
+      await loadAll(true);
     } catch(e){
       alert('หยุดไม่สำเร็จ: '+e.message);
     }

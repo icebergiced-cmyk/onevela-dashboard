@@ -49,6 +49,8 @@ function doGet(e){
     if (action === 'stopBuilding')      return json(stopBuilding(p.plot));
     if (action === 'saveUpdate')        return json(saveConstructionUpdate(parseData(p.data)));
     if (action === 'foremanLogin')      return json(foremanLogin(p.foreman, p.pin));
+    if (action === 'foremanInit')       return json(foremanInit(p.foreman, p.pin));
+    if (action === 'getMilestonesAll')  return json(getMilestonesAll());
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -865,6 +867,39 @@ function uploadConstructionPhoto_(updateId, plot, photo){
     sh.appendRow(keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; }));
   }
   return file.getUrl();
+}
+
+// ===== getMilestonesAll — ดึง template ทั้งหมด (cache ได้นาน — ไม่ค่อยเปลี่ยน) =====
+function getMilestonesAll(){
+  const all = readTab('milestones_template');
+  all.sort(function(a,b){
+    const ha = String(a.house_type||'').localeCompare(String(b.house_type||''));
+    if(ha !== 0) return ha;
+    return (Number(a.milestone_order)||0) - (Number(b.milestone_order)||0);
+  });
+  // group by house_type
+  const grouped = {};
+  all.forEach(function(m){
+    const t = String(m.house_type||'').toUpperCase();
+    if(!grouped[t]) grouped[t] = [];
+    grouped[t].push(m);
+  });
+  return {ok:true, milestones:all, byType:grouped};
+}
+
+// ===== foremanInit — รวม login + plots ใน call เดียว (เร็วขึ้นมาก) =====
+function foremanInit(foreman, pin){
+  const loginRes = foremanLogin(foreman, pin);
+  if(!loginRes.ok) return loginRes;
+  const plotsRes = getPlotsByForeman(foreman);
+  const msRes = getMilestonesAll();
+  return {
+    ok: true,
+    foreman: foreman,
+    name: loginRes.name,
+    plots: plotsRes.ok ? plotsRes.plots : [],
+    milestones: msRes.ok ? msRes.byType : {}
+  };
 }
 
 // ===== foremanLogin — ตรวจ PIN จาก users tab =====

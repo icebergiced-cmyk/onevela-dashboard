@@ -315,6 +315,8 @@
     <div class="hd">
       <button class="back" onclick="logout()" title="ออก">⏻</button>
       <div class="ttl">หน้างานของฉัน<small id="todayDate"></small></div>
+      <button class="back" onclick="hardReset()" title="ล้าง cache + โหลดใหม่"
+              style="background:rgba(176,141,87,.35)">🔄</button>
       <div class="av" id="avatar">โ</div>
     </div>
     <div style="padding:18px">
@@ -330,7 +332,9 @@
   <div class="pg" id="pg-update">
     <div class="hd">
       <button class="back" onclick="goto('home')">←</button>
-      <div class="ttl" id="updTtl">แปลง C—<small>—</small></div>
+      <div class="ttl" id="updTtl">—<small>—</small></div>
+      <button class="back" onclick="reloadPlot()" title="โหลดใหม่"
+              style="background:rgba(176,141,87,.35)">🔄</button>
     </div>
     <div style="padding:18px" id="updBody">
       <div class="loader"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>
@@ -409,9 +413,55 @@
   let issueOn = false;
   let issueSev = '';
   let gpsLat = null, gpsLng = null, gpsAccuracy = null;
-  let plotsCache = [];           // จาก getPlotsByForeman
+  let plotsCache = [];           // จาก foremanInit/getPlotsByForeman
   let trackerCache = {};         // plot → tracker data
-  let milestonesCache = {};      // type → ms list
+  let milestonesCache = {};      // type → ms list (จาก foremanInit)
+  let showAllMs = false;         // toggle "ดูทั้งหมด"
+
+  // ── รหัสบ้านตามไทป์: A=ULTRA, B=MINUTES, C=SECOND, D=MOMENT ──
+  const TYPE_PREFIX = {ULTRA:'A', MINUTES:'B', SECOND:'C', MOMENT:'D'};
+  function plotCode(p){
+    const prefix = TYPE_PREFIX[p.type] || '?';
+    return prefix + String(p.plot||'').replace(/^0+/, '');
+  }
+  function plotCodeOf(pid, type){
+    return (TYPE_PREFIX[type]||'?') + String(pid||'').replace(/^0+/, '');
+  }
+
+  // ── Persistent session (เก็บ login ข้ามรอบเปิดเว็บ) ──
+  const SS_KEY = 'ov_foreman_session_v2';
+  function saveSession(){
+    try {
+      sessionStorage.setItem(SS_KEY, JSON.stringify({
+        foreman: currentForeman,
+        plots: plotsCache,
+        milestones: milestonesCache,
+        at: Date.now()
+      }));
+    } catch(e){}
+  }
+  function loadSession(){
+    try {
+      const raw = sessionStorage.getItem(SS_KEY);
+      if(!raw) return null;
+      const o = JSON.parse(raw);
+      if(Date.now() - o.at > 30*60*1000) return null; // 30 นาที
+      return o;
+    } catch(e){ return null; }
+  }
+  function clearSession(){
+    try { sessionStorage.removeItem(SS_KEY); } catch(e){}
+    Object.keys(sessionStorage).filter(k=>k.startsWith('ov_')).forEach(k=>{
+      try { sessionStorage.removeItem(k); } catch(e){}
+    });
+  }
+
+  // ── Hard reset — ล้างทุก state + reload ──
+  function hardReset(){
+    if(!confirm('ล้าง cache และโหลดใหม่ทั้งหมด?\n(ใช้เมื่อหน้าค้าง — login รอบใหม่ต้องใส่ PIN อีกครั้ง)')) return;
+    clearSession();
+    location.reload();
+  }
 
   const COMPANY = {
     name: 'บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด',
@@ -441,13 +491,20 @@
     window.scrollTo(0,0);
   }
 
-  // ── API ──
-  async function api(action, params){
+  // ── API (มี timeout) ──
+  async function api(action, params, timeoutMs){
     const url = new URL(API_URL);
     url.searchParams.set('action', action);
     Object.keys(params||{}).forEach(k => url.searchParams.set(k, params[k]));
-    const res = await fetch(url.toString());
-    return res.json();
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), timeoutMs || 18000);
+    try {
+      const res = await fetch(url.toString(), {signal: controller.signal});
+      return res.json();
+    } catch(e){
+      if(e.name === 'AbortError') throw new Error('โหลดข้อมูลนานเกิน 18 วินาที — กรุณาลองใหม่');
+      throw e;
+    } finally { clearTimeout(t); }
   }
 
   async function apiPost(action, data){
@@ -486,31 +543,39 @@
     });
   }
 
-  // ── LOGIN ──
+  // ── LOGIN — ใช้ foremanInit (รวม login + plots + milestones ใน call เดียว) ──
   async function doLogin(){
     const fid = $('foremanSel').value;
     const pin = $('pinInp').value;
     if(!fid){ showLoginErr('กรุณาเลือกชื่อ'); return; }
     if(pin.length < 4){ showLoginErr('กรุณากรอก PIN 4 หลัก'); return; }
     $('loginBtn').disabled = true;
-    $('loginBtn').textContent = 'กำลังตรวจสอบ...';
+    $('loginBtn').textContent = '⏳ กำลังเข้าระบบ...';
+    $('loginErr').style.display = 'none';
     try {
-      const r = await api('foremanLogin', {foreman:fid, pin:pin});
+      const r = await api('foremanInit', {foreman:fid, pin:pin});
       if(!r.ok){ showLoginErr(r.error||'PIN ไม่ถูกต้อง'); return; }
       currentForeman = fid;
-      $('foremanName').textContent = r.name || ('โฟร์แมน'+fid);
-      $('avatar').textContent = fid.charAt(0);
-      $('avatar').style.background = fid === 'โก้' ? 'var(--gold)' : '#6b21a8';
-      $('typeRole').textContent = fid === 'โก้' ? 'ULTRA (ไทป์ A)' : 'MINUTES/SECOND/MOMENT (ไทป์ B/C/D)';
-      $('todayDate').textContent = todayThai();
+      plotsCache = r.plots || [];
+      milestonesCache = r.milestones || {};
+      setupSession();
+      saveSession();
       goto('home');
-      await loadPlots();
+      renderPlotList();
     } catch(e){
-      showLoginErr('เชื่อมต่อไม่สำเร็จ — กรุณาลองใหม่');
+      showLoginErr('เชื่อมต่อไม่สำเร็จ — '+(e.message||'กรุณาลองใหม่'));
     } finally {
       $('loginBtn').disabled = false;
       $('loginBtn').textContent = 'เข้าสู่ระบบ';
     }
+  }
+
+  function setupSession(){
+    $('foremanName').textContent = 'โฟร์แมน'+currentForeman;
+    $('avatar').textContent = currentForeman.charAt(0);
+    $('avatar').style.background = currentForeman === 'โก้' ? 'var(--gold)' : '#6b21a8';
+    $('typeRole').textContent = currentForeman === 'โก้' ? 'ULTRA (ไทป์ A)' : 'MINUTES/SECOND/MOMENT (ไทป์ B/C/D)';
+    $('todayDate').textContent = todayThai();
   }
   function showLoginErr(msg){
     $('loginErr').textContent = '⚠️ '+msg;
@@ -519,23 +584,31 @@
   function logout(){
     if(confirm('ออกจากระบบ?')){
       currentForeman = null;
+      clearSession();
       goto('login');
       $('loginErr').style.display = 'none';
       $('pinInp').value = '';
     }
   }
 
-  // ── HOME — load plots ──
-  async function loadPlots(){
+  // ── HOME — โหลด plots (ใช้ cache ถ้ามี + refresh เบื้องหลัง) ──
+  async function loadPlots(forceRefresh){
     if(!currentForeman) return;
+    // render จาก cache ก่อน (instant)
+    if(plotsCache.length || forceRefresh){
+      renderPlotList();
+    }
     try {
       const r = await api('getPlotsByForeman', {foreman: currentForeman});
       if(!r.ok){ throw new Error(r.error); }
       plotsCache = r.plots || [];
+      saveSession();
       renderPlotList();
     } catch(e){
-      $('plotList').innerHTML = '<div class="err">โหลดข้อมูลไม่สำเร็จ: '+esc(e.message||'')+
-        '<br><br><button class="btn-primary" onclick="loadPlots()" style="font-size:13px;padding:8px 14px">ลองใหม่</button></div>';
+      if(plotsCache.length === 0){
+        $('plotList').innerHTML = '<div class="err">โหลดข้อมูลไม่สำเร็จ: '+esc(e.message||'')+
+          '<br><br><button class="btn-primary" onclick="loadPlots(true)" style="font-size:13px;padding:8px 14px">ลองใหม่</button></div>';
+      }
     }
   }
 
@@ -555,15 +628,19 @@
     const sorted = [...plotsCache].sort((a,b) => String(a.plot).localeCompare(String(b.plot)));
     el.innerHTML = sorted.map(p => {
       const last = p.lastUpdateAt ? thaiDate(p.lastUpdateAt) : '-';
+      // หาชื่อ milestone ปัจจุบันจาก cache
+      const ms = (milestonesCache[p.type] || []);
+      const curMs = ms.find(m => Number(m.template_id||m[0]) === Number(p.curMilestoneId));
+      const msName = curMs ? (curMs.milestone_name||curMs[1]) : '';
       return `
         <div class="plot-card">
           <div class="top">
-            <div class="pid">🏠 C${p.plot}</div>
+            <div class="pid">🏠 ${plotCode(p)}</div>
             <div class="typ">${p.type||'-'}</div>
             <div class="pct">${p.progress||0}<small>%</small></div>
           </div>
           <div class="bar"><div style="width:${p.progress||0}%"></div></div>
-          <div class="ms">📌 milestone ${p.curMilestoneId||'-'}</div>
+          <div class="ms">📌 ${p.curMilestoneId||'-'}. ${esc(msName||'รอเริ่ม')}</div>
           <div class="ago">🕐 อัปเดตล่าสุด: ${last}</div>
           <div class="actions">
             <button class="primary" onclick="openPlot('${p.plot}')">📝 อัปเดตงาน</button>
@@ -577,21 +654,40 @@
   async function openPlot(pid){
     currentPlot = pid;
     selectedMs.clear(); photos = []; issueOn = false; issueSev = '';
-    gpsLat = null; gpsLng = null;
+    gpsLat = null; gpsLng = null; showAllMs = false;
     goto('update');
-    $('updTtl').innerHTML = 'แปลง C'+pid+'<small>กำลังโหลด...</small>';
+
+    // หา type จาก plotsCache → plotCode ทันที (ไม่ต้องรอ API)
+    const cachedPlot = plotsCache.find(p => String(p.plot) === String(pid));
+    const code = cachedPlot ? plotCode(cachedPlot) : pid;
+    $('updTtl').innerHTML = '🏠 '+code+'<small>กำลังโหลด...</small>';
     $('updBody').innerHTML = '<div class="loader"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>';
+
+    // ถ้ามี tracker cache เดิม — render ทันที (instant) แล้ว refresh background
+    if(trackerCache[pid]){
+      renderUpdateForm(trackerCache[pid]);
+    }
 
     try {
       const r = await api('getTrackerData', {plot: pid});
       if(!r.ok) throw new Error(r.error||'load failed');
       trackerCache[pid] = r;
       renderUpdateForm(r);
-      // ขอ GPS แบบ background
       requestGps();
     } catch(e){
-      $('updBody').innerHTML = '<div class="err">โหลดไม่สำเร็จ: '+esc(e.message||'')+'</div>';
+      if(!trackerCache[pid]){
+        $('updBody').innerHTML = '<div class="err">โหลดไม่สำเร็จ: '+esc(e.message||'')+
+          '<br><br><button class="btn-primary" onclick="reloadPlot()" style="font-size:13px;padding:8px 14px">ลองใหม่</button></div>';
+      }
     }
+  }
+
+  // กดปุ่ม 🔄 บนหน้า update — ล้าง cache ของแปลงนี้แล้วโหลดใหม่
+  function reloadPlot(){
+    if(!currentPlot) return;
+    delete trackerCache[currentPlot];
+    selectedMs.clear(); photos = []; showAllMs = false;
+    openPlot(currentPlot);
   }
 
   function renderUpdateForm(t){
@@ -601,9 +697,10 @@
     const cur = t.currentMilestone;
     const completed = new Set((t.completedIds||[]).map(String));
     const curId = cons.current_milestone_id || 1;
+    const code = plotCodeOf(t.plot, t.houseType);
 
     $('updTtl').innerHTML =
-      'แปลง C'+t.plot+'<small>'+(t.houseType||'-')+' · '+(cons.progress_percent||0)+'%</small>';
+      '🏠 '+code+'<small>'+(t.houseType||'-')+' · '+(cons.progress_percent||0)+'%</small>';
 
     let html = '';
     html += `<div class="upd-h">
@@ -615,20 +712,25 @@
       <div class="pct">${cons.progress_percent||0}<small>%</small></div>
     </div>`;
 
-    // milestones list — แสดงรอบๆ ปัจจุบัน
+    // milestones list — รองรับ "ดูทั้งหมด" (toggle)
     html += `<div class="fld">
-      <label class="lbl">✅ งานที่เสร็จในวันนี้ <span class="ct" id="msCount">0 เลือก</span></label>
+      <label class="lbl">✅ งานที่เสร็จในวันนี้ <span class="ct" id="msCount">${selectedMs.size} เลือก</span></label>
       <div class="ms-list" id="msList">`;
-    const visible = ms.filter(m => Number(m.template_id) >= curId-2 && Number(m.template_id) <= curId+3);
+    const visible = showAllMs
+      ? ms
+      : ms.filter(m => Number(m.template_id) >= curId-2 && Number(m.template_id) <= curId+3);
     visible.forEach(m => {
       const id = Number(m.template_id);
       const isDone = completed.has(String(id));
       const isCurr = id === curId;
+      const isSelected = selectedMs.has(String(id));
       let cls = '', initial = '', badge = '';
       if(isDone){ cls = 'past'; initial = '✓'; }
       else if(isCurr){ cls = 'curr'; badge = '<span class="badge">ปัจจุบัน</span>'; }
-      html += `<div class="ms-item ${cls}" data-id="${id}" onclick="${cls==='past'?'':'toggleMs(this)'}">
-        <div class="cb">${initial}</div>
+      if(isSelected) cls += ' on';
+      const showCheck = isDone ? '✓' : (isSelected ? '✓' : '');
+      html += `<div class="ms-item ${cls}" data-id="${id}" onclick="${isDone?'':'toggleMs(this)'}">
+        <div class="cb">${showCheck}</div>
         <div class="info">
           <div class="nm">${id}. ${esc(m.milestone_name)}</div>
           <div class="meta">${esc(m.milestone_category||'')}</div>
@@ -636,7 +738,14 @@
         ${badge}
       </div>`;
     });
-    html += `</div></div>`;
+    html += `</div>`;
+    // ปุ่ม toggle "ดูทั้งหมด"
+    html += `<button onclick="toggleShowAll()" style="
+      width:100%;margin-top:8px;padding:10px;border:1.5px dashed var(--gold);background:#fef7e8;
+      color:var(--gold-dk);font-family:inherit;font-size:13px;font-weight:700;
+      border-radius:9px;cursor:pointer">
+      ${showAllMs ? '🔼 แสดงเฉพาะรอบ ๆ ปัจจุบัน' : '🔽 ดูรายการงานทั้งหมด ('+ms.length+' รายการ)'}
+    </button></div>`;
 
     html += `<div class="fld">
       <label class="lbl">📸 ภาพหน้างาน <span class="ct" id="phCount">0 รูป</span></label>
@@ -703,6 +812,30 @@
       el.querySelector('.cb').textContent = '✓';
     }
     $('msCount').textContent = selectedMs.size+' เลือก';
+  }
+
+  function toggleShowAll(){
+    showAllMs = !showAllMs;
+    // re-render เฉพาะส่วน milestone list (เก็บ state อื่นไว้)
+    const t = trackerCache[currentPlot];
+    if(!t) return;
+    // เก็บ state ของ note + issue ปัจจุบันก่อน re-render
+    const noteVal = $('noteInp') ? $('noteInp').value : '';
+    const issueVal = $('issueInp') ? $('issueInp').value : '';
+    renderUpdateForm(t);
+    // restore
+    if($('noteInp')) $('noteInp').value = noteVal;
+    if($('issueInp')) $('issueInp').value = issueVal;
+    if(issueOn){
+      $('issueTg').classList.add('on');
+      $('issueDetail').classList.add('on');
+    }
+    if(issueSev){
+      const btn = document.querySelector('.sev-btn[data-sev="'+issueSev+'"]');
+      if(btn) btn.classList.add('on');
+    }
+    // restore photos render
+    if(photos.length) renderPhotos();
   }
 
   // ── Photo capture ──
@@ -832,15 +965,18 @@
 
     try {
       await apiPost('saveUpdate', data);
+      const cachedPlot = plotsCache.find(p => String(p.plot) === String(currentPlot));
+      const code = cachedPlot ? plotCode(cachedPlot) : currentPlot;
       $('saveSum').innerHTML = `
-        <div class="row"><span class="lbl">แปลง</span><span class="val">C${currentPlot}</span></div>
+        <div class="row"><span class="lbl">แปลง</span><span class="val">${code}</span></div>
         <div class="row"><span class="lbl">งานที่เสร็จ</span><span class="val">${selectedMs.size} รายการ</span></div>
         <div class="row"><span class="lbl">ภาพ</span><span class="val">${photos.length} รูป</span></div>
         <div class="row"><span class="lbl">โดย</span><span class="val">โฟร์แมน${currentForeman}</span></div>
         ${issueOn ? `<div class="row"><span class="lbl">⚠️ ปัญหา</span><span class="val" style="color:var(--red)">${esc(issueSev)}</span></div>` : ''}`;
       goto('success');
-      // refresh plot list ใน background
-      loadPlots();
+      // invalidate cache + refresh เบื้องหลัง
+      delete trackerCache[currentPlot];
+      loadPlots(true);
     } catch(e){
       alert('บันทึกไม่สำเร็จ: '+(e.message||'')+'\nกรุณาลองใหม่');
     } finally {
@@ -860,7 +996,9 @@
 
   async function openReport(plotId){
     currentReport = {plot: plotId, type: null};
-    $('rptSelTtl').innerHTML = 'ส่งรายงาน C'+plotId+'<small>เลือกประเภทรายงาน</small>';
+    const cachedPlot = plotsCache.find(p => String(p.plot) === String(plotId));
+    const code = cachedPlot ? plotCode(cachedPlot) : plotId;
+    $('rptSelTtl').innerHTML = 'ส่งรายงาน '+code+'<small>เลือกประเภทรายงาน</small>';
     goto('report-select');
   }
 
@@ -868,18 +1006,29 @@
     if(!currentReport) return;
     currentReport.type = type;
     const label = type === 'daily' ? 'รายงานประจำวัน' : 'รายงานฉบับเต็ม';
-    $('rptTtl').innerHTML = label+'<small>C'+currentReport.plot+' · กำลังโหลด...</small>';
+    const cachedPlot = plotsCache.find(p => String(p.plot) === String(currentReport.plot));
+    const code = cachedPlot ? plotCode(cachedPlot) : currentReport.plot;
+    $('rptTtl').innerHTML = label+'<small>'+code+' · กำลังโหลด...</small>';
     $('rptDoc').innerHTML = '<div class="loader"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>';
     goto('report-preview');
+
+    // ใช้ tracker cache ถ้ามี (instant)
+    if(trackerCache[currentReport.plot]){
+      const r = trackerCache[currentReport.plot];
+      $('rptTtl').innerHTML = label+'<small>'+plotCodeOf(r.plot, r.houseType)+' · '+(r.houseType||'-')+'</small>';
+      $('rptDoc').innerHTML = type === 'daily' ? buildDailyReport(r) : buildFullReport(r);
+      return;
+    }
 
     try {
       const r = await api('getTrackerData', {plot: currentReport.plot});
       if(!r.ok) throw new Error(r.error||'load failed');
       trackerCache[currentReport.plot] = r;
-      $('rptTtl').innerHTML = label+'<small>C'+currentReport.plot+' · '+(r.houseType||'-')+'</small>';
+      $('rptTtl').innerHTML = label+'<small>'+plotCodeOf(r.plot, r.houseType)+' · '+(r.houseType||'-')+'</small>';
       $('rptDoc').innerHTML = type === 'daily' ? buildDailyReport(r) : buildFullReport(r);
     } catch(e){
-      $('rptDoc').innerHTML = '<div class="err">โหลดไม่สำเร็จ: '+esc(e.message||'')+'</div>';
+      $('rptDoc').innerHTML = '<div class="err">โหลดไม่สำเร็จ: '+esc(e.message||'')+
+        '<br><button class="btn-primary" onclick="openReportPreview(\''+type+'\')" style="margin-top:8px;font-size:12px;padding:6px 12px">ลองใหม่</button></div>';
     }
   }
 
@@ -905,7 +1054,7 @@
     return `
       <div class="rpt-section">
         <h3>🏠 ข้อมูลแปลง</h3>
-        <div class="rpt-row"><div class="lbl">เลขแปลง</div><div class="val gold">C${t.plot}</div></div>
+        <div class="rpt-row"><div class="lbl">เลขแปลง</div><div class="val gold">${plotCodeOf(t.plot, t.houseType)}</div></div>
         <div class="rpt-row"><div class="lbl">ไทป์บ้าน</div><div class="val">${t.houseType} — ${TYPE_NAMES[t.houseType]||'-'}</div></div>
         <div class="rpt-row"><div class="lbl">สถานะขาย</div><div class="val">${esc(p.status||'-')}</div></div>
         <div class="rpt-row"><div class="lbl">วันเริ่มก่อสร้าง</div><div class="val">${thaiDate(c.actual_start_date)}</div></div>
@@ -1108,14 +1257,19 @@
       ()=>alert('คัดลอกแล้ว'),
       ()=>alert('คัดลอกไม่สำเร็จ'));
   }
+  function _reportCode(){
+    const cp = plotsCache.find(p => String(p.plot) === String(currentReport.plot));
+    return cp ? plotCode(cp) : currentReport.plot;
+  }
   function shareLine(){
     const label = currentReport.type === 'daily' ? 'รายงานประจำวัน' : 'รายงานฉบับเต็ม';
-    alert(`💬 ${label} แปลง C${currentReport.plot}\nจะส่งให้ทีมขาย + คุณไอซ์ + ลูกค้าผู้จอง\n(ต้องเปิด LINE Messaging API ใน Round 4)`);
+    alert(`💬 ${label} แปลง ${_reportCode()}\nจะส่งให้ทีมขาย + คุณไอซ์ + ลูกค้าผู้จอง\n(ต้องเปิด LINE Messaging API ใน Round 4)`);
   }
   function sendReport(){
     const label = currentReport.type === 'daily' ? 'รายงานประจำวัน' : 'รายงานฉบับเต็ม';
-    if(!confirm(`ส่ง${label} C${currentReport.plot} ให้ทีม?`)) return;
-    alert(`✅ ส่งสำเร็จ\n${label} C${currentReport.plot}`);
+    const code = _reportCode();
+    if(!confirm(`ส่ง${label} ${code} ให้ทีม?`)) return;
+    alert(`✅ ส่งสำเร็จ\n${label} ${code}`);
     goto('home');
   }
 
@@ -1123,6 +1277,19 @@
   // PWA service worker register
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  // resume session ถ้ามี (ไม่ต้อง login ใหม่ทุกครั้งใน 30 นาที)
+  const sess = loadSession();
+  if(sess && sess.foreman){
+    currentForeman = sess.foreman;
+    plotsCache = sess.plots || [];
+    milestonesCache = sess.milestones || {};
+    setupSession();
+    goto('home');
+    renderPlotList();
+    // refresh เบื้องหลัง
+    loadPlots(false);
   }
 </script>
 </body>

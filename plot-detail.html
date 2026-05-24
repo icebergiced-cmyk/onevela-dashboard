@@ -218,6 +218,23 @@
   const dt=v=>v?String(v).slice(0,10):'-';
   const plotKey=new URLSearchParams(location.search).get('plot');
 
+  // ── รหัสบ้านตามไทป์: A=ULTRA, B=MINUTES, C=SECOND, D=MOMENT ──
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  function resolveType(tc){
+    if(!tc) return '';
+    const s=String(tc).toUpperCase();
+    if(s.indexOf('ULTRA')>=0) return 'ULTRA';
+    if(s.indexOf('MINUTE')>=0) return 'MINUTES';
+    if(s.indexOf('SECOND')>=0) return 'SECOND';
+    if(s.indexOf('MOMENT')>=0) return 'MOMENT';
+    return s;
+  }
+  function plotCode(plot, typeCode){
+    const t=resolveType(typeCode);
+    const prefix=TYPE_PREFIX[t] || '?';
+    return prefix + String(plot||'').replace(/^0+/, '');
+  }
+
   async function load(){
     if(!plotKey){
       $('state').innerHTML='<div class="sp">⚠️</div>ไม่ได้ระบุเลขแปลง — เปิดผ่าน ?plot=N';
@@ -263,10 +280,12 @@
       return;
     }
     const status=(plot.status||'ว่าง').trim();
+    const code = plotCode(plot.plot, plot.typeCode);
     $('hero').className='hero s-'+status;
     $('hero').innerHTML=
-      '<h1>แปลง '+plot.plot+' <span class="pst">'+status+'</span></h1>'+
+      '<h1>🏠 '+code+' <span class="pst">'+status+'</span></h1>'+
       '<div class="meta">'+
+        cell('เลขแปลง', plot.plot)+
         cell('บ้านเลขที่', plot.houseNo)+
         cell('TYPE', plot.typeCode)+
         cell('โฉนดเลขที่', plot.deed)+
