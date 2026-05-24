@@ -206,6 +206,7 @@
   <footer>รายละเอียดแปลง · One Vela — Two Build Development</footer>
 </div>
 
+<script src="_tools/auth-client.js"></script>
 <script>
   const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
   const $=id=>document.getElementById(id);
@@ -282,15 +283,28 @@
         '</div>' : '');
 
     const enc=encodeURIComponent(plot.plot);
-    const driveFolder='https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
     $('actions').innerHTML=
-      '<a href="sales-quotation.html?plot='+enc+'">📄 ออกใบเสนอราคา</a>'+
-      '<a href="sales-booking.html?plot='+enc+'">📋 ออกใบจอง</a>'+
-      '<a href="sales-contract.html?plot='+enc+'">📑 ทำสัญญา</a>'+
-      '<a href="sales-receipt.html?plot='+enc+'">🧾 ออกใบเสร็จ</a>'+
+      '<a href="sales-quotation.html?plot='+enc+'">📄 ใบเสนอราคา</a>'+
+      '<a href="sales-booking.html?plot='+enc+'">📋 ใบจอง</a>'+
+      '<a href="sales-contract.html?plot='+enc+'">📑 สัญญา</a>'+
+      '<a href="sales-receipt.html?plot='+enc+'">🧾 ใบเสร็จ</a>'+
+      '<a href="payment-form.html?plot='+enc+'" style="background:#fef3c7;border-color:#fcd34d;color:#92400e">💵 ผ่อนดาวน์</a>'+
+      '<a href="fee.html?plot='+enc+'" style="background:#fce7f3;border-color:#f9a8d4;color:#9d174d">🏘️ ค่าส่วนกลาง</a>'+
+      '<a href="transfer-money.html?plot='+enc+'" style="background:#fde2e8;border-color:#f9b4c0;color:#9f1239">📄 ใบชี้แจงเงิน</a>'+
+      '<a href="transfer-cheque.html?plot='+enc+'" style="background:#f3e8ff;border-color:#d8b4fe;color:#6b21a8">🏦 แยกเช็ค</a>'+
       '<a href="construction-detail.html?plot='+enc+'" style="background:#fff8e6;border-color:#f5d8a0;color:#7a5a2e">🏗️ แดชบอร์ดก่อสร้าง</a>'+
-      '<a href="index.html?plot='+enc+'" style="background:#e0e7ff;border-color:#c7d2fe;color:#1e3a8a">💰 แดชบอร์ดต้นทุน</a>'+
-      '<a href="'+driveFolder+'" target="_blank" style="background:#e6f4ea;border-color:#b6dbc1;color:#15803d">📁 Data base (Drive)</a>';
+      '<a href="index.html?plot='+enc+'" style="background:#e0e7ff;border-color:#c7d2fe;color:#1e3a8a">💰 ต้นทุน</a>'+
+      '<a id="plotFolderLink" href="#" target="_blank" style="background:#e6f4ea;border-color:#b6dbc1;color:#15803d">📁 โฟลเดอร์แปลงนี้ ↗</a>';
+
+    // ดึง folder link ตรงๆ ของแปลงนี้ (ผ่าน Auth API)
+    if(window.Auth){
+      Auth.api('getPlotFolderUrls', {plot: plot.plot}).then(r => {
+        if(r.ok && r.mainUrl){
+          const el = document.getElementById('plotFolderLink');
+          if(el) el.href = r.mainUrl;
+        }
+      }).catch(()=>{});
+    }
 
     const quotes=match(data.quotations, ['plot']);
     const books=match(data.bookings, ['plot']);

@@ -43,10 +43,21 @@
   .doc-foot .sig .lbl{font-weight:700}
   @media print{
     body{background:#fff;padding:0;font-size:11pt}
-    .topbar,.picker,#authBar{display:none!important}
+    .topbar,.picker,#authBar,.history-panel{display:none!important}
     .wrap{max-width:none} .doc{border:none;box-shadow:none;border-radius:0;padding:0}
+    [contenteditable=true]{background:transparent!important;border-bottom:none!important}
   }
   footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+  [contenteditable=true]{background:#fff8e6;border-bottom:1px dashed var(--gold);padding:0 3px;outline:none;cursor:text;min-width:60px;display:inline-block}
+  [contenteditable=true]:focus{background:#fff3c4;border-bottom-color:var(--ink)}
+  .history-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .history-panel h3{font-size:13px;font-weight:800;color:var(--charcoal);margin-bottom:10px}
+  .hist-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--soft);border-radius:8px;margin-bottom:6px;font-size:12.5px}
+  .hist-row .nm{flex:1;font-weight:600}
+  .hist-row .dt{color:var(--muted);font-size:11.5px}
+  .hist-row a{font-size:11.5px;font-weight:700;padding:4px 10px;border:1px solid var(--line);background:#fff;border-radius:6px;color:var(--charcoal);text-decoration:none}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.on{display:block}
 </style>
 </head>
 <body>
@@ -55,7 +66,13 @@
   <div class="topbar">
     <div class="ttl">🏦 รายการแยกเช็ค<small>CHEQUE BREAKDOWN · ONE VELA</small></div>
     <a href="transfer.html">← ย้อนกลับ</a>
+    <button class="print" id="btnSavePdf" onclick="saveAsPdfAndUpload()">💾 บันทึก + อัป Drive</button>
     <button class="print" onclick="window.print()">🖨️ พิมพ์/PDF</button>
+    <a id="folderLink" href="#" target="_blank" style="display:none;font-family:inherit;font-size:13px;font-weight:700;border-radius:9px;padding:8px 14px;background:rgba(255,255,255,.15);color:#fff;text-decoration:none">📁 โฟลเดอร์ ↗</a>
+  </div>
+  <div class="history-panel" id="historyPanel" style="display:none">
+    <h3>📂 ประวัติเอกสารที่เคยออก</h3>
+    <div id="historyList"></div>
   </div>
 
   <div class="picker">
@@ -92,25 +109,25 @@
       <span class="ix">1.</span>
       <span>แคชเชียร์เช็ค สั่งจ่าย ธนาคารไทยพาณิชย์ จำกัด (มหาชน)</span>
       <span class="meta">ปลอด</span><span class="meta">จำนวนเงิน</span><span></span>
-      <span class="amt"><span id="amt1">-</span> <small style="color:var(--muted)">บาท</small></span>
+      <span class="amt"><span contenteditable="true" id="amt1">-</span> <small style="color:var(--muted)">บาท</small></span>
     </div>
     <div class="detail-row">
       <span class="ix">2.</span>
       <span>เข้าบัญชี บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด เลขที่บัญชี 796-4-37640-6 ธนาคารไทยพาณิชย์</span>
       <span></span><span class="meta">จำนวนเงิน</span><span></span>
-      <span class="amt"><span id="amt2">-</span> <small style="color:var(--muted)">บาท</small></span>
+      <span class="amt"><span contenteditable="true" id="amt2">-</span> <small style="color:var(--muted)">บาท</small></span>
     </div>
     <div class="detail-row">
       <span class="ix">3.</span><span>ประกันชีวิต</span><span></span><span class="meta">จำนวนเงิน</span><span></span>
-      <span class="amt"><span id="amt3">106,661.00</span> <small style="color:var(--muted)">บาท</small></span>
+      <span class="amt"><span contenteditable="true" id="amt3">106,661.00</span> <small style="color:var(--muted)">บาท</small></span>
     </div>
     <div class="detail-row">
       <span class="ix">4.</span><span>ประกันอัคคีภัย</span><span></span><span class="meta">จำนวนเงิน</span><span></span>
-      <span class="amt"><span id="amt4">17,598.00</span> <small style="color:var(--muted)">บาท</small></span>
+      <span class="amt"><span contenteditable="true" id="amt4">17,598.00</span> <small style="color:var(--muted)">บาท</small></span>
     </div>
     <div class="detail-row total">
       <span></span><span style="text-align:right">รวมทั้งสิ้น</span><span></span><span></span><span></span>
-      <span class="amt"><span id="amtSum">-</span> <small style="color:var(--muted)">บาท</small></span>
+      <span class="amt"><span contenteditable="true" id="amtSum">-</span> <small style="color:var(--muted)">บาท</small></span>
     </div>
 
     <div class="closing">จึงเรียนมาเพื่อโปรดทราบและดำเนินการในส่วนที่เกี่ยวข้อง</div>
@@ -185,6 +202,86 @@
     document.getElementById('amt1').textContent = fmt(amt1, 2);
     document.getElementById('amt2').textContent = fmt(amt2, 2);
     document.getElementById('amtSum').textContent = fmt(loanAmount, 2);
+
+    // Folder + history
+    const fr = await Auth.api('getPlotFolderUrls', {plot: plot});
+    if(fr.ok && fr.subs && fr.subs.transferCheque){
+      document.getElementById('folderLink').href = fr.subs.transferCheque.url;
+      document.getElementById('folderLink').style.display = '';
+    }
+    loadHistory(plot);
+  }
+
+  async function loadHistory(plot){
+    try {
+      const r = await Auth.api('listDocsInPlot', {plot: plot, docType: 'transferCheque'});
+      if(!r.ok || !r.files || r.files.length === 0){
+        document.getElementById('historyPanel').style.display = 'none';
+        return;
+      }
+      document.getElementById('historyPanel').style.display = '';
+      document.getElementById('historyList').innerHTML = r.files.slice(0,10).map(f =>
+        `<div class="hist-row"><div class="nm">${esc(f.name)}</div>
+          <div class="dt">${esc(f.created.slice(0,16).replace('T',' '))}</div>
+          <a href="${esc(f.url)}" target="_blank">📄 เปิด</a></div>`).join('');
+    } catch(e){}
+  }
+
+  async function saveAsPdfAndUpload(){
+    const plot = document.getElementById('plotSel').value;
+    if(!plot) return;
+    if(!confirm('บันทึกรายการแยกเช็คของแปลงนี้เข้า Drive?\n(เก็บใน "แปลง '+plot+'/ใบแยกเช็ค/" — ดูประวัติได้)')) return;
+
+    const docEl = document.querySelector('.doc');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>แยกเช็ค ${plot}</title>
+      <style>body{font-family:'Sarabun',sans-serif;padding:30px;color:#2b2b2b}
+      .doc-hd{text-align:center;margin-bottom:20px}
+      .doc-hd .prj{font-size:18px;font-weight:800}
+      .doc-hd .ttl{font-size:16px;margin-top:4px;font-weight:700}
+      .info-row{display:flex;justify-content:space-between;margin-bottom:14px;font-size:13.5px}
+      .info-row .lbl{font-weight:700;min-width:90px}
+      .salutation{margin-bottom:14px;font-size:13.5px;line-height:1.7}
+      .salutation .row{display:flex;gap:8px}
+      .salutation .row .lbl{font-weight:700;min-width:60px}
+      .body-text{margin-bottom:18px;font-size:13.5px;line-height:1.85;text-indent:30px}
+      .body-text b{font-weight:800}
+      .detail-title{font-weight:800;font-size:14px;margin-bottom:8px}
+      .detail-row{display:grid;grid-template-columns:30px 1fr 100px 130px 70px 120px;gap:8px;padding:8px 4px;font-size:13px;border-bottom:1px dotted #e2e6ea;align-items:center}
+      .detail-row.head{font-weight:700;background:#f7f8fa}
+      .detail-row .ix{color:#7d8794;font-weight:700}
+      .detail-row .amt{text-align:right;font-weight:700}
+      .detail-row .meta{color:#7d8794;font-size:11.5px}
+      .detail-row.total{background:#fef3c7;font-weight:800;padding:10px 4px;margin-top:6px;border-radius:6px;border-bottom:none}
+      .closing{margin-top:24px;font-size:13.5px;line-height:1.7}
+      .doc-foot{margin-top:30px;display:flex;justify-content:flex-end}
+      .doc-foot .sig{text-align:center;width:280px}
+      .doc-foot .sig .line{border-bottom:1.5px solid #000;height:50px;margin-bottom:6px}
+      .doc-foot .sig .lbl{font-weight:700}
+      [contenteditable]{}</style></head><body>${docEl.innerHTML}</body></html>`;
+
+    const base64 = btoa(unescape(encodeURIComponent(html)));
+    const fileName = 'cheque-'+plot+'-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Date.now()+'.html';
+
+    document.getElementById('btnSavePdf').disabled = true;
+    document.getElementById('btnSavePdf').textContent = '⏳ กำลังบันทึก...';
+    try {
+      await Auth.apiPost('uploadDocToPlot', {
+        plot: plot, docType: 'transferCheque', base64: base64, fileName: fileName, mimeType: 'text/html'
+      });
+      showToast('✅ บันทึกเข้า Drive แล้ว');
+      await loadHistory(plot);
+    } catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+    finally {
+      document.getElementById('btnSavePdf').disabled = false;
+      document.getElementById('btnSavePdf').textContent = '💾 บันทึก + อัป Drive';
+    }
+  }
+
+  function showToast(msg){
+    let t = document.getElementById('toast');
+    if(!t){ t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
   }
 
   init();

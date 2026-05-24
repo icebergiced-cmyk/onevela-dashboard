@@ -72,6 +72,12 @@ function doGet(e){
     if (action === 'saveTransfer')       return json(saveTransfer(p.token, parseData(p.data)));
     if (action === 'getChecklistState')  return json(getChecklistState(p.token, p.plot));
     if (action === 'saveChecklistState') return json(saveChecklistState(p.token, parseData(p.data)));
+    // ===== Plot Folders (Round 6) =====
+    if (action === 'getPlotFolderUrls')  return json(getPlotFolderUrls(p.token, p.plot));
+    if (action === 'prewarmPlotFolders') return json(prewarmPlotFolders(p.token, Number(p.start)||1, Number(p.count)||50));
+    if (action === 'listDocsInPlot')     return json(listDocsInPlot(p.token, p.plot, p.docType));
+    if (action === 'getFeeRate')         return json(getFeeRate());
+    if (action === 'setFeeRate')         return json(setFeeRate(p.token, Number(p.rate)));
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -112,6 +118,7 @@ function doPost(e){
       case 'saveWalkinV2': return json(saveWalkinV2(body.token, body.data));
       case 'saveTransfer': return json(saveTransfer(body.token, body.data));
       case 'userSave':     return json(userSave(body.token, body.data));
+      case 'uploadDocToPlot':return json(uploadDocToPlot(body.token, body.data));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
@@ -1284,16 +1291,14 @@ function savePayment(token, data){
   const keys = vals[0];
   const now = new Date().toISOString();
 
-  // อัปสลิป ถ้ามี base64
+  // อัปสลิป ถ้ามี base64 — เก็บใน "แปลง XXX/ผ่อนดาวน์/"
   let slipUrl = data.slipUrl || '';
   if(data.slipBase64){
     try {
-      const root = DriveApp.getFolderById(FILES_FOLDER_ID);
-      const downFolder = getOrCreateFolder(root, 'ผ่อนดาวน์');
-      const plotFolder = getOrCreateFolder(downFolder, 'แปลง '+data.plot);
+      const folder = getOrCreateSubFolder_(data.plot, 'payment');
       const bytes = Utilities.base64Decode(data.slipBase64);
       const fileName = data.slipFileName || ('slip-'+data.plot+'-งวด'+(data.installmentNo||'')+'-'+Date.now()+'.jpg');
-      const file = plotFolder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
+      const file = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       slipUrl = file.getUrl();
     } catch(e){}
@@ -1336,12 +1341,10 @@ function saveFee(token, data){
   let slipUrl = data.slipUrl || '';
   if(data.slipBase64){
     try {
-      const root = DriveApp.getFolderById(FILES_FOLDER_ID);
-      const feeFolder = getOrCreateFolder(root, 'ค่าส่วนกลาง');
-      const plotFolder = getOrCreateFolder(feeFolder, 'แปลง '+data.plot);
+      const folder = getOrCreateSubFolder_(data.plot, 'fee');
       const bytes = Utilities.base64Decode(data.slipBase64);
       const fileName = data.slipFileName || ('fee-'+data.plot+'-'+Date.now()+'.jpg');
-      const file = plotFolder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
+      const file = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       slipUrl = file.getUrl();
     } catch(e){}
@@ -1431,6 +1434,171 @@ function saveChecklistState(token, data){
   }
   sh.appendRow([data.plot, blob, now]);
   return {ok:true, action:'added'};
+}
+
+// ============================================================
+// ===== Round 6 — Plot Folders + Doc Upload + Invoice
+// ============================================================
+//
+// โครงสร้างโฟลเดอร์ใน Drive (One Vela Sales Files):
+//   แปลง XXX/
+//     ผ่อนดาวน์/            (สลิปผ่อนดาวน์)
+//     ค่าส่วนกลาง/          (สลิปค่าส่วนกลาง + ใบแจ้งหนี้)
+//     ใบชี้แจงเงินวันโอน/   (PDF ที่ออกในวันโอน — versioned)
+//     ใบแยกเช็ค/            (PDF ที่ส่งธนาคาร — versioned)
+//     เอกสาร/               (ใบเสนอราคา/จอง/สัญญา/ใบเสร็จ — ของเดิม)
+//
+// Sub-folder names ใช้ตัวเดียวกันทั้งระบบ (เพื่อให้หาง่าย)
+const SUBFOLDERS = {
+  payment:   'ผ่อนดาวน์',
+  fee:       'ค่าส่วนกลาง',
+  transferMoney: 'ใบชี้แจงเงินวันโอน',
+  transferCheque: 'ใบแยกเช็ค',
+  docs:      'เอกสาร'
+};
+
+// ── สร้าง/หา folder ของแปลง + sub-folder ──
+function getOrCreatePlotFolder_(plot){
+  const root = DriveApp.getFolderById(FILES_FOLDER_ID);
+  return getOrCreateFolder(root, 'แปลง ' + String(plot).replace(/^0+/,''));
+}
+
+function getOrCreateSubFolder_(plot, subKey){
+  const subName = SUBFOLDERS[subKey] || subKey;
+  return getOrCreateFolder(getOrCreatePlotFolder_(plot), subName);
+}
+
+// คืน URLs ของ folder รายแปลง + sub-folders ทั้งหมด
+function getPlotFolderUrls(token, plot){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  try {
+    const main = getOrCreatePlotFolder_(plot);
+    const result = {ok:true, plot:plot, mainUrl: main.getUrl(), subs:{}};
+    Object.keys(SUBFOLDERS).forEach(function(k){
+      result.subs[k] = {name: SUBFOLDERS[k], url: getOrCreateSubFolder_(plot, k).getUrl()};
+    });
+    return result;
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+// Bulk create — สำหรับ admin รัน 1 ครั้ง (483 แปลง batch ครั้งละ 50)
+function prewarmPlotFolders(token, start, count){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(a.user.role !== 'developer' && a.user.role !== 'admin'){
+    return {ok:false, error:'เฉพาะ admin/developer'};
+  }
+  start = Math.max(1, Number(start)||1);
+  count = Math.min(100, Math.max(1, Number(count)||50));
+
+  // ดึง plot numbers จาก metadata
+  const plots = readTab('metadata').map(p => String(p.plot||'').trim()).filter(Boolean);
+  const created = [];
+  const errors = [];
+  const slice = plots.slice(start-1, start-1+count);
+  const startMs = Date.now();
+
+  for(let i = 0; i < slice.length; i++){
+    if(Date.now() - startMs > 280000) break; // safety: หยุดก่อน timeout 6 นาที
+    const p = slice[i];
+    try {
+      const main = getOrCreatePlotFolder_(p);
+      // สร้าง 4 sub-folders ที่ใช้บ่อย
+      ['payment','fee','transferMoney','transferCheque'].forEach(function(k){
+        getOrCreateSubFolder_(p, k);
+      });
+      created.push(p);
+    } catch(e){ errors.push({plot:p, error:String(e)}); }
+  }
+  return {
+    ok:true, processed: created.length, errors: errors,
+    total: plots.length, from: start, to: start + created.length - 1,
+    hasMore: (start + created.length - 1) < plots.length
+  };
+}
+
+// upload เอกสารใดๆ เข้า sub-folder ของแปลง
+// data: {plot, docType ('payment'|'fee'|'transferMoney'|'transferCheque'), base64, fileName, mimeType?}
+function uploadDocToPlot(token, data){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(!data || !data.plot || !data.docType || !data.base64) {
+    return {ok:false, error:'ต้องระบุ plot + docType + base64'};
+  }
+  if(!SUBFOLDERS[data.docType]) return {ok:false, error:'docType ไม่ถูกต้อง'};
+  try {
+    const folder = getOrCreateSubFolder_(data.plot, data.docType);
+    const bytes = Utilities.base64Decode(data.base64);
+    const fileName = data.fileName || (data.docType+'-'+data.plot+'-'+Date.now()+'.pdf');
+    const file = folder.createFile(Utilities.newBlob(bytes, data.mimeType || 'application/pdf', fileName));
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return {ok:true, fileId: file.getId(), fileName: fileName, url: file.getUrl()};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+// list ไฟล์ใน sub-folder ของแปลง (ดูประวัติ)
+function listDocsInPlot(token, plot, docType){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(!plot || !docType) return {ok:false, error:'ต้องระบุ plot + docType'};
+  if(!SUBFOLDERS[docType]) return {ok:false, error:'docType ไม่ถูกต้อง'};
+  try {
+    const folder = getOrCreateSubFolder_(plot, docType);
+    const it = folder.getFiles();
+    const list = [];
+    while(it.hasNext()){
+      const f = it.next();
+      list.push({
+        id: f.getId(), name: f.getName(),
+        url: f.getUrl(), size: f.getSize(),
+        created: f.getDateCreated().toISOString()
+      });
+    }
+    list.sort(function(a,b){ return b.created.localeCompare(a.created); });
+    return {ok:true, folderUrl: folder.getUrl(), files: list};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+// ── Fee rate (เก็บใน Script Properties) ──
+function getFeeRate(){
+  try {
+    const r = PropertiesService.getScriptProperties().getProperty('OV_FEE_RATE');
+    return {ok:true, rate: Number(r) || 1500};
+  } catch(e){ return {ok:true, rate: 1500}; }
+}
+function setFeeRate(token, rate){
+  const a = requireAuth_(token, 'manage.fees');
+  if(!a.ok) return a;
+  if(!rate || rate < 0) return {ok:false, error:'rate ไม่ถูกต้อง'};
+  PropertiesService.getScriptProperties().setProperty('OV_FEE_RATE', String(rate));
+  return {ok:true, rate: rate};
+}
+
+// แก้ saveFee ให้ใช้ folder รายแปลง (override + override slipBase64 ไป sub-folder ค่าส่วนกลาง)
+function saveFee_v2_(token, data){
+  const a = requireAuth_(token, 'manage.fees');
+  if(!a.ok) return a;
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = ensureTab_('fees', FEE_KEYS);
+
+  let slipUrl = data.slipUrl || '';
+  if(data.slipBase64){
+    try {
+      const folder = getOrCreateSubFolder_(data.plot, 'fee');
+      const bytes = Utilities.base64Decode(data.slipBase64);
+      const fileName = data.slipFileName || ('fee-'+data.plot+'-'+Date.now()+'.jpg');
+      const file = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      slipUrl = file.getUrl();
+    } catch(e){}
+  }
+  const id = 'fee_' + Date.now();
+  const row = {...data, fee_id: id, slipUrl, createdAt: new Date().toISOString()};
+  const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  sh.appendRow(keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; }));
+  return {ok:true, fee_id: id, slipUrl};
 }
 
 // ============================================================

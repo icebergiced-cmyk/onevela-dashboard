@@ -43,6 +43,20 @@
   }
   .loader{text-align:center;padding:30px;color:var(--muted)}
   footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+  /* editable cells */
+  [contenteditable=true]{background:#fff8e6;border-bottom:1px dashed var(--gold);
+    padding:0 3px;outline:none;cursor:text;min-width:60px;display:inline-block}
+  [contenteditable=true]:focus{background:#fff3c4;border-bottom-color:var(--ink)}
+  @media print{[contenteditable=true]{background:transparent!important;border-bottom:none!important}}
+  /* history panel */
+  .history-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .history-panel h3{font-size:13px;font-weight:800;color:var(--charcoal);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .hist-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--soft);border-radius:8px;margin-bottom:6px;font-size:12.5px}
+  .hist-row .nm{flex:1;font-weight:600}
+  .hist-row .dt{color:var(--muted);font-size:11.5px}
+  .hist-row a{font-size:11.5px;font-weight:700;padding:4px 10px;border:1px solid var(--line);background:#fff;border-radius:6px;color:var(--charcoal);text-decoration:none}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.on{display:block}
 </style>
 </head>
 <body>
@@ -51,7 +65,13 @@
   <div class="topbar">
     <div class="ttl">📄 ใบชี้แจงเงินวันโอนกรรมสิทธิ์<small>TRANSFER MONEY STATEMENT · ONE VELA</small></div>
     <a href="transfer.html">← ย้อนกลับ</a>
+    <button class="print" id="btnSavePdf" onclick="saveAsPdfAndUpload()">💾 บันทึก + อัป Drive</button>
     <button class="print" onclick="window.print()">🖨️ พิมพ์/PDF</button>
+    <a id="folderLink" href="#" target="_blank" style="display:none;font-family:inherit;font-size:13px;font-weight:700;border-radius:9px;padding:8px 14px;background:rgba(255,255,255,.15);color:#fff;text-decoration:none">📁 โฟลเดอร์ ↗</a>
+  </div>
+  <div class="history-panel" id="historyPanel" style="display:none">
+    <h3>📂 ประวัติเอกสารที่เคยออก</h3>
+    <div id="historyList"></div>
   </div>
 
   <div class="picker">
@@ -69,37 +89,37 @@
       <div class="lbl">วันที่โอน</div><div class="val" id="iTransferDate">-</div>
       <div class="lbl">โทร.</div><div class="val" id="iPhone">-</div>
       <div class="lbl">ขึ้นกู้ธนาคาร</div><div class="val highlight" id="iBank">-</div>
-      <div class="lbl">เนื้อที่</div><div class="val" id="iArea">-</div>
-      <div class="lbl">เลขที่ดิน</div><div class="val" id="iLandNo">-</div>
-      <div class="lbl">เลขที่โฉนด</div><div class="val" id="iDeed">-</div>
+      <div class="lbl">เนื้อที่</div><div class="val" contenteditable="true" id="iArea">-</div>
+      <div class="lbl">เลขที่ดิน</div><div class="val" contenteditable="true" id="iLandNo">-</div>
+      <div class="lbl">เลขที่โฉนด</div><div class="val" contenteditable="true" id="iDeed">-</div>
       <div></div><div></div>
     </div>
 
     <div class="sec-bar">1. ยอดเงินที่ธนาคารฯ อนุมัติ <span style="margin-left:8px"><b id="iLoanTotal">-</b></span></div>
-    <div class="row"><span class="ix">1.1</span><span>ยอดอนุมัติสินเชื่อ</span><span></span><span></span><span class="amt"><span id="m11">-</span> <small style="color:var(--muted)">จ่ายโครงการ</small></span></div>
-    <div class="row"><span class="ix">1.3</span><span>หักค่าประกันชีวิต</span><span></span><span></span><span class="amt"><span id="m13">-</span></span></div>
-    <div class="row"><span class="ix">1.4</span><span>ประกันอัคคีภัย</span><span></span><span></span><span class="amt"><span id="m14">-</span></span></div>
-    <div class="totals-row"><span class="lbl">ยอดอนุมัติจริง</span><span class="val"><span id="mNet">-</span></span></div>
+    <div class="row"><span class="ix">1.1</span><span>ยอดอนุมัติสินเชื่อ</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m11">-</span> <small style="color:var(--muted)">จ่ายโครงการ</small></span></div>
+    <div class="row"><span class="ix">1.3</span><span>หักค่าประกันชีวิต</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m13">-</span></span></div>
+    <div class="row"><span class="ix">1.4</span><span>ประกันอัคคีภัย</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m14">-</span></span></div>
+    <div class="totals-row"><span class="lbl">ยอดอนุมัติจริง</span><span class="val"><span contenteditable="true" id="mNet">-</span></span></div>
 
     <div class="sec-bar">2. จำนวนเงินส่วนที่เหลือต้องชำระ ณ วันโอน</div>
-    <div class="row"><span class="ix">2.1</span><span>ราคาขายจริงตามสัญญา</span><span></span><span></span><span class="amt"><span id="m21">-</span></span></div>
-    <div class="row"><span class="ix">2.2</span><span>หัก ค่าบ้านที่ชำระแล้ว (จอง+สัญญา+ผ่อนดาวน์)</span><span></span><span></span><span class="amt"><span id="m22">-</span></span></div>
-    <div class="totals-row" style="background:var(--yellow)"><span class="lbl">คงเหลือที่ต้องชำระวันโอน</span><span class="val"><span id="m2Net">-</span> <small style="color:var(--muted)">ลูกค้าจ่ายโครงการ</small></span></div>
+    <div class="row"><span class="ix">2.1</span><span>ราคาขายจริงตามสัญญา</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m21">-</span></span></div>
+    <div class="row"><span class="ix">2.2</span><span>หัก ค่าบ้านที่ชำระแล้ว (จอง+สัญญา+ผ่อนดาวน์)</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m22">-</span></span></div>
+    <div class="totals-row" style="background:var(--yellow)"><span class="lbl">คงเหลือที่ต้องชำระวันโอน</span><span class="val"><span contenteditable="true" id="m2Net">-</span> <small style="color:var(--muted)">ลูกค้าจ่ายโครงการ</small></span></div>
 
     <div class="sec-bar">3. ค่าใช้จ่ายเพิ่มเติมวันโอน (ของลูกค้า)
       <span style="float:right;font-size:11px;color:#9f1239">ราคาทุนทรัพย์ <b id="iAssetPrice">-</b></span></div>
-    <div class="row"><span class="ix">3.1</span><span>ค่าธรรมเนียมโอน 0.01%</span><span class="who proj">โครงการจ่าย</span><span></span><span class="amt"><span id="m31">-</span></span></div>
-    <div class="row"><span class="ix">3.3</span><span>ค่าธรรมเนียมอื่นๆ (อากร+พยาน+มอบ)</span><span class="who proj">โครงการจ่าย</span><span></span><span class="amt"><span id="m33">-</span></span></div>
-    <div class="row"><span class="ix">3.4</span><span>ค่าส่วนกลางล่วงหน้า 2 ปี (1500×24)</span><span class="who cust">ลูกค้าจ่าย</span><span></span><span class="amt"><span id="m34">36,000</span></span></div>
+    <div class="row"><span class="ix">3.1</span><span>ค่าธรรมเนียมโอน 0.01%</span><span class="who proj">โครงการจ่าย</span><span></span><span class="amt"><span contenteditable="true" id="m31">-</span></span></div>
+    <div class="row"><span class="ix">3.3</span><span>ค่าธรรมเนียมอื่นๆ (อากร+พยาน+มอบ)</span><span class="who proj">โครงการจ่าย</span><span></span><span class="amt"><span contenteditable="true" id="m33">-</span></span></div>
+    <div class="row"><span class="ix">3.4</span><span>ค่าส่วนกลางล่วงหน้า 2 ปี (1500×24)</span><span class="who cust">ลูกค้าจ่าย</span><span></span><span class="amt"><span contenteditable="true" id="m34">36,000</span></span></div>
     <div class="row"><span class="ix">3.5</span><span>ค่ามิเตอร์ประปา</span><span class="who proj">โครงการจ่าย</span><span></span><span class="amt">3,600</span></div>
     <div class="row"><span class="ix">3.6</span><span>ค่ามิเตอร์ไฟฟ้า</span><span class="who proj">โครงการจ่าย</span><span></span><span class="amt">750</span></div>
-    <div class="row"><span class="ix">3.7</span><span>ภาษีขอกู้เกิน 4.3% (ส่วนต่าง)</span><span class="who cust">ลูกค้าจ่าย</span><span></span><span class="amt"><span id="m37">-</span></span></div>
+    <div class="row"><span class="ix">3.7</span><span>ภาษีขอกู้เกิน 4.3% (ส่วนต่าง)</span><span class="who cust">ลูกค้าจ่าย</span><span></span><span class="amt"><span contenteditable="true" id="m37">-</span></span></div>
 
     <div class="sec-bar blue">4. ค่าใช้จ่ายส่วนของบริษัทฯ</div>
-    <div class="row"><span class="ix">4.1</span><span>ภาษีธุรกิจเฉพาะ 3% ของราคาขายขึ้นโอน</span><span></span><span></span><span class="amt"><span id="m41">-</span> <small class="who proj">โครงการจ่าย</small></span></div>
-    <div class="row"><span class="ix">4.2</span><span>ภาษีเงินได้นิติบุคคล 1%</span><span></span><span></span><span class="amt"><span id="m42">-</span></span></div>
-    <div class="row"><span class="ix">4.3</span><span>ค่าธรรมเนียมโอน 0.01% ของราคาประเมิน</span><span></span><span></span><span class="amt"><span id="m43">-</span></span></div>
-    <div class="row"><span class="ix">4.4</span><span>ภาษีท้องถิ่น 0.3%</span><span></span><span></span><span class="amt"><span id="m44">-</span></span></div>
+    <div class="row"><span class="ix">4.1</span><span>ภาษีธุรกิจเฉพาะ 3% ของราคาขายขึ้นโอน</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m41">-</span> <small class="who proj">โครงการจ่าย</small></span></div>
+    <div class="row"><span class="ix">4.2</span><span>ภาษีเงินได้นิติบุคคล 1%</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m42">-</span></span></div>
+    <div class="row"><span class="ix">4.3</span><span>ค่าธรรมเนียมโอน 0.01% ของราคาประเมิน</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m43">-</span></span></div>
+    <div class="row"><span class="ix">4.4</span><span>ภาษีท้องถิ่น 0.3%</span><span></span><span></span><span class="amt"><span contenteditable="true" id="m44">-</span></span></div>
     <div class="row"><span class="ix">5</span><span>ค่าส่วนกลางล่วงหน้า 1 ปี (1500×12)</span><span></span><span></span><span class="amt">18,000</span></div>
 
     <div class="doc-foot">
@@ -182,6 +202,89 @@
     document.getElementById('m42').textContent = fmt(Math.round(assetPrice*0.01));
     document.getElementById('m43').textContent = fmt(Math.round(evalPrice*0.0001));
     document.getElementById('m44').textContent = fmt(Math.round(assetPrice*0.003));
+
+    // Folder link + history
+    const fr = await Auth.api('getPlotFolderUrls', {plot: plot});
+    if(fr.ok && fr.subs && fr.subs.transferMoney){
+      document.getElementById('folderLink').href = fr.subs.transferMoney.url;
+      document.getElementById('folderLink').style.display = '';
+    }
+    loadHistory(plot);
+  }
+
+  async function loadHistory(plot){
+    try {
+      const r = await Auth.api('listDocsInPlot', {plot: plot, docType: 'transferMoney'});
+      if(!r.ok || !r.files || r.files.length === 0){
+        document.getElementById('historyPanel').style.display = 'none';
+        return;
+      }
+      document.getElementById('historyPanel').style.display = '';
+      document.getElementById('historyList').innerHTML = r.files.slice(0,10).map(f =>
+        `<div class="hist-row">
+          <div class="nm">${esc(f.name)}</div>
+          <div class="dt">${esc(f.created.slice(0,16).replace('T',' '))}</div>
+          <a href="${esc(f.url)}" target="_blank">📄 เปิด</a>
+        </div>`).join('');
+    } catch(e){}
+  }
+
+  async function saveAsPdfAndUpload(){
+    const plot = document.getElementById('plotSel').value;
+    if(!plot) return;
+    if(!confirm('บันทึกใบชี้แจงเงินของแปลงนี้เข้า Drive?\n(เก็บใน "แปลง '+plot+'/ใบชี้แจงเงินวันโอน/" — ดูประวัติย้อนหลังได้)')) return;
+
+    // render as HTML → save (ของจริงทำเป็น HTML save แทน PDF — Apps Script จะแปลงเป็น PDF เองได้)
+    // ใน demo นี้ — ใช้ window.print() เพื่อให้ user save PDF ก่อน → แล้วอัปด้วยปุ่มแยก
+    // ทางง่ายที่สุด: save HTML snapshot → ส่งเป็น text file (browser-native html2pdf จำเป็นต้อง library)
+
+    // ใช้ approach: capture innerHTML ของ .doc แล้ว wrap เป็น HTML page ส่งขึ้น Drive เป็น .html
+    // user สามารถ "เปิด" ได้ใน browser → กดพิมพ์/PDF เอง
+    const docEl = document.querySelector('.doc');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบชี้แจงเงิน ${plot}</title>
+      <style>body{font-family:'Sarabun',sans-serif;padding:20px;color:#2b2b2b}
+      .doc-title{background:#fde2e8;border:1px solid #f9b4c0;padding:8px 14px;border-radius:6px;text-align:center;font-weight:800;color:#9f1239;font-size:14.5px;margin-bottom:14px}
+      .info-grid{display:grid;grid-template-columns:120px 1fr 110px 1fr;gap:6px 10px;margin-bottom:14px;font-size:13px}
+      .info-grid .lbl{color:#7d8794;font-weight:600} .info-grid .val{font-weight:700;color:#2b2b2b}
+      .info-grid .val.highlight{background:#fde2e8;padding:2px 8px;border-radius:4px;display:inline-block}
+      .sec-bar{background:#fde2e8;border:1px solid #f9b4c0;padding:6px 12px;border-radius:6px;margin:14px 0 8px;font-weight:800;color:#9f1239;font-size:13px}
+      .sec-bar.blue{background:#dbeafe;border-color:#93c5fd;color:#1e40af}
+      .row{display:grid;grid-template-columns:30px 1fr 100px 110px 140px;gap:8px;padding:5px 8px;font-size:12.5px;border-bottom:1px dotted #e2e6ea;align-items:center}
+      .totals-row{display:flex;justify-content:flex-end;padding:8px 12px;margin-top:6px;background:#f7f8fa;border-radius:6px;font-weight:800;font-size:13.5px}
+      .totals-row .lbl{margin-right:14px;color:#7d8794}
+      .row .amt{text-align:right;font-weight:700}
+      .row .ix{color:#7d8794}
+      .doc-foot{margin-top:20px;padding-top:14px;border-top:1px dashed #e2e6ea;display:grid;grid-template-columns:1fr 1fr;gap:30px;font-size:12.5px}
+      .doc-foot .sig{text-align:center}
+      .doc-foot .sig .line{border-bottom:1px solid #000;height:42px;margin-bottom:5px}
+      .doc-foot .sig .lbl{font-weight:700}
+      [contenteditable]{}
+      </style></head><body>${docEl.innerHTML}</body></html>`;
+
+    const base64 = btoa(unescape(encodeURIComponent(html)));
+    const fileName = 'money-'+plot+'-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+Date.now()+'.html';
+
+    document.getElementById('btnSavePdf').disabled = true;
+    document.getElementById('btnSavePdf').textContent = '⏳ กำลังบันทึก...';
+    try {
+      await Auth.apiPost('uploadDocToPlot', {
+        plot: plot, docType: 'transferMoney', base64: base64, fileName: fileName, mimeType: 'text/html'
+      });
+      showToast('✅ บันทึกเข้า Drive แล้ว — ดูประวัติด้านบน');
+      // reload history
+      await loadHistory(plot);
+    } catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+    finally {
+      document.getElementById('btnSavePdf').disabled = false;
+      document.getElementById('btnSavePdf').textContent = '💾 บันทึก + อัป Drive';
+    }
+  }
+
+  function showToast(msg){
+    let t = document.getElementById('toast');
+    if(!t){ t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
   }
 
   init();

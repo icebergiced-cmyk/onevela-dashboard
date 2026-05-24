@@ -91,7 +91,11 @@
     <div class="stat-card good"><div class="lbl">💰 เก็บได้แล้ว</div><div class="num" id="cTotal">—</div><div class="sub">รวมทุกแปลง</div></div>
     <div class="stat-card"><div class="lbl">🏠 แปลงที่จ่าย</div><div class="num" id="cPaid">—</div><div class="sub">แปลง</div></div>
     <div class="stat-card warn"><div class="lbl">⏳ รอชำระ</div><div class="num" id="cWait">—</div><div class="sub">โอนแล้วยังไม่จ่าย</div></div>
-    <div class="stat-card"><div class="lbl">💵 อัตรา/เดือน</div><div class="num" style="color:var(--gold)">฿1,500</div><div class="sub">ค่าส่วนกลาง</div></div>
+    <div class="stat-card"><div class="lbl">💵 อัตรา/เดือน</div>
+      <div class="num" style="color:var(--gold)">฿<span id="feeRateDisplay">1,500</span></div>
+      <div class="sub">
+        <a href="javascript:void(0)" onclick="editRate()" style="color:var(--gold);text-decoration:none;font-weight:700">✏️ แก้ไข</a>
+      </div></div>
   </div>
 
   <h2 class="sec">📋 รายการแปลง <span class="ct" id="plotCount">—</span></h2>
@@ -114,7 +118,7 @@
   Auth.renderAuthBar(document.getElementById('authBar'));
 
   const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
-  const FEE_PER_MONTH = 1500;
+  let FEE_PER_MONTH = 1500;  // จะอ่านจาก backend
   let SALES = {plots:[]};
   let FEES = [];
   let currentPlot = null;
@@ -150,17 +154,33 @@
   async function loadAll(){
     document.getElementById('listBox').innerHTML = '<div class="loader">⏳ กำลังโหลด...</div>';
     try {
-      const [salesRes, feesRes] = await Promise.all([
+      const [salesRes, feesRes, rateRes] = await Promise.all([
         Auth.api('getSalesData'),
-        Auth.api('getFees')
+        Auth.api('getFees'),
+        Auth.api('getFeeRate')
       ]);
       if(!salesRes.ok) throw new Error('โหลดข้อมูลขายไม่สำเร็จ');
       SALES = salesRes;
       FEES = (feesRes.ok ? feesRes.fees : []) || [];
+      FEE_PER_MONTH = (rateRes.ok ? rateRes.rate : 1500);
+      document.getElementById('feeRateDisplay').textContent = fmt(FEE_PER_MONTH);
       renderAll();
     } catch(e){
       document.getElementById('listBox').innerHTML = '<div class="loader" style="color:var(--red)">⚠️ '+esc(e.message)+'</div>';
     }
+  }
+
+  async function editRate(){
+    if(!Auth.can('manage.fees')){ alert('ไม่มีสิทธิ์แก้อัตรา'); return; }
+    const newRate = prompt('อัตราค่าส่วนกลางใหม่ (บาท/เดือน):', FEE_PER_MONTH);
+    if(!newRate || isNaN(Number(newRate))) return;
+    try {
+      const r = await Auth.api('setFeeRate', {rate: Number(newRate)});
+      if(!r.ok){ alert(r.error); return; }
+      FEE_PER_MONTH = Number(newRate);
+      document.getElementById('feeRateDisplay').textContent = fmt(FEE_PER_MONTH);
+      showToast('✅ อัปเดตอัตราเป็น '+fmt(FEE_PER_MONTH)+' บาท/เดือน');
+    } catch(e){ alert('ไม่สำเร็จ: '+e.message); }
   }
 
   function renderAll(){
@@ -215,7 +235,14 @@
     html += '<div><div class="lbl">เก็บแล้ว</div><div class="val gold">'+fmt(p.paidSum)+' บาท</div></div>';
     html += '<div><div class="lbl">ครอบคลุม</div><div class="val">'+p.monthsCovered+' เดือน</div></div>';
     html += '</div>';
-    html += '<a href="'+driveFolder+'" target="_blank" class="drive-link">📁 เปิดโฟลเดอร์สลิป (Drive)</a>';
+    html += '<a id="folderLinkPlot" href="#" target="_blank" class="drive-link">📁 เปิดโฟลเดอร์ค่าส่วนกลางของแปลงนี้ (Drive) ↗</a>';
+    // ขอ folder link ตรงๆ async
+    Auth.api('getPlotFolderUrls', {plot: plot}).then(r => {
+      if(r.ok && r.subs && r.subs.fee){
+        const el = document.getElementById('folderLinkPlot');
+        if(el) el.href = r.subs.fee.url;
+      }
+    });
 
     if(p.payments.length){
       html += '<h3 style="font-size:13px;font-weight:800;color:var(--charcoal);margin:10px 0 8px">📊 ประวัติ</h3>';
