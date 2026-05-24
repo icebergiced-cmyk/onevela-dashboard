@@ -127,6 +127,29 @@
     <a href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank">📊 Sheet ↗</a>
   </div>
 
+  <h2 class="sec">🛠️ Maintenance</h2>
+  <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:4px">📁 สร้างโฟลเดอร์ใน Drive ครบ 483 แปลง</div>
+        <div style="font-size:12px;color:var(--muted)">สร้างโฟลเดอร์ "แปลง XXX/" + sub-folders (ผ่อนดาวน์/ค่าส่วนกลาง/ใบชี้แจง/แยกเช็ค) — รันครั้งเดียว ~3-5 นาที</div>
+      </div>
+      <button id="btnPrewarm" onclick="runPrewarm()" style="font-family:inherit;font-size:14px;font-weight:700;
+        background:var(--gold);color:#fff;border:none;padding:11px 20px;border-radius:9px;cursor:pointer">
+        📁 เริ่มสร้างโฟลเดอร์
+      </button>
+    </div>
+    <div id="prewarmProgress" style="display:none;margin-top:14px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">
+        <span id="prewarmLabel">กำลังเริ่ม...</span>
+      </div>
+      <div style="height:10px;background:var(--soft);border-radius:5px;overflow:hidden">
+        <div id="prewarmBar" style="height:100%;background:linear-gradient(90deg,var(--gold),#d4b274);width:0%;transition:width .3s"></div>
+      </div>
+      <div id="prewarmLog" style="margin-top:8px;font-size:11.5px;color:var(--muted);max-height:120px;overflow-y:auto;font-family:monospace"></div>
+    </div>
+  </div>
+
   <h2 class="sec">🎭 Roles + สิทธิ์ <span class="ct">7 บทบาท</span></h2>
   <div class="roles" id="rolesGrid"></div>
 
@@ -469,6 +492,45 @@
     finally {
       document.getElementById('btnSavePerm').disabled = false;
       document.getElementById('btnSavePerm').textContent = '💾 บันทึก';
+    }
+  }
+
+  // ── Prewarm folders ──
+  async function runPrewarm(){
+    if(!confirm('สร้างโฟลเดอร์ครบ 483 แปลงใน Drive?\n(ใช้เวลา ~3-5 นาที — ห้ามปิดหน้า)')) return;
+    const btn = document.getElementById('btnPrewarm');
+    btn.disabled = true; btn.textContent = '⏳ กำลังทำงาน...';
+    document.getElementById('prewarmProgress').style.display = '';
+    const logEl = document.getElementById('prewarmLog');
+    logEl.innerHTML = '';
+
+    let start = 1, total = 0, done = 0;
+    try {
+      while(true){
+        const r = await Auth.api('prewarmPlotFolders', {start, count: 30}, 90000);
+        if(!r.ok){
+          logEl.innerHTML += '<div style="color:var(--red)">⚠️ '+esc(r.error||'')+'</div>';
+          break;
+        }
+        total = r.total;
+        done += r.processed;
+        logEl.innerHTML += '<div>✓ '+r.from+' → '+r.to+' ('+r.processed+' แปลง)</div>';
+        logEl.scrollTop = logEl.scrollHeight;
+        const pct = Math.round(done/total*100);
+        document.getElementById('prewarmBar').style.width = pct+'%';
+        document.getElementById('prewarmLabel').textContent =
+          'สร้างแล้ว '+done+'/'+total+' แปลง ('+pct+'%)';
+        if(!r.hasMore){
+          showToast('✅ สร้างครบ '+done+' แปลงแล้ว!');
+          break;
+        }
+        start = r.to + 1;
+        await new Promise(rsv => setTimeout(rsv, 1500));
+      }
+    } catch(e){
+      logEl.innerHTML += '<div style="color:var(--red)">⚠️ '+esc(e.message||'')+'</div>';
+    } finally {
+      btn.disabled = false; btn.textContent = '📁 รันอีกครั้ง (ทำซ้ำได้)';
     }
   }
 

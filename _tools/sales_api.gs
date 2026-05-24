@@ -79,6 +79,10 @@ function doGet(e){
     if (action === 'listDocsInPlot')     return json(listDocsInPlot(p.token, p.plot, p.docType));
     if (action === 'getFeeRate')         return json(getFeeRate());
     if (action === 'setFeeRate')         return json(setFeeRate(p.token, Number(p.rate)));
+    // Invoice (Round 8)
+    if (action === 'saveInvoice')        return json(saveInvoice(p.token, parseData(p.data)));
+    if (action === 'listInvoicesForPlot')return json(listInvoicesForPlot(p.token, p.plot));
+    if (action === 'getNextInvoiceNo')   return json({ok:true, no:getNextInvoiceNo()});
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -120,6 +124,7 @@ function doPost(e){
       case 'saveTransfer': return json(saveTransfer(body.token, body.data));
       case 'userSave':     return json(userSave(body.token, body.data));
       case 'uploadDocToPlot':return json(uploadDocToPlot(body.token, body.data));
+      case 'saveInvoice':  return json(saveInvoice(body.token, body.data));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
@@ -1682,6 +1687,182 @@ function saveFee_v2_(token, data){
   const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
   sh.appendRow(keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; }));
   return {ok:true, fee_id: id, slipUrl};
+}
+
+// ============================================================
+// ===== Round 8 — Fee Invoices (ใบแจ้งหนี้ค่าส่วนกลาง)
+// ============================================================
+// Sheet tab "fee_invoices":
+//   invoice_no | plot | cName | cAddr | periodFrom | periodTo | months | rate |
+//   total | dueDate | status | pdfUrl | note | createdAt | createdBy
+
+const INVOICE_KEYS = ['invoice_no','plot','cName','cAddr','periodFrom','periodTo',
+  'months','rate','total','dueDate','status','pdfUrl','note','createdAt','createdBy'];
+
+function ensureInvoiceTab_(){
+  return ensureTab_('fee_invoices', INVOICE_KEYS,
+    ['เลขที่ใบ','แปลง','ลูกค้า','ที่อยู่','ช่วงตั้งแต่','ถึง','เดือน','อัตรา',
+     'รวม','วันครบ','สถานะ','ลิงก์ PDF','หมายเหตุ','สร้างเมื่อ','สร้างโดย']);
+}
+
+// auto-gen เลขที่ใบ: INV-YYMM-NNN
+function getNextInvoiceNo(){
+  const lock = LockService.getScriptLock();
+  lock.waitLock(5000);
+  try {
+    const d = new Date();
+    const mm = ('0'+(d.getMonth()+1)).slice(-2);
+    const yy = ((d.getFullYear()+543) % 100).toString().padStart(2,'0');
+    const prefix = 'INV-'+yy+mm;
+    const sh = sheet('counters');
+    if(!sh) return prefix+'-001';
+    const vals = sh.getDataRange().getValues();
+    let row = -1, current = 0;
+    for(let i=1; i<vals.length; i++){
+      if(String(vals[i][0]).trim() === prefix){ row = i+1; current = Number(vals[i][1])||0; break; }
+    }
+    const next = current + 1;
+    if(row > 0) sh.getRange(row, 2).setValue(next);
+    else sh.appendRow([prefix, next]);
+    return prefix + '-' + String(next).padStart(3,'0');
+  } finally { lock.releaseLock(); }
+}
+
+// บันทึก invoice + render HTML → upload เข้า "แปลง XXX/ค่าส่วนกลาง/"
+function saveInvoice(token, data){
+  const a = requireAuth_(token, 'manage.fees');
+  if(!a.ok) return a;
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+
+  const sh = ensureInvoiceTab_();
+  const invoiceNo = data.invoice_no || getNextInvoiceNo();
+  const now = new Date().toISOString();
+
+  // render HTML ของใบแจ้งหนี้
+  const html = renderInvoiceHTML_(Object.assign({invoice_no: invoiceNo}, data));
+
+  // upload เข้า Drive "แปลง XXX/ค่าส่วนกลาง/"
+  let pdfUrl = '';
+  try {
+    const folder = getOrCreateSubFolder_(data.plot, 'fee');
+    const fileName = 'invoice-'+invoiceNo+'-'+data.plot+'.html';
+    const bytes = Utilities.newBlob(html, 'text/html', fileName).getBytes();
+    const file = folder.createFile(Utilities.newBlob(bytes, 'text/html', fileName));
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    pdfUrl = file.getUrl();
+  } catch(e){}
+
+  // บันทึก Sheet
+  const row = {
+    invoice_no: invoiceNo,
+    plot: data.plot,
+    cName: data.cName || '',
+    cAddr: data.cAddr || '',
+    periodFrom: data.periodFrom || '',
+    periodTo: data.periodTo || '',
+    months: Number(data.months)||0,
+    rate: Number(data.rate)||0,
+    total: Number(data.total)||0,
+    dueDate: data.dueDate || '',
+    status: data.status || 'unpaid',
+    pdfUrl: pdfUrl,
+    note: data.note || '',
+    createdAt: now,
+    createdBy: a.user.username
+  };
+  const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  sh.appendRow(keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; }));
+  return {ok:true, invoice_no: invoiceNo, pdfUrl: pdfUrl};
+}
+
+function listInvoicesForPlot(token, plot){
+  const a = requireAuth_(token, 'view.fees');
+  if(!a.ok) return a;
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  ensureInvoiceTab_();
+  const all = readTab('fee_invoices');
+  const filtered = all.filter(function(r){
+    return String(r.plot).trim() === String(plot).trim();
+  });
+  filtered.sort(function(a,b){
+    return String(b.createdAt||'').localeCompare(String(a.createdAt||''));
+  });
+  return {ok:true, invoices: filtered};
+}
+
+// render HTML ของใบแจ้งหนี้ (สไตล์เดียวกับใบเสร็จ — หัวบริษัท + รายการ + ลายเซ็น)
+function renderInvoiceHTML_(d){
+  const fmt = function(n){ return Number(n||0).toLocaleString('th-TH'); };
+  const th = function(dStr){
+    if(!dStr) return '-';
+    const dt = new Date(dStr);
+    const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    if(isNaN(dt.getTime())) return dStr;
+    return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543);
+  };
+  return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">' +
+    '<title>ใบแจ้งหนี้ '+d.invoice_no+'</title>' +
+    '<style>body{font-family:"Sarabun",sans-serif;padding:30px;color:#2b2b2b;max-width:780px;margin:auto}' +
+    '.hd{display:flex;align-items:center;gap:14px;border-bottom:2px solid #3d3d3d;padding-bottom:12px;margin-bottom:16px}' +
+    '.hd .logo{width:60px;height:60px;background:linear-gradient(135deg,#3d3d3d,#5a5a5a);color:#fff;border-radius:8px;' +
+      'display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800}' +
+    '.hd .co{flex:1}.co-nm{font-size:18px;font-weight:800;color:#3d3d3d;line-height:1.2}' +
+    '.co-sub{font-size:11.5px;color:#666;margin-top:2px;line-height:1.5}' +
+    '.title{background:#fce7f3;border:1px solid #f9a8d4;color:#9d174d;padding:10px 16px;border-radius:8px;' +
+      'text-align:center;font-weight:800;font-size:18px;margin:14px 0}' +
+    '.no-date{display:flex;justify-content:space-between;font-size:13px;margin-bottom:14px}' +
+    '.no-date .lbl{color:#666;font-weight:600}.no-date .val{font-weight:700;color:#b08d57}' +
+    '.cust{background:#f7f8fa;padding:12px 16px;border-radius:8px;margin-bottom:14px;font-size:13px}' +
+    '.cust .lbl{color:#666;font-weight:600;display:inline-block;min-width:80px}' +
+    '.cust .val{font-weight:700}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px}' +
+    'th{background:#3d3d3d;color:#fff;font-weight:700;padding:10px 12px;text-align:left;font-size:12px;letter-spacing:.5px}' +
+    'td{padding:10px 12px;border-bottom:1px solid #e2e6ea}' +
+    '.r{text-align:right}.total-row{background:#fef3c7;font-weight:800}' +
+    '.due-box{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 16px;border-radius:8px;' +
+      'text-align:center;font-weight:700;margin:14px 0;font-size:14px}' +
+    '.pay-info{background:#e0f2fe;border:1px solid #7dd3fc;color:#075985;padding:12px 16px;border-radius:8px;' +
+      'font-size:12.5px;line-height:1.7;margin-bottom:14px}' +
+    '.pay-info b{color:#0c4a6e}' +
+    '.foot{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:30px}' +
+    '.sig{text-align:center}.sig .line{border-bottom:1px solid #000;height:50px;margin-bottom:6px}' +
+    '.sig .lbl{font-weight:700;font-size:13px}.sig .sub{font-size:11px;color:#666}' +
+    '.note{font-size:11px;color:#666;margin-top:14px;border-top:1px dashed #ccc;padding-top:10px}' +
+    '@media print{body{padding:15px}.title{background:#fce7f3!important}}' +
+    '</style></head><body>' +
+    '<div class="hd"><div class="logo">TB</div>' +
+      '<div class="co"><div class="co-nm">บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด</div>' +
+      '<div class="co-sub">TWO BUILD DEVELOPMENT CO., LTD. · TAX ID: ___________<br>' +
+      '89 หมู่ที่ 1 ต.คลองตำหรุ อ.เมืองชลบุรี จ.ชลบุรี 20000 · โทร 092-787-4222</div></div></div>' +
+    '<div class="title">📄 ใบแจ้งหนี้ค่าส่วนกลาง · INVOICE</div>' +
+    '<div class="no-date">' +
+      '<div><span class="lbl">เลขที่ใบ:</span> <span class="val">'+d.invoice_no+'</span></div>' +
+      '<div><span class="lbl">วันที่ออก:</span> <span class="val">'+th(d.createdAt||new Date().toISOString())+'</span></div>' +
+    '</div>' +
+    '<div class="cust">' +
+      '<div><span class="lbl">เรียน:</span> <span class="val">'+(d.cName||'-')+'</span></div>' +
+      '<div><span class="lbl">บ้านเลขที่:</span> <span class="val">แปลง '+d.plot+'</span></div>' +
+      (d.cAddr?'<div><span class="lbl">ที่อยู่:</span> <span class="val">'+d.cAddr+'</span></div>':'') +
+    '</div>' +
+    '<table><thead><tr>' +
+      '<th>รายการ</th><th class="r">จำนวน (เดือน)</th><th class="r">อัตรา/เดือน</th><th class="r">รวม (บาท)</th>' +
+    '</tr></thead><tbody>' +
+    '<tr><td>ค่าส่วนกลาง ช่วง '+(d.periodFrom||'-')+' ถึง '+(d.periodTo||'-')+'</td>' +
+      '<td class="r">'+d.months+'</td><td class="r">'+fmt(d.rate)+'</td><td class="r">'+fmt(d.total)+'</td></tr>' +
+    '<tr class="total-row"><td colspan="3" class="r">รวมทั้งสิ้น</td>' +
+      '<td class="r">'+fmt(d.total)+' บาท</td></tr>' +
+    '</tbody></table>' +
+    (d.dueDate?'<div class="due-box">⏰ กรุณาชำระภายในวันที่ '+th(d.dueDate)+'</div>':'') +
+    '<div class="pay-info"><b>📑 วิธีชำระเงิน</b><br>' +
+      'โอนเข้าบัญชี <b>ธนาคารไทยพาณิชย์</b> เลขที่บัญชี <b>409-691797-6</b><br>' +
+      'ชื่อบัญชี <b>บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด</b><br>' +
+      'หลังโอนแล้ว กรุณาส่งสลิปผ่าน LINE / Email ของโครงการ พร้อมระบุเลขที่ใบ '+d.invoice_no+
+    '</div>' +
+    (d.note?'<div class="note"><b>หมายเหตุ:</b> '+d.note+'</div>':'') +
+    '<div class="foot">' +
+      '<div class="sig"><div class="line"></div><div class="lbl">ลูกค้า / ผู้ชำระ</div></div>' +
+      '<div class="sig"><div class="line"></div><div class="lbl">เจ้าหน้าที่โครงการ</div></div>' +
+    '</div></body></html>';
 }
 
 // ============================================================
