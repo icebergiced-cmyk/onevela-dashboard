@@ -1104,11 +1104,28 @@ function authVerify(token){
   const sessions = pruneSessions_(loadSessions_());
   const s = sessions[token];
   if(!s) return {ok:false, error:'session หมดอายุ — กรุณา login ใหม่'};
+  // ดึง user ปัจจุบันจาก Sheet เพื่อให้ role/permissions สดเสมอ
+  // (รองรับกรณี admin แก้ role/sights ของ user แล้ว user ที่ login ค้างควรเห็นสิทธิ์ใหม่)
+  const users = readTab('users');
+  const u = users.find(function(x){ return String(x.user_id) === String(s.userId); });
+  if(!u){
+    return {ok:true, user:{userId:s.userId,username:s.username,role:s.role,permissions:s.permissions||ROLE_PERMS[s.role]||[]}};
+  }
+  if(String(u.active) === '0' || String(u.active).toLowerCase() === 'false'){
+    delete sessions[token]; saveSessions_(sessions);
+    return {ok:false, error:'บัญชีนี้ถูกระงับการใช้งาน — กรุณา login ใหม่'};
+  }
+  const freshPerms = getUserPermissions_(u);
+  // อัปเดต session ใน backend ด้วย (กัน session ค้าง permissions เก่า)
+  s.role = u.role;
+  s.username = u.display_name;
+  s.permissions = freshPerms;
+  saveSessions_(sessions);
   return {
     ok: true,
     user: {
-      userId: s.userId, username: s.username, role: s.role,
-      permissions: s.permissions || ROLE_PERMS[s.role] || []
+      userId: s.userId, username: u.display_name, role: u.role,
+      permissions: freshPerms
     }
   };
 }
