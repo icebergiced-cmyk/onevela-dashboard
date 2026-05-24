@@ -58,6 +58,7 @@ function doGet(e){
     if (action === 'userList')       return json(userList(p.token));
     if (action === 'userSave')       return json(userSave(p.token, parseData(p.data)));
     if (action === 'userDelete')     return json(userDelete(p.token, p.userId));
+    if (action === 'listAllPermissions') return json(listAllPermissions(p.token));
     // ===== Walkin v2 (Round 5) =====
     if (action === 'getWalkinsV2')   return json(getWalkinsV2(p.token));
     if (action === 'saveWalkinV2')   return json(saveWalkinV2(p.token, parseData(p.data)));
@@ -970,7 +971,8 @@ function foremanLogin(foreman, pin){
 const ROLE_PERMS = {
   developer: ['*'],
   admin: ['view.home','view.cost','view.sales.dashboard','view.income.calc',
-    'view.customers','view.transfer','view.construction.admin','view.payments','view.fees',
+    'view.customers','view.transfer','view.construction.admin','view.foreman',
+    'view.payments','view.fees',
     'manage.construction','manage.payments','manage.fees','manage.transfer','upload.cost',
     'create.quotation','create.booking','create.contract','create.receipt','create.promotion','create.walkin'],
   sales: ['view.home','view.sales.dashboard','view.income.calc','view.customers',
@@ -979,11 +981,46 @@ const ROLE_PERMS = {
     'manage.payments','manage.fees','create.receipt'],
   foreman: ['view.foreman','update.field'],
   transfer: ['view.home','view.transfer','manage.transfer','create.receipt'],
-  viewer: ['view.home','view.cost','view.sales.dashboard','view.customers','view.transfer']
+  viewer: ['view.home','view.cost','view.sales.dashboard','view.customers','view.transfer','view.foreman','view.construction.admin']
 };
+
+// ── All available permissions (สำหรับ UI กำหนดสิทธิ์รายคน) ──
+const ALL_PERMISSIONS = [
+  // View permissions
+  {key:'view.home',                 group:'ดู — หน้าแรก',          label:'หน้า Home + filter ปุ่มตามสิทธิ์'},
+  {key:'view.cost',                 group:'ดู — แดชบอร์ด',          label:'แดชบอร์ดต้นทุนบ้าน'},
+  {key:'view.sales.dashboard',      group:'ดู — แดชบอร์ด',          label:'แดชบอร์ดงานขาย'},
+  {key:'view.income.calc',          group:'ดู — แดชบอร์ด',          label:'คำนวณรายได้/สินเชื่อ'},
+  {key:'view.construction.admin',   group:'ดู — แดชบอร์ด',          label:'แดชบอร์ดก่อสร้าง (admin)'},
+  {key:'view.foreman',              group:'ดู — แดชบอร์ด',          label:'หน้าโฟร์แมน'},
+  {key:'view.transfer',             group:'ดู — งานโอน',           label:'แดชบอร์ดงานโอนกรรมสิทธิ์'},
+  {key:'view.payments',             group:'ดู — การเงิน',          label:'รายการผ่อนดาวน์'},
+  {key:'view.fees',                 group:'ดู — การเงิน',          label:'ค่าส่วนกลาง'},
+  {key:'view.customers',            group:'ดู — ลูกค้า',           label:'ลูกค้าวอร์คอิน'},
+  // Create — เอกสารขาย
+  {key:'create.quotation',          group:'สร้าง — เอกสาร',        label:'ออกใบเสนอราคา'},
+  {key:'create.booking',            group:'สร้าง — เอกสาร',        label:'ออกใบจอง'},
+  {key:'create.contract',           group:'สร้าง — เอกสาร',        label:'ออกสัญญา'},
+  {key:'create.receipt',            group:'สร้าง — เอกสาร',        label:'ออกใบเสร็จ'},
+  {key:'create.promotion',          group:'สร้าง — เอกสาร',        label:'ใบโปรโมชั่น'},
+  {key:'create.walkin',             group:'สร้าง — ลูกค้า',         label:'บันทึกลูกค้าวอร์คอิน'},
+  // Manage — แก้/บันทึก
+  {key:'manage.construction',       group:'จัดการ — ก่อสร้าง',      label:'เริ่ม/หยุดการก่อสร้าง · assign โฟร์แมน'},
+  {key:'update.field',              group:'จัดการ — ก่อสร้าง',      label:'อัปเดตงานหน้าไซต์ (โฟร์แมน)'},
+  {key:'manage.payments',           group:'จัดการ — การเงิน',       label:'บันทึก/แก้ผ่อนดาวน์'},
+  {key:'manage.fees',               group:'จัดการ — การเงิน',       label:'บันทึกค่าส่วนกลาง · แก้อัตรา'},
+  {key:'manage.transfer',           group:'จัดการ — งานโอน',        label:'แก้ checklist · บันทึกเอกสารวันโอน'},
+  {key:'upload.cost',               group:'จัดการ — อื่นๆ',          label:'อัปโหลด Excel ต้นทุน Ecount'}
+];
 
 function canPermission_(role, perm){
   const perms = ROLE_PERMS[role] || [];
+  return perms.indexOf('*') >= 0 || perms.indexOf(perm) >= 0;
+}
+
+// เช็คสิทธิ์โดยรวม role + custom permissions (ใช้ session.permissions ถ้ามี)
+function canPermissionUser_(session, perm){
+  const perms = (session && session.permissions) || ROLE_PERMS[session && session.role] || [];
   return perms.indexOf('*') >= 0 || perms.indexOf(perm) >= 0;
 }
 
@@ -1008,6 +1045,21 @@ function genToken_(){
   return 'tok_' + Date.now() + '_' + Math.random().toString(36).slice(2,12);
 }
 
+// Helper — รวม role permissions + custom permissions
+function getUserPermissions_(u){
+  const rolePerms = ROLE_PERMS[u.role] || [];
+  if(rolePerms.indexOf('*') >= 0) return ['*'];
+  let custom = [];
+  try {
+    if(u.custom_permissions){
+      const v = String(u.custom_permissions).trim();
+      if(v && v !== 'null') custom = JSON.parse(v);
+      if(!Array.isArray(custom)) custom = [];
+    }
+  } catch(e){ custom = []; }
+  return Array.from(new Set([...rolePerms, ...custom]));
+}
+
 // authLogin — return {ok, token, user:{username,role,permissions}}
 function authLogin(username, pin){
   if(!username || !pin) return {ok:false, error:'ต้องระบุชื่อ + PIN'};
@@ -1025,7 +1077,8 @@ function authLogin(username, pin){
     userId: u.user_id,
     username: u.display_name,
     role: u.role || 'viewer',
-    expiresAt: Date.now() + (8 * 60 * 60 * 1000)  // 8 ชม.
+    permissions: getUserPermissions_(u),
+    expiresAt: Date.now() + (8 * 60 * 60 * 1000)
   };
   saveSessions_(sessions);
 
@@ -1036,7 +1089,7 @@ function authLogin(username, pin){
       userId: u.user_id,
       username: u.display_name,
       role: u.role || 'viewer',
-      permissions: ROLE_PERMS[u.role] || []
+      permissions: sessions[token].permissions
     }
   };
 }
@@ -1050,7 +1103,7 @@ function authVerify(token){
     ok: true,
     user: {
       userId: s.userId, username: s.username, role: s.role,
-      permissions: ROLE_PERMS[s.role] || []
+      permissions: s.permissions || ROLE_PERMS[s.role] || []
     }
   };
 }
@@ -1063,11 +1116,15 @@ function authLogout(token){
 }
 
 // requireAuth_ — helper สำหรับ functions ที่ต้องเช็คสิทธิ์ก่อน
+// ใช้ session.permissions (รวม role + custom) แทน ROLE_PERMS ตรงๆ
 function requireAuth_(token, permission){
   const v = authVerify(token);
   if(!v.ok) return v;
-  if(permission && !canPermission_(v.user.role, permission)){
-    return {ok:false, error:'ไม่มีสิทธิ์: '+permission};
+  if(permission){
+    const perms = v.user.permissions || [];
+    if(perms.indexOf('*') < 0 && perms.indexOf(permission) < 0){
+      return {ok:false, error:'ไม่มีสิทธิ์: '+permission};
+    }
   }
   return {ok:true, user:v.user};
 }
@@ -1117,6 +1174,10 @@ function userSave(token, data){
     }
   }
 
+  // ตรวจว่ามี column custom_permissions ใน users tab ไหม — ถ้าไม่มี เพิ่มให้
+  ensureUsersCustomPermsColumn_();
+  const keys2 = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+
   const row = {
     user_id: data.userId || ('u_' + Date.now()),
     line_user_id: '',
@@ -1126,23 +1187,45 @@ function userSave(token, data){
     role: data.role || 'viewer',
     active: (data.active === false || String(data.active)==='0') ? 0 : 1,
     created_at: new Date().toISOString(),
-    last_login_at: ''
+    last_login_at: '',
+    custom_permissions: data.customPermissions
+      ? JSON.stringify(Array.isArray(data.customPermissions) ? data.customPermissions : [])
+      : ''
   };
 
   if(foundRow > 0){
-    // update
+    // update — keep created_at + only update fields ที่ส่งมา
     Object.keys(row).forEach(k => {
-      const col = keys.indexOf(k);
-      if(col >= 0 && k !== 'created_at') {  // keep created_at
+      const col = keys2.indexOf(k);
+      if(col >= 0 && k !== 'created_at' && k !== 'user_id'){
         sh.getRange(foundRow, col+1).setValue(row[k]);
       }
     });
     return {ok:true, userId: row.user_id, action:'updated'};
   } else {
-    const rowArr = keys.map(k => row[k] !== undefined ? row[k] : '');
+    const rowArr = keys2.map(k => row[k] !== undefined ? row[k] : '');
     sh.appendRow(rowArr);
     return {ok:true, userId: row.user_id, action:'added'};
   }
+}
+
+// เพิ่ม column custom_permissions ถ้ายังไม่มี
+function ensureUsersCustomPermsColumn_(){
+  const sh = sheet('users');
+  if(!sh) return;
+  const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  if(keys.indexOf('custom_permissions') >= 0) return;
+  const newCol = sh.getLastColumn() + 1;
+  sh.getRange(1, newCol).setValue('custom_permissions');
+  sh.getRange(2, newCol).setValue('สิทธิ์เพิ่ม (JSON)');
+}
+
+// listAllPermissions — สำหรับ developer page (เลือกสิทธิ์รายตัว)
+function listAllPermissions(token){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(a.user.role !== 'developer' && a.user.role !== 'admin') return {ok:false, error:'ไม่มีสิทธิ์'};
+  return {ok:true, permissions: ALL_PERMISSIONS, rolePerms: ROLE_PERMS};
 }
 
 function userDelete(token, userId){

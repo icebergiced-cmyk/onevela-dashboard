@@ -21,7 +21,8 @@
   const ROLE_PERMS = {
     developer: ['*'],
     admin: ['view.home','view.cost','view.sales.dashboard','view.income.calc',
-      'view.customers','view.transfer','view.construction.admin','view.payments','view.fees',
+      'view.customers','view.transfer','view.construction.admin','view.foreman',
+      'view.payments','view.fees',
       'manage.construction','manage.payments','manage.fees','manage.transfer','upload.cost',
       'create.quotation','create.booking','create.contract','create.receipt','create.promotion','create.walkin'],
     sales: ['view.home','view.sales.dashboard','view.income.calc','view.customers',
@@ -30,7 +31,7 @@
       'manage.payments','manage.fees','create.receipt'],
     foreman: ['view.foreman','update.field'],
     transfer: ['view.home','view.transfer','manage.transfer','create.receipt'],
-    viewer: ['view.home','view.cost','view.sales.dashboard','view.customers','view.transfer']
+    viewer: ['view.home','view.cost','view.sales.dashboard','view.customers','view.transfer','view.foreman','view.construction.admin']
   };
 
   const ROLE_INFO = {
@@ -65,7 +66,8 @@
   function can(permission){
     const u = getUser();
     if(!u) return false;
-    const perms = ROLE_PERMS[u.role] || [];
+    // ใช้ permissions ที่ backend ส่งมา (รวม role + custom) ถ้ามี
+    const perms = (u.permissions && u.permissions.length) ? u.permissions : (ROLE_PERMS[u.role] || []);
     return perms.indexOf('*') >= 0 || perms.indexOf(permission) >= 0;
   }
 

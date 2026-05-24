@@ -57,6 +57,30 @@
   .row-actions button:hover{border-color:var(--gold);color:var(--gold)}
   .row-actions button.danger:hover{border-color:var(--red);color:var(--red)}
 
+  /* Permission modal */
+  .perm-modal-bd{padding:0 18px 18px;max-height:65vh;overflow-y:auto}
+  .perm-info{background:#fff8e6;border:1px dashed var(--gold);border-radius:9px;
+    padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:#7a5a2e;line-height:1.5}
+  .perm-info b{color:var(--charcoal)}
+  .perm-group{margin-bottom:14px}
+  .perm-group h4{font-size:12px;font-weight:800;color:var(--charcoal);
+    text-transform:uppercase;letter-spacing:.4px;background:#f7f3eb;
+    padding:6px 10px;border-radius:5px;margin-bottom:6px}
+  .perm-item{display:flex;align-items:center;gap:10px;padding:7px 10px;
+    border-radius:6px;cursor:pointer;font-size:13px;user-select:none}
+  .perm-item:hover{background:var(--soft)}
+  .perm-item.role-default{opacity:.7;cursor:not-allowed;background:#f0fdf4}
+  .perm-item.role-default:hover{background:#f0fdf4}
+  .perm-item .cb{width:20px;height:20px;border:2px solid var(--line);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;background:#fff;flex-shrink:0;
+    color:#fff;font-weight:800;font-size:13px}
+  .perm-item.on .cb,.perm-item.role-default .cb{background:var(--green);border-color:var(--green)}
+  .perm-item .info{flex:1;min-width:0}
+  .perm-item .key{font-family:monospace;font-size:11px;color:var(--muted)}
+  .perm-item .lbl{font-weight:600;color:var(--charcoal)}
+  .perm-item .tag-default{font-size:10px;background:var(--green);color:#fff;padding:1px 6px;
+    border-radius:5px;font-weight:700;letter-spacing:.3px}
+
   /* Modal */
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
     align-items:center;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
@@ -151,6 +175,28 @@
   </div>
 </div>
 
+<!-- Permission modal -->
+<div class="modal-bg" id="permModal">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-hd">
+      <div class="ttl" id="permTtl">🔑 จัดการสิทธิ์ — </div>
+      <button class="x" onclick="closePermModal()">✕</button>
+    </div>
+    <div class="perm-modal-bd">
+      <div class="perm-info">
+        💡 <b>วิธีใช้:</b><br>
+        — สิทธิ์<b>สีเขียวพื้น (default)</b> มาจาก role — แก้ไม่ได้<br>
+        — ติ๊ก ☑️ เพื่อ <b>เพิ่มสิทธิ์เฉพาะคนนี้</b> นอกเหนือจาก role
+      </div>
+      <div id="permList"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closePermModal()">ยกเลิก</button>
+      <button class="btn-save" id="btnSavePerm" onclick="savePerms()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="_tools/auth-client.js"></script>
@@ -221,6 +267,7 @@
             <td style="font-size:11.5px;color:var(--muted)">${esc(String(u.created_at||'').slice(0,10))}</td>
             <td>
               <div class="row-actions">
+                <button onclick="openPerms('${esc(u.user_id)}')" style="background:#fff8e6;border-color:#f5d8a0;color:#7a5a2e">🔑 สิทธิ์</button>
                 <button onclick="openEdit('${esc(u.user_id)}')">แก้ไข</button>
                 <button class="danger" onclick="delUser('${esc(u.user_id)}','${esc(u.display_name)}','${esc(u.role)}')">ลบ</button>
               </div>
@@ -304,6 +351,125 @@
     t.textContent = msg;
     t.classList.add('on');
     setTimeout(()=>t.classList.remove('on'), 3000);
+  }
+
+  // ── Permission management ──
+  let ALL_PERMS = [];
+  let ROLE_PERMS_BACK = {};
+  let permEditingUser = null;
+  let permSelectedCustom = new Set();
+
+  async function loadPermissionList(){
+    if(ALL_PERMS.length) return;
+    try {
+      const r = await Auth.api('listAllPermissions');
+      if(r.ok){
+        ALL_PERMS = r.permissions || [];
+        ROLE_PERMS_BACK = r.rolePerms || {};
+      }
+    } catch(e){}
+  }
+
+  async function openPerms(userId){
+    const u = USERS.find(x => String(x.user_id) === String(userId));
+    if(!u) return;
+    permEditingUser = u;
+    await loadPermissionList();
+
+    // parse custom_permissions ที่มีอยู่
+    let custom = [];
+    try {
+      if(u.custom_permissions){
+        const v = String(u.custom_permissions).trim();
+        if(v && v !== 'null') custom = JSON.parse(v);
+        if(!Array.isArray(custom)) custom = [];
+      }
+    } catch(e){ custom = []; }
+    permSelectedCustom = new Set(custom);
+
+    document.getElementById('permTtl').textContent =
+      '🔑 จัดการสิทธิ์ — ' + u.display_name + ' (' + u.role + ')';
+    renderPermList();
+    document.getElementById('permModal').classList.add('on');
+  }
+
+  function closePermModal(){
+    document.getElementById('permModal').classList.remove('on');
+    permEditingUser = null;
+  }
+
+  function renderPermList(){
+    const role = permEditingUser.role;
+    const rolePerms = ROLE_PERMS_BACK[role] || [];
+    const isDeveloper = rolePerms.indexOf('*') >= 0;
+
+    if(isDeveloper){
+      document.getElementById('permList').innerHTML =
+        '<div style="padding:20px;text-align:center;color:var(--muted)">' +
+        '🔓 <b>Developer</b> มีสิทธิ์ทั้งหมด — ไม่ต้องกำหนดเพิ่ม</div>';
+      document.getElementById('btnSavePerm').style.display = 'none';
+      return;
+    }
+    document.getElementById('btnSavePerm').style.display = '';
+
+    // Group by .group field
+    const groups = {};
+    ALL_PERMS.forEach(p => {
+      if(!groups[p.group]) groups[p.group] = [];
+      groups[p.group].push(p);
+    });
+
+    let html = '';
+    Object.keys(groups).forEach(groupName => {
+      html += '<div class="perm-group"><h4>'+esc(groupName)+'</h4>';
+      groups[groupName].forEach(perm => {
+        const isRoleDefault = rolePerms.indexOf(perm.key) >= 0;
+        const isCustom = permSelectedCustom.has(perm.key);
+        const isOn = isRoleDefault || isCustom;
+        const cls = isRoleDefault ? 'role-default' : (isCustom ? 'on' : '');
+        html += `<div class="perm-item ${cls}" onclick="${isRoleDefault?'':"togglePerm('"+esc(perm.key)+"')"}">
+          <div class="cb">${isOn?'✓':''}</div>
+          <div class="info">
+            <div class="lbl">${esc(perm.label)}</div>
+            <div class="key">${esc(perm.key)}</div>
+          </div>
+          ${isRoleDefault?'<span class="tag-default">role</span>':''}
+        </div>`;
+      });
+      html += '</div>';
+    });
+    document.getElementById('permList').innerHTML = html;
+  }
+
+  function togglePerm(key){
+    if(permSelectedCustom.has(key)) permSelectedCustom.delete(key);
+    else permSelectedCustom.add(key);
+    renderPermList();
+  }
+
+  async function savePerms(){
+    if(!permEditingUser) return;
+    const data = {
+      userId: permEditingUser.user_id,
+      username: permEditingUser.display_name,
+      pin: permEditingUser.phone,
+      role: permEditingUser.role,
+      active: String(permEditingUser.active) === '1' || String(permEditingUser.active).toLowerCase() === 'true',
+      customPermissions: [...permSelectedCustom]
+    };
+    document.getElementById('btnSavePerm').disabled = true;
+    document.getElementById('btnSavePerm').textContent = '⏳';
+    try {
+      const r = await Auth.api('userSave', {data: JSON.stringify(data)});
+      if(!r.ok){ alert(r.error); return; }
+      closePermModal();
+      showToast('✅ บันทึกสิทธิ์ของ '+permEditingUser.display_name+' แล้ว');
+      await loadUsers();
+    } catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+    finally {
+      document.getElementById('btnSavePerm').disabled = false;
+      document.getElementById('btnSavePerm').textContent = '💾 บันทึก';
+    }
   }
 
   populateRoleSel();
