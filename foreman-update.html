@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>👷 อัปเดตงานหน้าไซต์ — One Vela</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3d3d3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="One Vela งาน">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/brand/logo-icon.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-dk:#8d6d3f;
+    --bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;--soft:#f7f8fa;
+    --green:#16a34a;--amber:#d97706;--red:#dc2626;--blue:#2563eb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    font-size:16px;line-height:1.5;min-height:100vh}
+  .phone{max-width:430px;margin:0 auto;background:#fff;min-height:100vh;
+    box-shadow:0 0 30px rgba(0,0,0,.08);position:relative}
+  @media (min-width:640px){
+    body{padding:20px 0;background:linear-gradient(135deg,#3d3d3d,#1a1a1a)}
+    .phone{border-radius:24px;overflow:hidden;min-height:auto}
+  }
+
+  .hd{background:var(--charcoal);color:#fff;padding:16px 18px;
+    display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+  .hd .back{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;
+    width:38px;height:38px;border-radius:10px;cursor:pointer;display:flex;
+    align-items:center;justify-content:center}
+  .hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .hd .ttl small{display:block;font-size:11px;opacity:.65;font-weight:500;letter-spacing:.5px}
+  .hd .av{width:38px;height:38px;background:var(--gold);border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff}
+
+  .pg{display:none;padding:18px}
+  .pg.on{display:block}
+
+  /* loading state */
+  .loader{text-align:center;padding:40px 20px;color:var(--muted)}
+  .loader .sp{font-size:30px;margin-bottom:10px}
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);padding:12px 14px;
+    border-radius:10px;margin-bottom:14px;font-size:13px}
+
+  /* LOGIN */
+  .login{padding:30px 20px;text-align:center}
+  .login .logo img{max-width:140px;height:auto;margin-bottom:14px}
+  .login h1{font-size:22px;color:var(--charcoal);font-weight:800;margin-bottom:6px}
+  .login .sub{color:var(--muted);font-size:14px;margin-bottom:30px}
+  .login .lbl{text-align:left;font-size:12px;color:var(--muted);font-weight:700;
+    letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase}
+  .login select{width:100%;font-family:inherit;font-size:17px;font-weight:600;
+    padding:14px 16px;border:2px solid var(--line);border-radius:12px;background:#fff;
+    color:var(--ink);margin-bottom:16px;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%237d8794' d='M6 8L0 0h12z'/></svg>");
+    background-repeat:no-repeat;background-position:right 16px center;padding-right:38px}
+  .login input[type=password]{width:100%;font-family:inherit;font-size:24px;font-weight:700;
+    padding:14px 16px;border:2px solid var(--line);border-radius:12px;
+    text-align:center;letter-spacing:8px;margin-bottom:20px}
+  .btn-primary{width:100%;font-family:inherit;font-size:17px;font-weight:800;
+    padding:16px;border:none;border-radius:12px;background:var(--gold);color:#fff;
+    cursor:pointer;letter-spacing:.5px;box-shadow:0 4px 14px rgba(176,141,87,.35)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary.green{background:var(--green);box-shadow:0 4px 14px rgba(22,163,74,.3)}
+
+  /* HOME */
+  .greet{font-size:15px;color:var(--muted);margin-bottom:4px}
+  .greet b{color:var(--charcoal)}
+  .stat{font-size:13px;color:var(--muted);margin-bottom:16px}
+  .stat b{color:var(--gold);font-weight:800}
+
+  .plot-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+    margin-bottom:12px;color:inherit}
+  .plot-card .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .plot-card .pid{font-size:18px;font-weight:800;color:var(--charcoal)}
+  .plot-card .typ{font-size:11px;font-weight:700;background:var(--soft);padding:3px 9px;
+    border-radius:10px;color:var(--muted);letter-spacing:.5px}
+  .plot-card .pct{margin-left:auto;font-size:20px;font-weight:800;color:var(--gold)}
+  .plot-card .pct small{font-size:11px;color:var(--muted);font-weight:600}
+  .plot-card .bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin-bottom:8px}
+  .plot-card .bar>div{height:100%;background:linear-gradient(90deg,var(--gold),#d4b274)}
+  .plot-card .ms{font-size:13.5px;color:var(--ink);font-weight:600;margin-bottom:4px}
+  .plot-card .ago{font-size:11.5px;color:var(--muted)}
+  .plot-card .actions{display:flex;gap:8px;margin-top:10px;padding-top:10px;
+    border-top:1px dashed var(--line)}
+  .plot-card .actions button{flex:1;font-family:inherit;font-size:13px;font-weight:700;
+    padding:9px 10px;border-radius:9px;border:1.5px solid var(--line);background:#fff;
+    color:var(--charcoal);cursor:pointer}
+  .plot-card .actions button.primary{background:var(--gold);border-color:var(--gold);color:#fff}
+  .plot-card .actions button:active{transform:translateY(1px)}
+
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+  .empty-state .ic{font-size:50px;margin-bottom:10px;opacity:.7}
+  .empty-state .msg{font-size:14px;line-height:1.6}
+
+  /* UPDATE */
+  .upd-h{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+    margin-bottom:16px;display:flex;align-items:center;gap:14px}
+  .upd-h .big{font-size:24px;font-weight:800;color:var(--charcoal)}
+  .upd-h .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+  .upd-h .pct{margin-left:auto;font-size:24px;font-weight:800;color:var(--gold)}
+  .upd-h .pct small{font-size:11px;color:var(--muted);font-weight:600}
+
+  .fld{margin-bottom:18px}
+  .fld .lbl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--charcoal);
+    font-weight:700;margin-bottom:8px}
+  .fld .lbl .ct{font-size:11px;color:var(--muted);font-weight:600;background:var(--soft);
+    padding:2px 8px;border-radius:10px;margin-left:auto}
+
+  .ms-list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ms-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);
+    cursor:pointer;user-select:none}
+  .ms-item:last-child{border-bottom:none}
+  .ms-item:active{background:var(--soft)}
+  .ms-item.on{background:#fef7e8}
+  .ms-item.curr{background:#fef3e2;border-left:3px solid var(--gold)}
+  .ms-item.past{opacity:.55}
+  .ms-item .cb{width:24px;height:24px;border:2px solid var(--line);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+    background:#fff;color:#fff;font-weight:800}
+  .ms-item.on .cb{background:var(--gold);border-color:var(--gold)}
+  .ms-item.past .cb{background:var(--green);border-color:var(--green)}
+  .ms-item .info{flex:1;min-width:0}
+  .ms-item .nm{font-size:14px;font-weight:600;color:var(--ink)}
+  .ms-item.curr .nm{font-weight:800;color:var(--charcoal)}
+  .ms-item .meta{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .ms-item .badge{font-size:10px;font-weight:800;background:var(--gold);color:#fff;
+    padding:2px 7px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px}
+
+  .ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .ph-tile{aspect-ratio:1;border-radius:10px;overflow:hidden;position:relative;background:var(--soft)}
+  .ph-tile img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph-tile .x{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,.6);
+    border-radius:50%;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;
+    border:none;cursor:pointer}
+  .ph-add{aspect-ratio:1;border-radius:10px;border:2px dashed var(--gold);background:#fef7e8;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold);
+    font-weight:700;font-size:12px;cursor:pointer;gap:4px}
+  .ph-add .ic{font-size:28px;font-weight:300}
+  .ph-add input{display:none}
+
+  .gps{background:#e6f4ea;border:1px solid #b6dbc1;border-radius:10px;padding:10px 12px;
+    display:flex;align-items:center;gap:10px;font-size:13px}
+  .gps.pending{background:var(--soft);border-color:var(--line)}
+  .gps.err{background:#fef2f2;border-color:#fca5a5}
+  .gps .ic{font-size:18px}
+  .gps .nm{font-weight:700;color:var(--green)}
+  .gps.pending .nm{color:var(--muted)}
+  .gps.err .nm{color:var(--red)}
+  .gps .co{color:var(--muted);font-family:monospace;font-size:12px}
+  .gps button{margin-left:auto;font-family:inherit;font-size:11.5px;font-weight:700;
+    padding:5px 10px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer}
+
+  textarea{width:100%;font-family:inherit;font-size:15px;padding:12px 14px;border:2px solid var(--line);
+    border-radius:10px;background:#fff;resize:vertical;min-height:80px;color:var(--ink)}
+  textarea:focus{outline:none;border-color:var(--gold)}
+
+  .tg{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;cursor:pointer;user-select:none}
+  .tg.on{background:#fef2f2;border-color:#fca5a5}
+  .tg .sw{width:48px;height:28px;background:var(--line);border-radius:14px;position:relative;
+    transition:background .2s;flex-shrink:0}
+  .tg .sw::after{content:'';position:absolute;top:2px;left:2px;width:24px;height:24px;
+    background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+  .tg.on .sw{background:var(--red)}
+  .tg.on .sw::after{transform:translateX(20px)}
+  .tg .txt{font-size:14px;font-weight:700;color:var(--charcoal)}
+  .tg.on .txt{color:var(--red)}
+
+  .issue-detail{margin-top:12px;display:none}
+  .issue-detail.on{display:block}
+  .sev-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .sev-btn{padding:12px;border:2px solid var(--line);background:#fff;border-radius:10px;
+    font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+  .sev-btn.on[data-sev="น้อย"]{background:#fef9c3;border-color:#facc15;color:#854d0e}
+  .sev-btn.on[data-sev="กลาง"]{background:#fed7aa;border-color:#fb923c;color:#9a3412}
+  .sev-btn.on[data-sev="หนัก"]{background:#fecaca;border-color:#f87171;color:#991b1b}
+
+  .save-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);
+    padding:14px 18px;margin:20px -18px -18px;display:flex;gap:10px}
+  .save-bar .btn-primary{flex:1}
+
+  .success{text-align:center;padding:60px 30px}
+  .success .ic{font-size:80px;margin-bottom:20px;animation:pop .4s ease-out}
+  @keyframes pop{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+  .success h1{font-size:24px;color:var(--green);font-weight:800;margin-bottom:8px}
+  .success p{color:var(--muted);font-size:14px;margin-bottom:30px;line-height:1.6}
+  .success .sum{background:var(--soft);border-radius:12px;padding:16px;text-align:left;
+    margin-bottom:20px;font-size:13.5px}
+  .success .sum .row{display:flex;justify-content:space-between;padding:4px 0}
+  .success .sum .row .lbl{color:var(--muted)}
+  .success .sum .row .val{font-weight:700;color:var(--charcoal)}
+
+  /* Report */
+  .rpt-pick{display:grid;gap:12px;padding:8px 0}
+  .rpt-opt{background:#fff;border:2px solid var(--line);border-radius:14px;padding:18px;
+    cursor:pointer;display:flex;gap:14px;align-items:center;text-align:left;width:100%;
+    font-family:inherit}
+  .rpt-opt:active{transform:scale(.98);border-color:var(--gold)}
+  .rpt-opt .ic{font-size:36px;flex-shrink:0;line-height:1}
+  .rpt-opt .info{flex:1}
+  .rpt-opt .nm{font-size:16px;font-weight:800;color:var(--charcoal);margin-bottom:4px}
+  .rpt-opt .desc{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .rpt-opt .arrow{color:var(--gold);font-size:20px;font-weight:800}
+
+  .rpt-toolbar{background:var(--soft);border-radius:10px;padding:10px;margin-bottom:14px;
+    display:flex;gap:8px;flex-wrap:wrap}
+  .rpt-toolbar button{flex:1;min-width:90px;font-family:inherit;font-size:12.5px;font-weight:700;
+    padding:9px 8px;border-radius:8px;border:1px solid var(--line);background:#fff;
+    color:var(--charcoal);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+  .rpt-toolbar button.primary{background:var(--green);color:#fff;border-color:var(--green)}
+
+  .rpt-doc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px 22px;
+    font-size:13px;line-height:1.55}
+  .rpt-hd{display:flex;align-items:center;gap:14px;border-bottom:2px solid var(--charcoal);
+    padding-bottom:12px;margin-bottom:14px}
+  .rpt-hd .logo img{width:48px;height:48px;border-radius:8px}
+  .rpt-hd .logo .fallback{width:48px;height:48px;background:linear-gradient(135deg,var(--charcoal),#5a5a5a);
+    color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:18px;font-weight:800}
+  .rpt-hd .co{flex:1;min-width:0}
+  .rpt-hd .co-nm{font-size:14px;font-weight:800;color:var(--charcoal);line-height:1.2}
+  .rpt-hd .co-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .rpt-hd .co-prj{font-size:11px;color:var(--gold);font-weight:700;margin-top:2px}
+  .rpt-title{font-size:18px;font-weight:800;color:var(--charcoal);text-align:center;margin:10px 0 6px}
+  .rpt-date{text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px}
+  .rpt-section{margin:14px 0}
+  .rpt-section h3{font-size:12px;font-weight:800;color:var(--charcoal);
+    text-transform:uppercase;letter-spacing:.6px;background:#f7f3eb;padding:6px 10px;
+    border-radius:6px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .rpt-section h3 .ct{margin-left:auto;font-size:10.5px;color:var(--gold);background:#fff;
+    padding:2px 7px;border-radius:8px}
+  .rpt-row{display:flex;padding:5px 0;border-bottom:1px dotted var(--line);font-size:12.5px}
+  .rpt-row:last-child{border-bottom:none}
+  .rpt-row .lbl{flex:0 0 110px;color:var(--muted);font-weight:600}
+  .rpt-row .val{flex:1;color:var(--ink);font-weight:700}
+  .rpt-row .val.gold{color:var(--gold)}
+  .rpt-bar{height:10px;background:#eef1f4;border-radius:5px;overflow:hidden;margin:4px 0}
+  .rpt-bar>div{height:100%;background:linear-gradient(90deg,var(--gold),#d4b274)}
+  .rpt-list{list-style:none;padding:0;margin:0}
+  .rpt-list li{padding:6px 0 6px 22px;position:relative;font-size:12.5px;border-bottom:1px dotted var(--line)}
+  .rpt-list li::before{content:'✓';position:absolute;left:0;top:6px;color:var(--green);font-weight:800}
+  .rpt-list li.pending::before{content:'○';color:var(--muted)}
+  .rpt-list li.curr::before{content:'●';color:var(--gold)}
+  .rpt-list li.curr{font-weight:700;color:var(--charcoal)}
+  .rpt-list li:last-child{border-bottom:none}
+  .rpt-list .cat{font-size:11px;color:var(--muted);margin-left:6px;font-weight:500}
+  .rpt-update{background:var(--soft);border-radius:8px;padding:9px 12px;margin-bottom:6px;
+    font-size:12px;border-left:3px solid var(--line)}
+  .rpt-update.issue{border-left-color:var(--red);background:#fef2f2}
+  .rpt-update .dt{font-weight:700;color:var(--charcoal);font-size:11.5px}
+  .rpt-update .who{color:var(--muted);font-size:11px;margin-left:6px}
+  .rpt-update .nt{margin-top:3px;color:var(--ink)}
+  .rpt-update .iss{margin-top:3px;color:var(--red);font-size:11px;font-weight:600}
+  .rpt-ph{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+  .rpt-ph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px}
+  .rpt-ph .box{aspect-ratio:1;background:linear-gradient(135deg,#dfd7c8,#b08d57);
+    border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff}
+  .rpt-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+  .rpt-summary .cell{background:var(--soft);border-radius:8px;padding:10px 8px;text-align:center}
+  .rpt-summary .cell .num{font-size:20px;font-weight:800;color:var(--gold);line-height:1.1}
+  .rpt-summary .cell .lbl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:2px}
+  .rpt-foot{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);flex-wrap:wrap;gap:8px}
+  .rpt-foot .sig{text-align:right}
+  .rpt-foot .sig b{display:block;color:var(--charcoal);font-size:13px;margin-bottom:2px}
+  .rpt-empty{text-align:center;padding:16px;color:var(--muted);font-style:italic;font-size:12px}
+
+  @media print{
+    body{background:#fff;padding:0;font-size:11pt}
+    .hd,.rpt-toolbar,.save-bar{display:none!important}
+    .phone{max-width:none;min-height:0;box-shadow:none;border-radius:0}
+    .pg{padding:0!important;display:none!important}
+    .pg#pg-report-preview{display:block!important}
+    .rpt-doc{border:none;padding:0;font-size:11pt}
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- LOGIN -->
+  <div class="pg on" id="pg-login">
+    <div class="login">
+      <div class="logo"><img src="assets/brand/logo-vertical.png" alt="One Vela"
+        onerror="this.style.display='none'"></div>
+      <h1>อัปเดตงานหน้าไซต์</h1>
+      <div class="sub">One Vela · Two Build Development</div>
+
+      <div class="lbl">เลือกชื่อโฟร์แมน</div>
+      <select id="foremanSel">
+        <option value="">— เลือก —</option>
+        <option value="โก้">👷 โฟร์แมนโก้ (ULTRA)</option>
+        <option value="ใหญ่">👷 โฟร์แมนใหญ่ (B/C/D)</option>
+      </select>
+
+      <div class="lbl">PIN 4 หลัก</div>
+      <input type="password" id="pinInp" maxlength="4" inputmode="numeric" placeholder="••••">
+
+      <div id="loginErr" class="err" style="display:none"></div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="pg" id="pg-home">
+    <div class="hd">
+      <button class="back" onclick="logout()" title="ออก">⏻</button>
+      <div class="ttl">หน้างานของฉัน<small id="todayDate"></small></div>
+      <div class="av" id="avatar">โ</div>
+    </div>
+    <div style="padding:18px">
+      <div class="greet">สวัสดี <b id="foremanName">—</b> 👋</div>
+      <div class="stat">รับผิดชอบ <b id="plotCount">0</b> แปลง · <span id="typeRole">—</span></div>
+      <div id="plotList">
+        <div class="loader"><div class="sp">⏳</div>กำลังโหลดรายการแปลง...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPDATE -->
+  <div class="pg" id="pg-update">
+    <div class="hd">
+      <button class="back" onclick="goto('home')">←</button>
+      <div class="ttl" id="updTtl">แปลง C—<small>—</small></div>
+    </div>
+    <div style="padding:18px" id="updBody">
+      <div class="loader"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>
+    </div>
+  </div>
+
+  <!-- REPORT SELECT -->
+  <div class="pg" id="pg-report-select">
+    <div class="hd">
+      <button class="back" onclick="goto('home')">←</button>
+      <div class="ttl" id="rptSelTtl">ส่งรายงาน C—<small>เลือกประเภทรายงาน</small></div>
+    </div>
+    <div style="padding:18px">
+      <div class="rpt-pick">
+        <button class="rpt-opt" onclick="openReportPreview('daily')">
+          <div class="ic">📅</div>
+          <div class="info">
+            <div class="nm">รายงานประจำวัน</div>
+            <div class="desc">สรุปงานในแปลงนี้ของวันนี้ — งานที่เสร็จ, บันทึก, ภาพถ่าย, ปัญหา</div>
+          </div>
+          <div class="arrow">›</div>
+        </button>
+        <button class="rpt-opt" onclick="openReportPreview('full')">
+          <div class="ic">📋</div>
+          <div class="info">
+            <div class="nm">รายงานฉบับเต็ม (ทั้งหลัง)</div>
+            <div class="desc">ภาพรวมตั้งแต่เริ่มก่อสร้าง — progress, timeline, ทุกอัปเดต, ทุกรูป, ปัญหาทั้งหมด</div>
+          </div>
+          <div class="arrow">›</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT PREVIEW -->
+  <div class="pg" id="pg-report-preview">
+    <div class="hd">
+      <button class="back" onclick="goto('report-select')">←</button>
+      <div class="ttl" id="rptTtl">รายงาน<small>—</small></div>
+    </div>
+    <div style="padding:18px">
+      <div class="rpt-toolbar">
+        <button onclick="printReport()">🖨️ พิมพ์/PDF</button>
+        <button onclick="shareLine()">💬 ส่ง LINE</button>
+        <button onclick="copyReport()">📋 คัดลอก</button>
+        <button class="primary" onclick="sendReport()">📤 ส่ง</button>
+      </div>
+      <div class="rpt-doc" id="rptDoc"></div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="pg" id="pg-success">
+    <div class="success">
+      <div class="ic">✅</div>
+      <h1>บันทึกสำเร็จ!</h1>
+      <p>ส่งเข้าระบบเรียบร้อย<br>ทีมขายและแอดมินเห็นทันที</p>
+      <div class="sum" id="saveSum"></div>
+      <button class="btn-primary" onclick="goto('home');resetForm()">กลับรายการแปลง</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s||'').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ── State ──
+  let currentForeman = null;
+  let currentPlot = null;
+  let selectedMs = new Set();
+  let photos = []; // array of {id, base64, mimeType, fileName, dataUrl}
+  let issueOn = false;
+  let issueSev = '';
+  let gpsLat = null, gpsLng = null, gpsAccuracy = null;
+  let plotsCache = [];           // จาก getPlotsByForeman
+  let trackerCache = {};         // plot → tracker data
+  let milestonesCache = {};      // type → ms list
+
+  const COMPANY = {
+    name: 'บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด',
+    nameEn: 'TWO BUILD DEVELOPMENT CO.,LTD.',
+    project: 'โครงการวันเวลาอมตะชลบุรี (One Vela)',
+    addr: '89 หมู่ที่ 1 ต.คลองตำหรุ อ.เมืองชลบุรี จ.ชลบุรี 20000',
+    tel: '092-787-4222'
+  };
+  const TYPE_NAMES = {
+    'ULTRA':'บ้านเดี่ยว 2 ชั้น (ไทป์ A)',
+    'MINUTES':'บ้านเดี่ยวชั้นเดียว (ไทป์ B)',
+    'SECOND':'บ้านแฝดชั้นเดียว (ไทป์ C)',
+    'MOMENT':'ทาวน์โฮม 2 ชั้น (ไทป์ D)'
+  };
+
+  function thaiDate(d){
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt = d ? new Date(d) : new Date();
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543);
+  }
+  function todayThai(){ return thaiDate(new Date()); }
+
+  function goto(name){
+    document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+    $('pg-'+name).classList.add('on');
+    window.scrollTo(0,0);
+  }
+
+  // ── API ──
+  async function api(action, params){
+    const url = new URL(API_URL);
+    url.searchParams.set('action', action);
+    Object.keys(params||{}).forEach(k => url.searchParams.set(k, params[k]));
+    const res = await fetch(url.toString());
+    return res.json();
+  }
+
+  async function apiPost(action, data){
+    // ใช้ form+iframe trick กับ data ที่ใหญ่ (photos base64) — เลี่ยง URL limit
+    return new Promise((resolve, reject) => {
+      const iframeName = 'fr_'+Date.now();
+      const iframe = document.createElement('iframe');
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = API_URL;
+      form.target = iframeName;
+      form.enctype = 'text/plain';
+
+      const inp = document.createElement('input');
+      inp.name = 'd';
+      inp.value = JSON.stringify({action: action, data: data});
+      form.appendChild(inp);
+
+      document.body.appendChild(form);
+      iframe.onload = () => {
+        // เพราะ no-cors เราอ่าน response ไม่ได้ — ถือว่าสำเร็จถ้าไม่ error
+        setTimeout(()=>{
+          form.remove(); iframe.remove();
+          resolve({ok:true});
+        }, 500);
+      };
+      iframe.onerror = () => {
+        form.remove(); iframe.remove();
+        reject(new Error('network error'));
+      };
+      form.submit();
+    });
+  }
+
+  // ── LOGIN ──
+  async function doLogin(){
+    const fid = $('foremanSel').value;
+    const pin = $('pinInp').value;
+    if(!fid){ showLoginErr('กรุณาเลือกชื่อ'); return; }
+    if(pin.length < 4){ showLoginErr('กรุณากรอก PIN 4 หลัก'); return; }
+    $('loginBtn').disabled = true;
+    $('loginBtn').textContent = 'กำลังตรวจสอบ...';
+    try {
+      const r = await api('foremanLogin', {foreman:fid, pin:pin});
+      if(!r.ok){ showLoginErr(r.error||'PIN ไม่ถูกต้อง'); return; }
+      currentForeman = fid;
+      $('foremanName').textContent = r.name || ('โฟร์แมน'+fid);
+      $('avatar').textContent = fid.charAt(0);
+      $('avatar').style.background = fid === 'โก้' ? 'var(--gold)' : '#6b21a8';
+      $('typeRole').textContent = fid === 'โก้' ? 'ULTRA (ไทป์ A)' : 'MINUTES/SECOND/MOMENT (ไทป์ B/C/D)';
+      $('todayDate').textContent = todayThai();
+      goto('home');
+      await loadPlots();
+    } catch(e){
+      showLoginErr('เชื่อมต่อไม่สำเร็จ — กรุณาลองใหม่');
+    } finally {
+      $('loginBtn').disabled = false;
+      $('loginBtn').textContent = 'เข้าสู่ระบบ';
+    }
+  }
+  function showLoginErr(msg){
+    $('loginErr').textContent = '⚠️ '+msg;
+    $('loginErr').style.display = '';
+  }
+  function logout(){
+    if(confirm('ออกจากระบบ?')){
+      currentForeman = null;
+      goto('login');
+      $('loginErr').style.display = 'none';
+      $('pinInp').value = '';
+    }
+  }
+
+  // ── HOME — load plots ──
+  async function loadPlots(){
+    if(!currentForeman) return;
+    try {
+      const r = await api('getPlotsByForeman', {foreman: currentForeman});
+      if(!r.ok){ throw new Error(r.error); }
+      plotsCache = r.plots || [];
+      renderPlotList();
+    } catch(e){
+      $('plotList').innerHTML = '<div class="err">โหลดข้อมูลไม่สำเร็จ: '+esc(e.message||'')+
+        '<br><br><button class="btn-primary" onclick="loadPlots()" style="font-size:13px;padding:8px 14px">ลองใหม่</button></div>';
+    }
+  }
+
+  function renderPlotList(){
+    $('plotCount').textContent = plotsCache.length;
+    const el = $('plotList');
+    if(plotsCache.length === 0){
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="ic">🏖️</div>
+          <div class="msg">ยังไม่มีแปลงที่ต้องดูแล<br>
+            <span style="font-size:12px">รอ admin เริ่มก่อสร้างแปลงไทป์${currentForeman==='โก้'?' A (ULTRA)':' B/C/D'}</span>
+          </div>
+        </div>`;
+      return;
+    }
+    const sorted = [...plotsCache].sort((a,b) => String(a.plot).localeCompare(String(b.plot)));
+    el.innerHTML = sorted.map(p => {
+      const last = p.lastUpdateAt ? thaiDate(p.lastUpdateAt) : '-';
+      return `
+        <div class="plot-card">
+          <div class="top">
+            <div class="pid">🏠 C${p.plot}</div>
+            <div class="typ">${p.type||'-'}</div>
+            <div class="pct">${p.progress||0}<small>%</small></div>
+          </div>
+          <div class="bar"><div style="width:${p.progress||0}%"></div></div>
+          <div class="ms">📌 milestone ${p.curMilestoneId||'-'}</div>
+          <div class="ago">🕐 อัปเดตล่าสุด: ${last}</div>
+          <div class="actions">
+            <button class="primary" onclick="openPlot('${p.plot}')">📝 อัปเดตงาน</button>
+            <button onclick="openReport('${p.plot}')">📤 รายงาน</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── UPDATE FORM ──
+  async function openPlot(pid){
+    currentPlot = pid;
+    selectedMs.clear(); photos = []; issueOn = false; issueSev = '';
+    gpsLat = null; gpsLng = null;
+    goto('update');
+    $('updTtl').innerHTML = 'แปลง C'+pid+'<small>กำลังโหลด...</small>';
+    $('updBody').innerHTML = '<div class="loader"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>';
+
+    try {
+      const r = await api('getTrackerData', {plot: pid});
+      if(!r.ok) throw new Error(r.error||'load failed');
+      trackerCache[pid] = r;
+      renderUpdateForm(r);
+      // ขอ GPS แบบ background
+      requestGps();
+    } catch(e){
+      $('updBody').innerHTML = '<div class="err">โหลดไม่สำเร็จ: '+esc(e.message||'')+'</div>';
+    }
+  }
+
+  function renderUpdateForm(t){
+    const p = t.plotMeta || {};
+    const cons = t.construction || {};
+    const ms = t.milestones || [];
+    const cur = t.currentMilestone;
+    const completed = new Set((t.completedIds||[]).map(String));
+    const curId = cons.current_milestone_id || 1;
+
+    $('updTtl').innerHTML =
+      'แปลง C'+t.plot+'<small>'+(t.houseType||'-')+' · '+(cons.progress_percent||0)+'%</small>';
+
+    let html = '';
+    html += `<div class="upd-h">
+      <div>
+        <div class="lbl">MILESTONE ปัจจุบัน</div>
+        <div class="big">${cur ? cur.milestone_order+'. '+cur.milestone_name : 'ยังไม่ระบุ'}</div>
+        <div style="font-size:12px;color:var(--muted)">${cur?cur.milestone_category:''}</div>
+      </div>
+      <div class="pct">${cons.progress_percent||0}<small>%</small></div>
+    </div>`;
+
+    // milestones list — แสดงรอบๆ ปัจจุบัน
+    html += `<div class="fld">
+      <label class="lbl">✅ งานที่เสร็จในวันนี้ <span class="ct" id="msCount">0 เลือก</span></label>
+      <div class="ms-list" id="msList">`;
+    const visible = ms.filter(m => Number(m.template_id) >= curId-2 && Number(m.template_id) <= curId+3);
+    visible.forEach(m => {
+      const id = Number(m.template_id);
+      const isDone = completed.has(String(id));
+      const isCurr = id === curId;
+      let cls = '', initial = '', badge = '';
+      if(isDone){ cls = 'past'; initial = '✓'; }
+      else if(isCurr){ cls = 'curr'; badge = '<span class="badge">ปัจจุบัน</span>'; }
+      html += `<div class="ms-item ${cls}" data-id="${id}" onclick="${cls==='past'?'':'toggleMs(this)'}">
+        <div class="cb">${initial}</div>
+        <div class="info">
+          <div class="nm">${id}. ${esc(m.milestone_name)}</div>
+          <div class="meta">${esc(m.milestone_category||'')}</div>
+        </div>
+        ${badge}
+      </div>`;
+    });
+    html += `</div></div>`;
+
+    html += `<div class="fld">
+      <label class="lbl">📸 ภาพหน้างาน <span class="ct" id="phCount">0 รูป</span></label>
+      <div class="ph-grid" id="phGrid">
+        <label class="ph-add">
+          <div class="ic">+</div><div>ถ่ายรูป</div>
+          <input type="file" accept="image/*" capture="environment" onchange="onPhotoPick(event)">
+        </label>
+      </div>
+    </div>`;
+
+    html += `<div class="fld">
+      <label class="lbl">📍 ตำแหน่ง</label>
+      <div class="gps pending" id="gpsBox">
+        <div class="ic">⏳</div>
+        <div>
+          <div class="nm">กำลังขอตำแหน่ง...</div>
+          <div class="co" id="gpsCo">รอ GPS</div>
+        </div>
+        <button onclick="requestGps()">ลองใหม่</button>
+      </div>
+    </div>`;
+
+    html += `<div class="fld">
+      <label class="lbl">📝 บันทึกเพิ่มเติม</label>
+      <textarea id="noteInp" placeholder="เช่น ฉาบเสร็จชั้น 1 แล้ว..."></textarea>
+    </div>`;
+
+    html += `<div class="fld">
+      <div class="tg" id="issueTg" onclick="toggleIssue()">
+        <div class="sw"></div>
+        <div class="txt">⚠️ มีปัญหา / อุปสรรค</div>
+      </div>
+      <div class="issue-detail" id="issueDetail">
+        <div style="margin-top:12px">
+          <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px">ระดับความรุนแรง</div>
+          <div class="sev-row">
+            <button class="sev-btn" data-sev="น้อย" onclick="setSev(this)">น้อย</button>
+            <button class="sev-btn" data-sev="กลาง" onclick="setSev(this)">กลาง</button>
+            <button class="sev-btn" data-sev="หนัก" onclick="setSev(this)">หนัก</button>
+          </div>
+          <textarea id="issueInp" placeholder="ระบุปัญหา..."></textarea>
+        </div>
+      </div>
+    </div>`;
+
+    html += `<div class="save-bar">
+      <button class="btn-primary green" id="saveBtn" onclick="doSave()">💾 บันทึกอัปเดต</button>
+    </div>`;
+
+    $('updBody').innerHTML = html;
+  }
+
+  function toggleMs(el){
+    if(el.classList.contains('past')) return;
+    const id = el.dataset.id;
+    if(selectedMs.has(id)){
+      selectedMs.delete(id);
+      el.classList.remove('on');
+      el.querySelector('.cb').textContent = '';
+    } else {
+      selectedMs.add(id);
+      el.classList.add('on');
+      el.querySelector('.cb').textContent = '✓';
+    }
+    $('msCount').textContent = selectedMs.size+' เลือก';
+  }
+
+  // ── Photo capture ──
+  function onPhotoPick(e){
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    // resize ก่อน — เลี่ยงไฟล์ใหญ่
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1280;
+        const r = Math.min(max/img.width, max/img.height, 1);
+        const w = Math.round(img.width*r), h = Math.round(img.height*r);
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = cv.toDataURL('image/jpeg', 0.82);
+        const base64 = dataUrl.split(',')[1];
+        photos.push({
+          id: Date.now(),
+          base64: base64,
+          mimeType: 'image/jpeg',
+          fileName: 'photo-'+Date.now()+'.jpg',
+          dataUrl: dataUrl,
+          takenAt: new Date().toISOString()
+        });
+        renderPhotos();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // reset
+  }
+
+  function removePhoto(id){
+    photos = photos.filter(p => p.id !== id);
+    renderPhotos();
+  }
+
+  function renderPhotos(){
+    const g = $('phGrid');
+    let html = photos.map(p => `
+      <div class="ph-tile">
+        <img src="${p.dataUrl}" alt="">
+        <button class="x" onclick="removePhoto(${p.id})">✕</button>
+      </div>`).join('');
+    html += `<label class="ph-add">
+      <div class="ic">+</div><div>ถ่ายรูป</div>
+      <input type="file" accept="image/*" capture="environment" onchange="onPhotoPick(event)">
+    </label>`;
+    g.innerHTML = html;
+    $('phCount').textContent = photos.length+' รูป';
+  }
+
+  // ── GPS ──
+  function requestGps(){
+    const box = $('gpsBox');
+    if(!box) return;
+    if(!navigator.geolocation){
+      box.className = 'gps err';
+      box.innerHTML = '<div class="ic">⚠️</div><div><div class="nm">เบราว์เซอร์ไม่รองรับ GPS</div></div>';
+      return;
+    }
+    box.className = 'gps pending';
+    box.innerHTML = '<div class="ic">⏳</div><div><div class="nm">กำลังขอตำแหน่ง...</div><div class="co">โปรดอนุญาต GPS</div></div>';
+    navigator.geolocation.getCurrentPosition(pos => {
+      gpsLat = pos.coords.latitude;
+      gpsLng = pos.coords.longitude;
+      gpsAccuracy = pos.coords.accuracy;
+      box.className = 'gps';
+      box.innerHTML = `<div class="ic">✓</div>
+        <div>
+          <div class="nm">บันทึก GPS อัตโนมัติ</div>
+          <div class="co">${gpsLat.toFixed(5)}° N · ${gpsLng.toFixed(5)}° E (±${Math.round(gpsAccuracy)}m)</div>
+        </div>
+        <button onclick="requestGps()">รีเฟรช</button>`;
+    }, err => {
+      box.className = 'gps err';
+      box.innerHTML = `<div class="ic">⚠️</div>
+        <div>
+          <div class="nm">ขอตำแหน่งไม่สำเร็จ</div>
+          <div class="co">${esc(err.message||'')}</div>
+        </div>
+        <button onclick="requestGps()">ลองใหม่</button>`;
+    }, {enableHighAccuracy:true, timeout:10000, maximumAge:60000});
+  }
+
+  function toggleIssue(){
+    issueOn = !issueOn;
+    $('issueTg').classList.toggle('on', issueOn);
+    $('issueDetail').classList.toggle('on', issueOn);
+    if(!issueOn){ issueSev = ''; document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('on')); }
+  }
+  function setSev(btn){
+    issueSev = btn.dataset.sev;
+    document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+
+  // ── SAVE ──
+  async function doSave(){
+    const note = $('noteInp').value;
+    const issueDesc = $('issueInp') ? $('issueInp').value : '';
+    if(selectedMs.size===0 && photos.length===0 && !note.trim()){
+      alert('กรุณาเลือกงานที่เสร็จ หรือถ่ายรูป หรือใส่บันทึก'); return;
+    }
+    if(issueOn && !issueSev){ alert('กรุณาเลือกระดับปัญหา'); return; }
+
+    $('saveBtn').disabled = true;
+    $('saveBtn').textContent = '⏳ กำลังส่ง...';
+
+    const data = {
+      plot: currentPlot,
+      foreman: currentForeman,
+      msDone: [...selectedMs].map(Number),
+      note: note,
+      photos: photos.map(p => ({
+        base64: p.base64, mimeType: p.mimeType, fileName: p.fileName,
+        takenAt: p.takenAt, lat: gpsLat, lng: gpsLng
+      })),
+      hasIssue: issueOn,
+      issueDesc: issueOn ? issueDesc : '',
+      issueSev: issueOn ? issueSev : '',
+      gpsLat: gpsLat, gpsLng: gpsLng, gpsAccuracy: gpsAccuracy
+    };
+
+    try {
+      await apiPost('saveUpdate', data);
+      $('saveSum').innerHTML = `
+        <div class="row"><span class="lbl">แปลง</span><span class="val">C${currentPlot}</span></div>
+        <div class="row"><span class="lbl">งานที่เสร็จ</span><span class="val">${selectedMs.size} รายการ</span></div>
+        <div class="row"><span class="lbl">ภาพ</span><span class="val">${photos.length} รูป</span></div>
+        <div class="row"><span class="lbl">โดย</span><span class="val">โฟร์แมน${currentForeman}</span></div>
+        ${issueOn ? `<div class="row"><span class="lbl">⚠️ ปัญหา</span><span class="val" style="color:var(--red)">${esc(issueSev)}</span></div>` : ''}`;
+      goto('success');
+      // refresh plot list ใน background
+      loadPlots();
+    } catch(e){
+      alert('บันทึกไม่สำเร็จ: '+(e.message||'')+'\nกรุณาลองใหม่');
+    } finally {
+      $('saveBtn').disabled = false;
+      $('saveBtn').textContent = '💾 บันทึกอัปเดต';
+    }
+  }
+
+  function resetForm(){
+    selectedMs.clear();
+    photos = [];
+    issueOn = false; issueSev = '';
+  }
+
+  // ── REPORT ──
+  let currentReport = null;
+
+  async function openReport(plotId){
+    currentReport = {plot: plotId, type: null};
+    $('rptSelTtl').innerHTML = 'ส่งรายงาน C'+plotId+'<small>เลือกประเภทรายงาน</small>';
+    goto('report-select');
+  }
+
+  async function openReportPreview(type){
+    if(!currentReport) return;
+    currentReport.type = type;
+    const label = type === 'daily' ? 'รายงานประจำวัน' : 'รายงานฉบับเต็ม';
+    $('rptTtl').innerHTML = label+'<small>C'+currentReport.plot+' · กำลังโหลด...</small>';
+    $('rptDoc').innerHTML = '<div class="loader"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>';
+    goto('report-preview');
+
+    try {
+      const r = await api('getTrackerData', {plot: currentReport.plot});
+      if(!r.ok) throw new Error(r.error||'load failed');
+      trackerCache[currentReport.plot] = r;
+      $('rptTtl').innerHTML = label+'<small>C'+currentReport.plot+' · '+(r.houseType||'-')+'</small>';
+      $('rptDoc').innerHTML = type === 'daily' ? buildDailyReport(r) : buildFullReport(r);
+    } catch(e){
+      $('rptDoc').innerHTML = '<div class="err">โหลดไม่สำเร็จ: '+esc(e.message||'')+'</div>';
+    }
+  }
+
+  function reportHeader(t, title, subtitle){
+    return `
+      <div class="rpt-hd">
+        <div class="logo"><img src="assets/brand/logo-icon.png" alt="" onerror="this.outerHTML='<div class=\\'fallback\\'>TB</div>'"></div>
+        <div class="co">
+          <div class="co-nm">${COMPANY.name}</div>
+          <div class="co-sub">${COMPANY.nameEn} · โทร ${COMPANY.tel}</div>
+          <div class="co-prj">${COMPANY.project}</div>
+        </div>
+      </div>
+      <div class="rpt-title">${title}</div>
+      <div class="rpt-date">${subtitle}</div>
+    `;
+  }
+
+  function plotInfoSection(t){
+    const p = t.plotMeta || {};
+    const c = t.construction || {};
+    const pct = c.progress_percent || 0;
+    return `
+      <div class="rpt-section">
+        <h3>🏠 ข้อมูลแปลง</h3>
+        <div class="rpt-row"><div class="lbl">เลขแปลง</div><div class="val gold">C${t.plot}</div></div>
+        <div class="rpt-row"><div class="lbl">ไทป์บ้าน</div><div class="val">${t.houseType} — ${TYPE_NAMES[t.houseType]||'-'}</div></div>
+        <div class="rpt-row"><div class="lbl">สถานะขาย</div><div class="val">${esc(p.status||'-')}</div></div>
+        <div class="rpt-row"><div class="lbl">วันเริ่มก่อสร้าง</div><div class="val">${thaiDate(c.actual_start_date)}</div></div>
+        <div class="rpt-row"><div class="lbl">โฟร์แมน</div><div class="val">โฟร์แมน${esc(c.assigned_foreman_id||'')}</div></div>
+        <div class="rpt-row"><div class="lbl">ความคืบหน้า</div>
+          <div class="val gold">${pct}%
+            <div class="rpt-bar"><div style="width:${pct}%"></div></div>
+          </div></div>
+      </div>`;
+  }
+
+  function buildDailyReport(t){
+    const ms = t.milestones || [];
+    const today = new Date().toISOString().slice(0,10);
+    let todayUpdates = (t.updates||[]).filter(u =>
+      String(u.created_at||'').slice(0,10) === today);
+    let isFallback = false;
+    if(todayUpdates.length === 0 && (t.updates||[]).length > 0){
+      todayUpdates = [t.updates[0]];
+      isFallback = true;
+    }
+    const msDoneToday = new Set();
+    let photosCount = 0;
+    todayUpdates.forEach(u => {
+      try {
+        const arr = u.milestones_completed ? JSON.parse(u.milestones_completed) : [];
+        arr.forEach(id => msDoneToday.add(Number(id)));
+      } catch(e){}
+    });
+    // นับ photos ของ updates วันนี้
+    (t.photos||[]).forEach(ph => {
+      const u = todayUpdates.find(x => x.update_id === ph.update_id);
+      if(u) photosCount++;
+    });
+    const issues = todayUpdates.filter(u => String(u.has_issue||'').match(/^(1|true|yes|มี)$/i));
+
+    let html = reportHeader(t, '📅 รายงานการก่อสร้างประจำวัน',
+      'ประจำวันที่ '+todayThai() + (isFallback?' (แสดงข้อมูลล่าสุดที่บันทึก)':''));
+    html += plotInfoSection(t);
+
+    html += '<div class="rpt-section"><h3>✅ งานที่ทำในวันนี้ <span class="ct">'+msDoneToday.size+' รายการ</span></h3>';
+    if(msDoneToday.size === 0){
+      html += '<div class="rpt-empty">ไม่มี milestone ที่ทำเสร็จเพิ่มในวันนี้</div>';
+    } else {
+      html += '<ul class="rpt-list">';
+      [...msDoneToday].sort((a,b)=>a-b).forEach(id => {
+        const m = ms.find(x => Number(x.template_id) === id);
+        if(m) html += '<li>'+id+'. '+esc(m.milestone_name)+' <span class="cat">'+esc(m.milestone_category||'')+'</span></li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+
+    html += '<div class="rpt-section"><h3>📝 บันทึกการทำงาน <span class="ct">'+todayUpdates.length+' รายการ</span></h3>';
+    if(todayUpdates.length === 0){
+      html += '<div class="rpt-empty">ยังไม่มีบันทึก</div>';
+    } else {
+      todayUpdates.forEach(u => {
+        const hasIssue = String(u.has_issue||'').match(/^(1|true|yes|มี)$/i);
+        html += '<div class="rpt-update'+(hasIssue?' issue':'')+'">';
+        html += '<span class="dt">'+(u.created_at||'-').slice(0,16).replace('T',' ')+'</span><span class="who">โดย '+esc(u.foreman_id||'-')+'</span>';
+        if(u.text_note) html += '<div class="nt">'+esc(u.text_note)+'</div>';
+        if(hasIssue && u.issue_description){
+          html += '<div class="iss">⚠️ '+esc(u.issue_description)+(u.issue_severity?' (ระดับ '+esc(u.issue_severity)+')':'')+'</div>';
+        }
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+
+    // photos
+    const todayPhotos = (t.photos||[]).filter(ph =>
+      todayUpdates.some(u => u.update_id === ph.update_id));
+    html += '<div class="rpt-section"><h3>📸 ภาพถ่ายหน้างาน <span class="ct">'+todayPhotos.length+' รูป</span></h3>';
+    if(todayPhotos.length === 0){
+      html += '<div class="rpt-empty">ไม่มีรูปในวันนี้</div>';
+    } else {
+      html += '<div class="rpt-ph">';
+      todayPhotos.slice(0,8).forEach(ph => {
+        const url = ph.thumbnail_url || ph.drive_url || '';
+        html += url ? '<img src="'+url+'" alt="" loading="lazy">' : '<div class="box">📷</div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+
+    if(issues.length > 0){
+      html += '<div class="rpt-section"><h3>⚠️ ปัญหา/อุปสรรค <span class="ct">'+issues.length+' รายการ</span></h3>';
+      issues.forEach(u => {
+        html += '<div class="rpt-update issue">';
+        html += '<div class="iss">'+esc(u.issue_description||'-')+(u.issue_severity?' (ระดับ '+esc(u.issue_severity)+')':'')+'</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += `<div class="rpt-foot">
+      <div>ออกรายงาน: ${todayThai()} ${new Date().toTimeString().slice(0,5)}</div>
+      <div class="sig"><b>โฟร์แมน${currentForeman||'-'}</b>ผู้บันทึก</div>
+    </div>`;
+    return html;
+  }
+
+  function buildFullReport(t){
+    const ms = t.milestones || [];
+    const updates = t.updates || [];
+    const photos = t.photos || [];
+    const c = t.construction || {};
+    const curId = c.current_milestone_id || 1;
+    const completed = new Set((t.completedIds||[]).map(String));
+    const allIssues = updates.filter(u => String(u.has_issue||'').match(/^(1|true|yes|มี)$/i));
+    const days = c.actual_start_date
+      ? Math.max(0, Math.floor((new Date() - new Date(c.actual_start_date))/86400000)) : 0;
+
+    let html = reportHeader(t, '📋 รายงานสรุปการก่อสร้าง (ฉบับเต็ม)',
+      'ตั้งแต่เริ่มก่อสร้าง — ออกรายงาน ' + todayThai());
+    html += plotInfoSection(t);
+
+    html += `<div class="rpt-section"><h3>📊 สรุปภาพรวม</h3>
+      <div class="rpt-summary">
+        <div class="cell"><div class="num">${days}</div><div class="lbl">วันที่ก่อสร้าง</div></div>
+        <div class="cell"><div class="num">${completed.size}</div><div class="lbl">milestone เสร็จ</div></div>
+        <div class="cell"><div class="num">${updates.length}</div><div class="lbl">ครั้งที่อัปเดต</div></div>
+        <div class="cell"><div class="num">${photos.length}</div><div class="lbl">ภาพถ่าย</div></div>
+      </div></div>`;
+
+    html += '<div class="rpt-section"><h3>📋 รายการงานทั้งหมด <span class="ct">'+ms.length+' รายการ</span></h3>';
+    html += '<ul class="rpt-list">';
+    ms.forEach(m => {
+      const id = Number(m.template_id);
+      const isDone = completed.has(String(id));
+      const isCurr = id === curId;
+      const cls = isDone ? '' : (isCurr ? 'curr' : 'pending');
+      html += '<li class="'+cls+'">'+id+'. '+esc(m.milestone_name)+' <span class="cat">'+esc(m.milestone_category||'')+'</span>'+
+              (isCurr?' <span style="color:var(--gold);font-weight:700;font-size:11px">← ปัจจุบัน</span>':'')+'</li>';
+    });
+    html += '</ul></div>';
+
+    html += '<div class="rpt-section"><h3>📝 บันทึกการทำงานทั้งหมด <span class="ct">'+updates.length+' ครั้ง</span></h3>';
+    if(updates.length === 0){
+      html += '<div class="rpt-empty">ยังไม่มีบันทึก</div>';
+    } else {
+      const sorted = [...updates].reverse();
+      sorted.forEach(u => {
+        const hasIssue = String(u.has_issue||'').match(/^(1|true|yes|มี)$/i);
+        html += '<div class="rpt-update'+(hasIssue?' issue':'')+'">';
+        html += '<span class="dt">'+(u.created_at||'-').slice(0,16).replace('T',' ')+'</span><span class="who">โดย '+esc(u.foreman_id||'-')+'</span>';
+        if(u.text_note) html += '<div class="nt">'+esc(u.text_note)+'</div>';
+        try {
+          const arr = u.milestones_completed ? JSON.parse(u.milestones_completed) : [];
+          if(arr.length){
+            const names = arr.map(id => {
+              const found = ms.find(x => Number(x.template_id) === Number(id));
+              return found ? found.milestone_name : '#'+id;
+            });
+            html += '<div style="margin-top:3px;font-size:11px;color:var(--green);font-weight:600">'+
+                    '✓ เสร็จ: '+esc(names.join(', '))+'</div>';
+          }
+        } catch(e){}
+        if(hasIssue && u.issue_description){
+          html += '<div class="iss">⚠️ '+esc(u.issue_description)+(u.issue_severity?' (ระดับ '+esc(u.issue_severity)+')':'')+'</div>';
+        }
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+
+    if(allIssues.length > 0){
+      html += '<div class="rpt-section"><h3>⚠️ บันทึกปัญหา/อุปสรรค <span class="ct">'+allIssues.length+' ครั้ง</span></h3>';
+      allIssues.forEach(u => {
+        html += '<div class="rpt-update issue">';
+        html += '<span class="dt">'+(u.created_at||'-').slice(0,16).replace('T',' ')+'</span>';
+        html += '<div class="iss">'+esc(u.issue_description||'-')+(u.issue_severity?' (ระดับ '+esc(u.issue_severity)+')':'')+'</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    if(photos.length > 0){
+      html += '<div class="rpt-section"><h3>📸 ภาพถ่ายทั้งหมด <span class="ct">'+photos.length+' รูป</span></h3>';
+      html += '<div class="rpt-ph">';
+      photos.slice(0,16).forEach(ph => {
+        const url = ph.thumbnail_url || ph.drive_url || '';
+        html += url ? '<img src="'+url+'" alt="" loading="lazy">' : '<div class="box">📷</div>';
+      });
+      html += '</div></div>';
+    }
+
+    html += `<div class="rpt-foot">
+      <div>ออกรายงาน: ${todayThai()} ${new Date().toTimeString().slice(0,5)}</div>
+      <div class="sig"><b>โฟร์แมน${currentForeman||'-'}</b>ผู้บันทึก</div>
+    </div>`;
+    return html;
+  }
+
+  function printReport(){ window.print(); }
+  function copyReport(){
+    const txt = $('rptDoc').innerText;
+    navigator.clipboard.writeText(txt).then(
+      ()=>alert('คัดลอกแล้ว'),
+      ()=>alert('คัดลอกไม่สำเร็จ'));
+  }
+  function shareLine(){
+    const label = currentReport.type === 'daily' ? 'รายงานประจำวัน' : 'รายงานฉบับเต็ม';
+    alert(`💬 ${label} แปลง C${currentReport.plot}\nจะส่งให้ทีมขาย + คุณไอซ์ + ลูกค้าผู้จอง\n(ต้องเปิด LINE Messaging API ใน Round 4)`);
+  }
+  function sendReport(){
+    const label = currentReport.type === 'daily' ? 'รายงานประจำวัน' : 'รายงานฉบับเต็ม';
+    if(!confirm(`ส่ง${label} C${currentReport.plot} ให้ทีม?`)) return;
+    alert(`✅ ส่งสำเร็จ\n${label} C${currentReport.plot}`);
+    goto('home');
+  }
+
+  // ── init ──
+  // PWA service worker register
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+</script>
+</body>
+</html>

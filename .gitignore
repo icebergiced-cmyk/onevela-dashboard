@@ -1,6 +1,8 @@
 .DS_Store
 *.zip
 ~$*
+*.backup-*
+index.html.backup-*
 dashboard-deploy/
 dashboard-deploy 2/
 _audit_reports/

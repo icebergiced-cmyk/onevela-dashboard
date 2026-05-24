@@ -79,6 +79,57 @@
     text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
     box-shadow:0 3px 12px rgba(0,0,0,.28)}
   .home-fab:hover{background:#b08d57}
+
+  /* ── Construction Tracker (Round 2 — read-only) ── */
+  .trk{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .trk-hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .trk-pct{font-size:30px;font-weight:800;color:var(--gold);line-height:1}
+  .trk-pct small{font-size:13px;color:var(--muted);margin-left:4px;font-weight:600}
+  .trk-cur{flex:1;min-width:200px}
+  .trk-cur .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+  .trk-cur .nm{font-size:15px;font-weight:700;color:var(--charcoal);margin-top:2px}
+  .trk-cur .cat{font-size:12px;color:var(--muted);margin-top:1px}
+  .trk-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;
+    font-size:12.5px;margin-top:4px}
+  .trk-meta .lbl{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .trk-meta .val{color:var(--ink);font-weight:600}
+  .trk-bar{height:10px;background:#eef1f4;border-radius:6px;overflow:hidden;margin:10px 0 14px}
+  .trk-bar>div{height:100%;background:linear-gradient(90deg,#b08d57,#d4b274);transition:width .4s}
+  .trk-sub{font-size:12.5px;font-weight:700;color:var(--muted);margin:14px 0 8px;
+    text-transform:uppercase;letter-spacing:.7px}
+
+  /* timeline */
+  .trk-tl{list-style:none;padding:0;margin:0;border-left:2px solid var(--line);padding-left:14px}
+  .trk-tl li{position:relative;padding:6px 0 6px 4px;font-size:13px;line-height:1.4}
+  .trk-tl li::before{content:'';position:absolute;left:-21px;top:11px;width:10px;height:10px;
+    border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .trk-tl li.done::before{background:var(--green);border-color:var(--green)}
+  .trk-tl li.curr::before{background:var(--gold);border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(176,141,87,.25)}
+  .trk-tl li.done{color:var(--muted)}
+  .trk-tl li.done .nm{text-decoration:line-through}
+  .trk-tl li.curr{font-weight:700;color:var(--charcoal)}
+  .trk-tl .nm{display:inline-block}
+  .trk-tl .cat{font-size:11px;color:var(--muted);margin-left:6px;font-weight:500}
+  .trk-tl .wt{font-size:11px;color:var(--gold);margin-left:6px;font-weight:700}
+
+  /* updates list */
+  .trk-up{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .trk-up li{background:var(--soft);border-radius:8px;padding:9px 12px;font-size:12.5px;
+    border-left:3px solid var(--line)}
+  .trk-up li.issue{border-left-color:var(--red);background:#fef2f2}
+  .trk-up .ut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .trk-up .dt{font-weight:700;color:var(--charcoal)}
+  .trk-up .who{color:var(--muted);font-size:11.5px}
+  .trk-up .nt{margin-top:3px;color:var(--ink)}
+  .trk-up .iss{margin-top:4px;font-size:11.5px;color:var(--red);font-weight:600}
+
+  /* photos grid */
+  .trk-ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+  .trk-ph a{display:block;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--soft)}
+  .trk-ph img{width:100%;height:100%;object-fit:cover;display:block}
+
+  .trk-empty{text-align:center;padding:20px;color:var(--muted);font-size:13px}
   body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
     url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}
   @media print{
@@ -106,6 +157,11 @@
     <div id="hero" class="hero"></div>
 
     <div class="actions" id="actions"></div>
+
+    <h2 class="sec">🏗️ งานก่อสร้าง <span class="ct" id="ctTrk">—</span></h2>
+    <div id="tracker" class="trk">
+      <div class="trk-empty">⏳ กำลังโหลดข้อมูลก่อสร้าง...</div>
+    </div>
 
     <h2 class="sec">📄 ใบเสนอราคา <span class="ct" id="ctQuote">0 ฉบับ</span></h2>
     <div class="docTbl">
@@ -170,10 +226,21 @@
     $('state').style.display=''; $('content').style.display='none';
     $('state').innerHTML='<div class="sp">⏳</div>กำลังโหลดข้อมูลแปลง '+plotKey+'...';
     try{
-      const res=await fetch(API_URL+'?action=getSalesData');
-      const data=await res.json();
-      if(!data || !data.ok) throw new Error('bad data');
-      render(data);
+      // โหลด sales data + tracker data ขนาน (tracker fail ไม่ทำให้ทั้งหน้าพัง)
+      const [salesRes, trkRes] = await Promise.allSettled([
+        fetch(API_URL+'?action=getSalesData').then(r=>r.json()),
+        fetch(API_URL+'?action=getTrackerData&plot='+encodeURIComponent(plotKey)).then(r=>r.json())
+      ]);
+      if(salesRes.status!=='fulfilled' || !salesRes.value || !salesRes.value.ok)
+        throw new Error('bad sales data');
+      render(salesRes.value);
+      // tracker แยก — ไม่มีไม่เป็นไร
+      if(trkRes.status==='fulfilled' && trkRes.value && trkRes.value.ok){
+        renderTracker(trkRes.value);
+      } else {
+        $('tracker').innerHTML='<div class="trk-empty">⚠️ โหลดข้อมูลก่อสร้างไม่สำเร็จ</div>';
+        $('ctTrk').textContent='—';
+      }
       $('state').style.display='none'; $('content').style.display='';
     }catch(e){
       $('state').innerHTML='<div class="sp">⚠️</div>โหลดข้อมูลไม่สำเร็จ<br><br>'+
@@ -263,6 +330,123 @@
       '<td>'+(p.method||'-')+'</td>'+
       '<td class="c">'+fileLink(p.fileUrl)+'</td></tr>'
     ).join(''):empty(6,'ยังไม่มีใบเสร็จของแปลงนี้');
+  }
+
+  function renderTracker(t){
+    const ms = t.milestones || [];
+    const updates = t.updates || [];
+    const photos = t.photos || [];
+    const cons = t.construction;
+    const completed = new Set((t.completedIds||[]).map(String));
+    const curId = cons && cons.current_milestone_id ? String(cons.current_milestone_id).trim() : '';
+
+    // ถ้ายังไม่มีทั้ง construction row และ updates เลย — แสดง empty state
+    if(!cons && updates.length===0){
+      $('ctTrk').textContent='ยังไม่เริ่ม';
+      const note = ms.length
+        ? 'ไทป์บ้าน <b>'+(t.houseType||t.houseTypeRaw||'-')+'</b> · พบ '+ms.length+' milestone — แต่ยังไม่มีรายการอัปเดต'
+        : 'ยังไม่มีข้อมูลก่อสร้างของแปลงนี้';
+      $('tracker').innerHTML='<div class="trk-empty">🚧 ยังไม่ได้เริ่มงานก่อสร้าง<br><span style="font-size:12px">'+note+'</span></div>';
+      return;
+    }
+
+    const pct = cons && cons.progress_percent != null
+      ? Math.round(Number(cons.progress_percent)||0)
+      : 0;
+    const cur = t.currentMilestone;
+    const status = (cons && cons.status) ? cons.status : '-';
+    $('ctTrk').textContent = pct+'% · '+status;
+
+    let html='';
+
+    // ── หัว: % + milestone ปัจจุบัน + meta ──
+    html += '<div class="trk-hd">';
+    html += '<div class="trk-pct">'+pct+'<small>%</small></div>';
+    html += '<div class="trk-cur">';
+    html += '<div class="lbl">MILESTONE ปัจจุบัน</div>';
+    if(cur){
+      html += '<div class="nm">'+(cur.milestone_order||'')+'. '+(cur.milestone_name||'-')+'</div>';
+      html += '<div class="cat">'+(cur.milestone_category||'')+
+              (cur.expected_days?' · คาด '+cur.expected_days+' วัน':'')+'</div>';
+    } else {
+      html += '<div class="nm" style="color:var(--muted)">ยังไม่ระบุ</div>';
+    }
+    html += '</div></div>';
+
+    // progress bar
+    html += '<div class="trk-bar"><div style="width:'+pct+'%"></div></div>';
+
+    // meta row
+    html += '<div class="trk-meta">';
+    html += metaCell('สถานะ', status);
+    html += metaCell('ไทป์บ้าน', t.houseType || t.houseTypeRaw || '-');
+    html += metaCell('วันเริ่ม', dt(cons && cons.actual_start_date));
+    html += metaCell('คาดเสร็จ', dt(cons && cons.estimated_completion_date));
+    html += metaCell('อัปเดตล่าสุด', dt(cons && cons.last_update_at));
+    html += '</div>';
+
+    // ── Timeline milestones ──
+    if(ms.length){
+      html += '<div class="trk-sub">📋 รายการงาน ('+ms.length+' รายการ)</div>';
+      html += '<ul class="trk-tl">';
+      ms.forEach(function(m){
+        const id = String(m.template_id||'').trim();
+        const isDone = completed.has(id);
+        const isCurr = id === curId;
+        const cls = isDone ? 'done' : (isCurr ? 'curr' : '');
+        html += '<li class="'+cls+'">'+
+          '<span class="nm">'+(m.milestone_order||'')+'. '+(m.milestone_name||'-')+'</span>'+
+          '<span class="cat">'+(m.milestone_category||'')+'</span>'+
+          (m.weight_percent?'<span class="wt">'+m.weight_percent+'%</span>':'')+
+        '</li>';
+      });
+      html += '</ul>';
+    }
+
+    // ── Updates ล่าสุด (5 รายการแรก) ──
+    if(updates.length){
+      html += '<div class="trk-sub">📝 บันทึกล่าสุด ('+updates.length+' ครั้ง)</div>';
+      html += '<ul class="trk-up">';
+      updates.slice(0,5).forEach(function(u){
+        const hasIssue = String(u.has_issue||'').match(/^(1|true|yes|มี)$/i);
+        html += '<li class="'+(hasIssue?'issue':'')+'">';
+        html += '<div class="ut"><span class="dt">'+dt(u.created_at)+'</span>'+
+                '<span class="who">'+(u.foreman_id||'')+'</span></div>';
+        if(u.text_note) html += '<div class="nt">'+escapeHtml(u.text_note)+'</div>';
+        if(hasIssue && u.issue_description){
+          html += '<div class="iss">⚠️ '+escapeHtml(u.issue_description)+
+                  (u.issue_severity?' ('+u.issue_severity+')':'')+'</div>';
+        }
+        html += '</li>';
+      });
+      html += '</ul>';
+    }
+
+    // ── Photos grid (12 รูปแรก) ──
+    if(photos.length){
+      html += '<div class="trk-sub">📸 ภาพหน้างาน ('+photos.length+' รูป)</div>';
+      html += '<div class="trk-ph">';
+      photos.slice(0,12).forEach(function(ph){
+        const url = ph.drive_url || '';
+        const thumb = ph.thumbnail_url || url;
+        if(!url) return;
+        html += '<a href="'+url+'" target="_blank" title="'+(ph.taken_at||'')+'">'+
+                (thumb ? '<img src="'+thumb+'" alt="" loading="lazy">' : '🖼️')+
+                '</a>';
+      });
+      html += '</div>';
+    }
+
+    $('tracker').innerHTML = html;
+  }
+
+  function metaCell(lbl, val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
   }
 
   function cell(lbl, val){

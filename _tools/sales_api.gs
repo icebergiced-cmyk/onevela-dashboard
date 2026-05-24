@@ -38,6 +38,17 @@ function doGet(e){
     if (action === 'getNextNo')     return json({ok:true, no:getNextNo(p.type, p.plot)});
     if (action === 'getNextQuoteNo')return json({ok:true, no:getNextQuoteNo()});
     if (action === 'getDocsByPlot') return json(getDocsByPlot(p.plot));
+    // ===== Construction Tracker (Round 2 — อ่านอย่างเดียว) =====
+    if (action === 'getTrackerData') return json(getTrackerData(p.plot));
+    if (action === 'getMilestones')  return json(getMilestones(p.houseType));
+    // ===== Construction — admin/foreman actions (Round 3) =====
+    if (action === 'getActivePlots')    return json(getActivePlots());
+    if (action === 'getPlotsByForeman') return json(getPlotsByForeman(p.foreman));
+    if (action === 'getCounts')         return json(getConstructionCounts());
+    if (action === 'startBuilding')     return json(startBuilding(p.plot));
+    if (action === 'stopBuilding')      return json(stopBuilding(p.plot));
+    if (action === 'saveUpdate')        return json(saveConstructionUpdate(parseData(p.data)));
+    if (action === 'foremanLogin')      return json(foremanLogin(p.foreman, p.pin));
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -70,6 +81,9 @@ function doPost(e){
       case 'saveWalkIn':   return json(saveRow('walkins',   body.data));
       case 'uploadFile':   return json(uploadFile(body));
       case 'pushSyncHistory':return json(pushSyncHistory(body.data));
+      case 'saveUpdate':   return json(saveConstructionUpdate(body.data));
+      case 'startBuilding':return json(startBuilding(body.plot));
+      case 'stopBuilding': return json(stopBuilding(body.plot));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
@@ -410,6 +424,466 @@ function getSyncHistory(limit){
     if(out.length >= limit) break;
   }
   return {ok:true, items:out};
+}
+
+// ============================================================
+// ===== Construction Tracker — Round 2 (อ่านอย่างเดียว)
+// ============================================================
+// คืนข้อมูลครบของ 1 แปลง: construction status, milestones template (filter by house_type),
+// updates ทั้งหมด (เรียงใหม่→เก่า), photos ของแปลงนั้น
+//
+// House type mapping — milestones_template ใช้ key อังกฤษ (ULTRA/MINUTES/SECOND/MOMENT)
+// metadata.typeCode อาจเป็นรูปแบบต่างกัน — ใช้ best-effort matching (case-insensitive substring)
+function resolveHouseType(typeCode){
+  if(!typeCode) return '';
+  var s = String(typeCode).trim().toUpperCase();
+  // จับ keyword ที่อยู่ใน house_type ที่เรามี
+  if(s.indexOf('ULTRA') >= 0)   return 'ULTRA';
+  if(s.indexOf('MINUTE') >= 0)  return 'MINUTES';   // MINUTE/MINUTES
+  if(s.indexOf('SECOND') >= 0)  return 'SECOND';
+  if(s.indexOf('MOMENT') >= 0)  return 'MOMENT';
+  return s;  // ส่งค่าเดิมกลับ — frontend จะเห็นว่าไม่มี match
+}
+
+// คืน milestones_template — filter ตาม house_type ถ้าส่งมา
+function getMilestones(houseType){
+  var all = readTab('milestones_template');
+  if(!all) return {ok:true, milestones:[]};
+  var key = resolveHouseType(houseType);
+  var out = key
+    ? all.filter(function(m){ return String(m.house_type||'').trim().toUpperCase() === key; })
+    : all;
+  // เรียงตาม order
+  out.sort(function(a,b){ return (Number(a.milestone_order)||0) - (Number(b.milestone_order)||0); });
+  return {ok:true, houseType:key, milestones:out};
+}
+
+// คืน tracker payload ครบของ 1 แปลง
+function getTrackerData(plot){
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  var key = String(plot).trim();
+
+  // หาแปลงใน metadata เพื่อรู้ typeCode
+  var plotMeta = null;
+  var allPlots = readTab('metadata');
+  for(var i=0;i<allPlots.length;i++){
+    if(String(allPlots[i].plot||'').trim() === key){ plotMeta = allPlots[i]; break; }
+  }
+  var houseTypeRaw = plotMeta ? plotMeta.typeCode : '';
+  var houseType = resolveHouseType(houseTypeRaw);
+
+  // construction row
+  var construction = null;
+  var consAll = readTab('plot_construction');
+  for(var j=0;j<consAll.length;j++){
+    if(String(consAll[j].plot_id||'').trim() === key){ construction = consAll[j]; break; }
+  }
+
+  // updates ของแปลงนี้ เรียงใหม่→เก่า
+  var updates = readTab('construction_updates').filter(function(u){
+    return String(u.plot_id||'').trim() === key;
+  });
+  updates.sort(function(a,b){
+    return String(b.created_at||'').localeCompare(String(a.created_at||''));
+  });
+
+  // photos ของ update_ids ในแปลงนี้
+  var updateIds = {};
+  updates.forEach(function(u){ if(u.update_id) updateIds[String(u.update_id).trim()] = true; });
+  var photos = readTab('construction_photos').filter(function(ph){
+    return updateIds[String(ph.update_id||'').trim()];
+  });
+  photos.sort(function(a,b){
+    return String(b.taken_at||'').localeCompare(String(a.taken_at||''));
+  });
+
+  // milestones template สำหรับ house_type นี้
+  var mt = getMilestones(houseTypeRaw).milestones;
+
+  // current milestone object (lookup จาก template_id)
+  var currentMilestone = null;
+  if(construction && construction.current_milestone_id){
+    var cid = String(construction.current_milestone_id).trim();
+    for(var k=0;k<mt.length;k++){
+      if(String(mt[k].template_id).trim() === cid){ currentMilestone = mt[k]; break; }
+    }
+  }
+
+  // นับ milestones ที่เสร็จแล้ว — รวบรวมจาก updates ทั้งหมด (column milestones_completed = JSON array)
+  var completedSet = {};
+  updates.forEach(function(u){
+    var raw = u.milestones_completed;
+    if(!raw) return;
+    try {
+      var arr = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+      if(Array.isArray(arr)){
+        arr.forEach(function(id){ completedSet[String(id).trim()] = true; });
+      }
+    } catch(e){ /* skip malformed */ }
+  });
+
+  return {
+    ok: true,
+    plot: key,
+    houseType: houseType,
+    houseTypeRaw: houseTypeRaw,
+    plotMeta: plotMeta,
+    construction: construction,
+    currentMilestone: currentMilestone,
+    milestones: mt,
+    completedIds: Object.keys(completedSet),
+    updates: updates,
+    photos: photos
+  };
+}
+
+// ============================================================
+// ===== Construction Actions — Round 3 (write API)
+// ============================================================
+// Field "status" ใน plot_construction ใช้บอกสถานะ:
+//   'กำลังก่อสร้าง' — แสดงใน dropdown โฟร์แมน
+//   'หยุด'         — ไม่แสดง (admin กดหยุด)
+//   'เสร็จ'        — เสร็จสมบูรณ์ (อนาคต)
+//
+// Foreman mapping (auto from type):
+//   ULTRA          → 'โก้'
+//   อื่นๆ (B/C/D)  → 'ใหญ่'
+
+const FOREMAN_TYPE_MAP = {
+  'โก้':  ['ULTRA'],
+  'ใหญ่': ['MINUTES','SECOND','MOMENT']
+};
+
+function foremanOfType_(type){
+  if(!type) return '';
+  return String(type).toUpperCase() === 'ULTRA' ? 'โก้' : 'ใหญ่';
+}
+
+// แปลง typeCode จาก metadata → key milestones_template (เรียกใช้ resolveHouseType เดิม)
+function plotTypeKey_(plot){
+  // หาแปลงใน metadata
+  const allPlots = readTab('metadata');
+  for(var i=0;i<allPlots.length;i++){
+    if(String(allPlots[i].plot||'').trim() === String(plot).trim()){
+      return resolveHouseType(allPlots[i].typeCode);
+    }
+  }
+  return '';
+}
+
+// ===== getActivePlots — แปลงที่ status = 'กำลังก่อสร้าง' =====
+function getActivePlots(){
+  const cons = readTab('plot_construction').filter(function(c){
+    return String(c.status||'').trim() === 'กำลังก่อสร้าง';
+  });
+  // join กับ metadata เพื่อได้ typeCode + status ขาย
+  const meta = readTab('metadata');
+  const metaMap = {};
+  meta.forEach(function(m){ metaMap[String(m.plot||'').trim()] = m; });
+  const out = cons.map(function(c){
+    const pid = String(c.plot_id||'').trim();
+    const m = metaMap[pid] || {};
+    const type = resolveHouseType(m.typeCode);
+    return {
+      plot: pid,
+      type: type,
+      typeCode: m.typeCode,
+      saleStatus: m.status || 'ว่าง',
+      progress: Number(c.progress_percent)||0,
+      curMilestoneId: Number(c.current_milestone_id)||1,
+      status: c.status,
+      foreman: c.assigned_foreman_id || foremanOfType_(type),
+      startedAt: c.actual_start_date,
+      lastUpdateAt: c.last_update_at,
+      cName: m.cName, cPhone: m.cPhone
+    };
+  });
+  return {ok:true, plots:out};
+}
+
+// ===== getPlotsByForeman — กรองตามชื่อโฟร์แมน (โก้/ใหญ่) =====
+function getPlotsByForeman(foreman){
+  if(!foreman) return {ok:false, error:'ต้องระบุชื่อโฟร์แมน'};
+  const types = FOREMAN_TYPE_MAP[foreman] || [];
+  if(types.length === 0) return {ok:false, error:'ไม่รู้จักโฟร์แมน: '+foreman};
+  const all = getActivePlots().plots;
+  const filtered = all.filter(function(p){ return types.indexOf(p.type) >= 0; });
+  return {ok:true, foreman:foreman, plots:filtered};
+}
+
+// ===== getConstructionCounts — stats สำหรับ admin =====
+function getConstructionCounts(){
+  const meta = readTab('metadata');
+  const total = meta.length;
+  const cons = readTab('plot_construction');
+  const active = cons.filter(function(c){ return String(c.status||'').trim() === 'กำลังก่อสร้าง'; });
+  const koLoad = active.filter(function(c){
+    const m = meta.find(function(x){ return String(x.plot||'').trim() === String(c.plot_id||'').trim(); });
+    return m && resolveHouseType(m.typeCode) === 'ULTRA';
+  }).length;
+  return {
+    ok:true,
+    total: total,
+    active: active.length,
+    empty: total - active.length,
+    koLoad: koLoad,
+    yaiLoad: active.length - koLoad
+  };
+}
+
+// ===== startBuilding — เพิ่ม/อัปเดต row ใน plot_construction =====
+function startBuilding(plot){
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = sheet('plot_construction');
+  if(!sh) return {ok:false, error:'ไม่พบ tab: plot_construction'};
+  const vals = sh.getDataRange().getValues();
+  if(vals.length < 2) return {ok:false, error:'tab plot_construction ว่าง'};
+  const keys = vals[0];
+  const colPlot = keys.indexOf('plot_id');
+  if(colPlot < 0) return {ok:false, error:'ไม่พบ column plot_id'};
+
+  // หา type ของแปลง
+  const typeKey = plotTypeKey_(plot);
+  if(!typeKey) return {ok:false, error:'ไม่พบแปลง '+plot+' หรือไม่ทราบ typeCode'};
+  const foreman = foremanOfType_(typeKey);
+
+  // หา row เดิม
+  const today = new Date().toISOString().slice(0,10);
+  const nowIso = new Date().toISOString();
+  let foundRow = -1;
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][colPlot]||'').trim() === String(plot).trim()){
+      foundRow = i + 1; break;
+    }
+  }
+
+  const data = {
+    plot_id: plot,
+    current_milestone_id: 1,
+    progress_percent: 0,
+    status: 'กำลังก่อสร้าง',
+    assigned_foreman_id: foreman,
+    actual_start_date: today,
+    estimated_completion_date: '',
+    last_update_at: nowIso
+  };
+
+  if(foundRow > 0){
+    // อัปเดตเฉพาะ column ที่จำเป็น (รักษา progress เดิมถ้ามี)
+    const curProgress = Number(vals[foundRow-1][keys.indexOf('progress_percent')])||0;
+    const curMs = Number(vals[foundRow-1][keys.indexOf('current_milestone_id')])||1;
+    sh.getRange(foundRow, keys.indexOf('status')+1).setValue('กำลังก่อสร้าง');
+    sh.getRange(foundRow, keys.indexOf('assigned_foreman_id')+1).setValue(foreman);
+    sh.getRange(foundRow, keys.indexOf('last_update_at')+1).setValue(nowIso);
+    if(!vals[foundRow-1][keys.indexOf('actual_start_date')]){
+      sh.getRange(foundRow, keys.indexOf('actual_start_date')+1).setValue(today);
+    }
+    return {ok:true, plot:plot, foreman:foreman, action:'resumed',
+            progress:curProgress, currentMilestone:curMs};
+  } else {
+    const row = keys.map(function(k){ return data[k] !== undefined ? data[k] : ''; });
+    sh.appendRow(row);
+    return {ok:true, plot:plot, foreman:foreman, action:'started'};
+  }
+}
+
+// ===== stopBuilding — เปลี่ยน status เป็น 'หยุด' (ไม่ลบ) =====
+function stopBuilding(plot){
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = sheet('plot_construction');
+  if(!sh) return {ok:false, error:'ไม่พบ tab: plot_construction'};
+  const vals = sh.getDataRange().getValues();
+  if(vals.length < 3) return {ok:false, error:'tab ว่าง'};
+  const keys = vals[0];
+  const colPlot = keys.indexOf('plot_id');
+  const colStatus = keys.indexOf('status');
+  const colLast = keys.indexOf('last_update_at');
+  if(colPlot < 0 || colStatus < 0) return {ok:false, error:'schema ผิด'};
+
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][colPlot]||'').trim() === String(plot).trim()){
+      sh.getRange(i+1, colStatus+1).setValue('หยุด');
+      if(colLast >= 0) sh.getRange(i+1, colLast+1).setValue(new Date().toISOString());
+      return {ok:true, plot:plot, action:'stopped'};
+    }
+  }
+  return {ok:false, error:'ไม่พบแปลง '+plot+' ใน plot_construction'};
+}
+
+// ===== saveConstructionUpdate — โฟร์แมนส่งอัปเดต =====
+// data: {plot, foreman, msDone:[], note, photos:N or [base64...], hasIssue, issueDesc, issueSev, gpsLat, gpsLng}
+function saveConstructionUpdate(data){
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+  if(!data.foreman) return {ok:false, error:'ต้องระบุชื่อโฟร์แมน'};
+
+  const sh = sheet('construction_updates');
+  if(!sh) return {ok:false, error:'ไม่พบ tab: construction_updates'};
+  const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+
+  // generate update_id
+  const updId = 'U' + Date.now() + '-' + Math.floor(Math.random()*1000);
+  const nowIso = new Date().toISOString();
+  const msDoneJson = JSON.stringify(data.msDone || []);
+
+  const row = {
+    update_id: updId,
+    plot_id: data.plot,
+    foreman_id: data.foreman,
+    created_at: nowIso,
+    milestones_completed: msDoneJson,
+    progress_delta: 0,  // จะคำนวณ
+    gps_lat: data.gpsLat || '',
+    gps_lng: data.gpsLng || '',
+    gps_accuracy: data.gpsAccuracy || '',
+    text_note: data.note || '',
+    voice_note_url: '',
+    has_issue: data.hasIssue ? 1 : 0,
+    issue_description: data.issueDesc || '',
+    issue_severity: data.issueSev || '',
+    issue_status: data.hasIssue ? 'open' : '',
+    status: 'submitted',
+    approved_by: '',
+    approved_at: '',
+    rejection_reason: ''
+  };
+
+  const rowArr = keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; });
+  sh.appendRow(rowArr);
+
+  // อัปเดต progress + currentMilestone + lastUpdate ใน plot_construction
+  if(data.msDone && data.msDone.length){
+    updatePlotConstructionProgress_(data.plot, data.msDone);
+  } else {
+    // แค่อัปเดต lastUpdate
+    updatePlotConstructionField_(data.plot, 'last_update_at', nowIso);
+  }
+
+  // เก็บ photos (ถ้ามี base64 array — อัปขึ้น Drive)
+  let photoCount = 0;
+  if(Array.isArray(data.photos)){
+    data.photos.forEach(function(p){
+      try {
+        const saved = uploadConstructionPhoto_(updId, data.plot, p);
+        if(saved) photoCount++;
+      } catch(e){}
+    });
+  } else if(typeof data.photos === 'number'){
+    photoCount = data.photos;
+  }
+
+  return {ok:true, updateId:updId, photoCount:photoCount};
+}
+
+function updatePlotConstructionField_(plot, field, value){
+  const sh = sheet('plot_construction');
+  if(!sh) return false;
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const colPlot = keys.indexOf('plot_id');
+  const colField = keys.indexOf(field);
+  if(colPlot < 0 || colField < 0) return false;
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][colPlot]||'').trim() === String(plot).trim()){
+      sh.getRange(i+1, colField+1).setValue(value);
+      return true;
+    }
+  }
+  return false;
+}
+
+function updatePlotConstructionProgress_(plot, msDone){
+  const sh = sheet('plot_construction');
+  if(!sh) return false;
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const colPlot = keys.indexOf('plot_id');
+  const colCur  = keys.indexOf('current_milestone_id');
+  const colPct  = keys.indexOf('progress_percent');
+  const colLast = keys.indexOf('last_update_at');
+  if(colPlot < 0) return false;
+
+  for(let i = 2; i < vals.length; i++){
+    if(String(vals[i][colPlot]||'').trim() === String(plot).trim()){
+      const curId = Number(vals[i][colCur])||1;
+      const maxDone = Math.max.apply(null, msDone.map(Number));
+      const newCur = Math.max(curId, maxDone + 1);
+      // คำนวณ progress: ใช้ weight% รวม
+      const typeKey = plotTypeKey_(plot);
+      const ms = readTab('milestones_template').filter(function(m){
+        return String(m.house_type||'').toUpperCase() === typeKey;
+      });
+      let totalWt = 0, doneWt = 0;
+      ms.forEach(function(m){
+        const wt = Number(m.weight_percent)||0;
+        totalWt += wt;
+        if(Number(m.template_id) < newCur) doneWt += wt;
+      });
+      const newPct = totalWt > 0 ? Math.round(doneWt / totalWt * 100) : 0;
+      if(colCur >= 0)  sh.getRange(i+1, colCur+1).setValue(newCur);
+      if(colPct >= 0)  sh.getRange(i+1, colPct+1).setValue(newPct);
+      if(colLast >= 0) sh.getRange(i+1, colLast+1).setValue(new Date().toISOString());
+      return true;
+    }
+  }
+  return false;
+}
+
+// อัปรูปหน้างานเข้า Drive + บันทึก row ใน construction_photos
+// photo: {base64, mimeType, fileName, takenAt?, lat?, lng?}
+function uploadConstructionPhoto_(updateId, plot, photo){
+  if(!photo || !photo.base64) return null;
+  const root = DriveApp.getFolderById(FILES_FOLDER_ID);
+  const photoRoot = getOrCreateFolder(root, 'รูปหน้างาน');
+  const plotFolder = getOrCreateFolder(photoRoot, 'แปลง ' + plot);
+  const bytes = Utilities.base64Decode(photo.base64);
+  const fileName = photo.fileName || ('photo-'+Date.now()+'.jpg');
+  const blob = Utilities.newBlob(bytes, photo.mimeType || 'image/jpeg', fileName);
+  const file = plotFolder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  // บันทึก row ใน construction_photos
+  const sh = sheet('construction_photos');
+  if(sh){
+    const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+    const photoId = 'P' + Date.now() + '-' + Math.floor(Math.random()*1000);
+    const driveUrl = file.getUrl();
+    const thumbUrl = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w400';
+    const row = {
+      photo_id: photoId,
+      update_id: updateId,
+      drive_file_id: file.getId(),
+      drive_url: driveUrl,
+      thumbnail_url: thumbUrl,
+      taken_at: photo.takenAt || new Date().toISOString(),
+      exif_lat: photo.lat || '',
+      exif_lng: photo.lng || '',
+      file_size_kb: Math.round(bytes.length/1024),
+      width: photo.width || '',
+      height: photo.height || '',
+      ai_caption: ''
+    };
+    sh.appendRow(keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; }));
+  }
+  return file.getUrl();
+}
+
+// ===== foremanLogin — ตรวจ PIN จาก users tab =====
+// ของจริง: เก็บ PIN hash ใน users tab — โดย admin ตั้งให้แต่ละโฟร์แมน
+// ของเดโม: ถ้าไม่พบ PIN ใน Sheet ใช้ '1234' เป็น default (เพื่อทดสอบได้)
+function foremanLogin(foreman, pin){
+  if(!foreman || !pin) return {ok:false, error:'ต้องระบุชื่อ + PIN'};
+  const users = readTab('users');
+  // หา user ที่ display_name มี foreman key
+  const match = users.find(function(u){
+    return String(u.display_name||'').indexOf(foreman) >= 0 ||
+           String(u.role||'') === 'foreman';
+  });
+  // เช็ค PIN
+  const expectedPin = (match && String(match.phone||'').trim()) || '1234';
+  if(String(pin).trim() !== expectedPin){
+    return {ok:false, error:'PIN ไม่ถูกต้อง'};
+  }
+  return {ok:true, foreman:foreman, name:'โฟร์แมน'+foreman};
 }
 
 // ============================================================

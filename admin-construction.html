@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🏗️ จัดการแปลงก่อสร้าง — One Vela Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/brand/logo-icon.png">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-dk:#8d6d3f;
+    --bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;--soft:#f7f8fa;
+    --green:#16a34a;--amber:#d97706;--red:#dc2626;--blue:#2563eb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);
+    background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
+      url('assets/photos/village/hero.jpg') center/cover fixed no-repeat;
+    padding:14px;line-height:1.5;font-size:15px;min-height:100vh}
+  .wrap{max-width:1140px;margin:0 auto}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .logo img{height:38px;width:auto;display:block}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;font-weight:700;
+    padding:8px 14px;border-radius:9px;background:rgba(255,255,255,.15)}
+  .topbar a:hover{background:var(--gold)}
+
+  .loader{text-align:center;padding:40px 20px;color:var(--muted)}
+  .loader .sp{font-size:30px;margin-bottom:10px}
+  .err-banner{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:12px;padding:14px 16px;
+    box-shadow:0 1px 5px rgba(0,0,0,.06);border-left:4px solid var(--line)}
+  .stat-card.act{border-left-color:var(--amber)}
+  .stat-card.done{border-left-color:var(--green)}
+  .stat-card.empty{border-left-color:var(--muted)}
+  .stat-card.team{border-left-color:var(--gold)}
+  .stat-card .lbl{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.5px;
+    text-transform:uppercase;margin-bottom:4px}
+  .stat-card .num{font-size:28px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .stat-card .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .stat-card.team .num{color:var(--gold);font-size:22px}
+
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:22px 0 12px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:10px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+  h2.sec .btn{margin-left:auto;font-family:inherit;font-size:13px;font-weight:700;
+    background:var(--gold);color:#fff;border:none;padding:9px 16px;border-radius:9px;cursor:pointer;
+    box-shadow:0 3px 10px rgba(176,141,87,.3)}
+  h2.sec .btn:hover{filter:brightness(1.08)}
+
+  .tbl-box{background:#fff;border-radius:12px;padding:4px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px;
+    padding:12px 14px;text-align:left;border-bottom:2px solid var(--line);
+    text-transform:uppercase;background:var(--soft)}
+  td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc}
+  td.r{text-align:right}
+  .pid{font-weight:800;color:var(--charcoal);font-size:15px}
+  .typ-badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:10px;letter-spacing:.4px}
+  .typ-ULTRA{background:#fef3e2;color:#9a3412}
+  .typ-MINUTES{background:#e0f2fe;color:#075985}
+  .typ-SECOND{background:#dbeafe;color:#1e40af}
+  .typ-MOMENT{background:#f3e8ff;color:#6b21a8}
+  .foreman-tag{display:inline-flex;align-items:center;gap:5px;background:#fff8e6;
+    border:1px solid #f5d8a0;padding:4px 10px;border-radius:14px;font-size:12.5px;
+    font-weight:700;color:#7a5a2e}
+  .foreman-tag .av{width:20px;height:20px;background:var(--gold);color:#fff;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+  .mini-bar{display:inline-block;width:60px;height:6px;background:#eef1f4;border-radius:3px;
+    overflow:hidden;vertical-align:middle;margin-right:6px}
+  .mini-bar>div{height:100%;background:linear-gradient(90deg,var(--gold),#d4b274)}
+  .pct-txt{font-weight:700;color:var(--gold);font-size:13px}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end}
+  .row-actions button,.row-actions a{font-family:inherit;font-size:11.5px;font-weight:700;
+    border:1px solid var(--line);background:#fff;padding:5px 10px;border-radius:7px;cursor:pointer;
+    color:var(--charcoal);text-decoration:none;display:inline-block}
+  .row-actions button:hover,.row-actions a:hover{border-color:var(--gold);color:var(--gold)}
+  .row-actions button.danger:hover{border-color:var(--red);color:var(--red)}
+
+  .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:18px}
+  .team-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    display:flex;align-items:center;gap:14px}
+  .team-card .av{width:48px;height:48px;background:var(--gold);color:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0}
+  .team-card .info{flex:1}
+  .team-card .nm{font-size:15px;font-weight:800;color:var(--charcoal)}
+  .team-card .role{font-size:12px;color:var(--muted);margin-top:2px}
+  .team-card .load{font-size:22px;font-weight:800;color:var(--gold);line-height:1}
+  .team-card .load small{font-size:11px;color:var(--muted);font-weight:600}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:flex-start;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:680px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden;margin:20px 0}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;
+    align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+
+  .search-bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .search-bar input,.search-bar select{font-family:inherit;font-size:14px;padding:10px 12px;
+    border:2px solid var(--line);border-radius:9px;background:#fff}
+  .search-bar input{flex:1;min-width:140px}
+  .search-bar input:focus,.search-bar select:focus{outline:none;border-color:var(--gold)}
+  .search-bar .qres{font-size:11.5px;color:var(--muted);margin-top:6px;width:100%}
+
+  .plot-grid{max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;
+    background:var(--soft)}
+  .plot-row{display:flex;align-items:center;gap:12px;padding:10px 14px;
+    border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+  .plot-row:last-child{border-bottom:none}
+  .plot-row:hover{background:#fff}
+  .plot-row.on{background:#fff8e6}
+  .plot-row .cb{width:22px;height:22px;border:2px solid var(--line);border-radius:5px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;color:#fff;
+    font-size:14px;font-weight:800}
+  .plot-row.on .cb{background:var(--gold);border-color:var(--gold)}
+  .plot-row .pid{font-weight:800;color:var(--charcoal);min-width:55px}
+  .plot-row .typ-badge{margin-right:auto}
+  .plot-row .st{font-size:11.5px;color:var(--muted);font-weight:600}
+  .plot-row .st.s-จอง{color:var(--amber)}
+  .plot-row .st.s-สัญญา{color:var(--blue)}
+  .plot-row .st.s-โอนแล้ว{color:var(--green)}
+
+  .auto-info{background:#e6f4ea;border:1px solid #b6dbc1;border-radius:10px;padding:12px 14px;
+    margin:14px 0;font-size:12.5px;line-height:1.55}
+  .auto-info b{color:var(--green)}
+
+  .modal-ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;
+    align-items:center;background:var(--soft)}
+  .modal-ft .sel-count{font-size:13.5px;color:var(--muted);margin-right:auto}
+  .modal-ft .sel-count b{color:var(--gold);font-weight:800;font-size:16px}
+  .modal-ft button{font-family:inherit;font-size:14px;font-weight:700;padding:11px 18px;
+    border:none;border-radius:9px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--charcoal)}
+  .btn-go{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+  .btn-go:disabled{background:var(--line);color:#fff;cursor:not-allowed;box-shadow:none}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);
+    color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none;
+    animation:slideUp .3s ease-out}
+  .toast.on{display:block}
+  @keyframes slideUp{from{transform:translate(-50%,20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+
+  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28)}
+  .home-fab:hover{background:var(--gold)}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:24px 0}
+
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    table{font-size:12.5px}
+    th,td{padding:8px 10px}
+  }
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
+      onerror="this.style.display='none'"></div>
+    <div class="ttl">จัดการแปลงก่อสร้าง<small>ADMIN · ONE VELA</small></div>
+    <a href="home.html">← กลับ</a>
+    <button onclick="loadAll()" style="background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:9px;cursor:pointer">↻ รีเฟรช</button>
+  </div>
+
+  <div id="errBox"></div>
+
+  <div id="content" style="display:none">
+
+    <div class="stats">
+      <div class="stat-card act">
+        <div class="lbl">🏗️ กำลังก่อสร้าง</div>
+        <div class="num" id="statActive">—</div>
+        <div class="sub">แปลง — เห็นใน dropdown โฟร์แมน</div>
+      </div>
+      <div class="stat-card done">
+        <div class="lbl">✅ เสร็จแล้ว</div>
+        <div class="num">0</div>
+        <div class="sub">รอโอน / โอนแล้ว</div>
+      </div>
+      <div class="stat-card empty">
+        <div class="lbl">📭 ยังไม่เริ่ม</div>
+        <div class="num" id="statEmpty">—</div>
+        <div class="sub">จาก <span id="statTotal">—</span> แปลงรวม</div>
+      </div>
+      <div class="stat-card team">
+        <div class="lbl">👷 ทีมโฟร์แมน</div>
+        <div class="num">2 ทีม</div>
+        <div class="sub">โก้ (ULTRA) · ใหญ่ (อื่นๆ)</div>
+      </div>
+    </div>
+
+    <div class="teams">
+      <div class="team-card">
+        <div class="av">โ</div>
+        <div class="info">
+          <div class="nm">👷 โฟร์แมนโก้</div>
+          <div class="role">รับผิดชอบ <b>ไทป์ A (ULTRA)</b> — บ้านเดี่ยว 2 ชั้น</div>
+        </div>
+        <div class="load" id="loadKo">—<small> แปลง</small></div>
+      </div>
+      <div class="team-card">
+        <div class="av" style="background:#6b21a8">ใ</div>
+        <div class="info">
+          <div class="nm">👷 โฟร์แมนใหญ่</div>
+          <div class="role">รับผิดชอบ <b>ไทป์ B/C/D</b> — บ้านเดี่ยวชั้นเดียว/บ้านแฝด/ทาวน์โฮม</div>
+        </div>
+        <div class="load" id="loadYai" style="color:#6b21a8">—<small> แปลง</small></div>
+      </div>
+    </div>
+
+    <h2 class="sec">
+      🏗️ แปลงที่กำลังก่อสร้าง <span class="ct" id="ctActive">— แปลง</span>
+      <button class="btn" onclick="openModal()">+ เริ่มก่อสร้างแปลงใหม่</button>
+    </h2>
+
+    <div class="tbl-box">
+      <table>
+        <thead>
+          <tr>
+            <th>เลขแปลง</th>
+            <th>ไทป์</th>
+            <th>โฟร์แมน</th>
+            <th>ความคืบหน้า</th>
+            <th>milestone ปัจจุบัน</th>
+            <th>อัปเดตล่าสุด</th>
+            <th class="r">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="activeRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="loadingState" class="loader">
+    <div class="sp">⏳</div>กำลังโหลดข้อมูล...
+  </div>
+
+  <footer>จัดการก่อสร้าง · One Vela — Two Build Development</footer>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="ttl">➕ เริ่มก่อสร้างแปลงใหม่</div>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd">
+
+      <div class="search-bar">
+        <input type="text" id="searchBox" placeholder="🔍 ค้นเลขแปลง... เช่น 230" oninput="filterPlots()">
+        <select id="typeFilter" onchange="filterPlots()">
+          <option value="">ทุกไทป์</option>
+          <option value="ULTRA">ULTRA (ไทป์ A)</option>
+          <option value="MINUTES">MINUTES (ไทป์ B)</option>
+          <option value="SECOND">SECOND (ไทป์ C)</option>
+          <option value="MOMENT">MOMENT (ไทป์ D)</option>
+        </select>
+        <select id="statusFilter" onchange="filterPlots()">
+          <option value="">ทุกสถานะ</option>
+          <option value="ว่าง">ว่าง</option>
+          <option value="จอง">จอง</option>
+          <option value="สัญญา">สัญญา</option>
+        </select>
+        <div class="qres" id="qres">แสดง 0 แปลง</div>
+      </div>
+
+      <div class="plot-grid" id="plotGrid"></div>
+
+      <div class="auto-info" id="autoInfo" style="display:none">
+        <b>🤖 ระบบจะ assign โฟร์แมนอัตโนมัติตามไทป์:</b><br>
+        <span id="autoBreak"></span>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <div class="sel-count">เลือกแล้ว <b id="selN">0</b> แปลง</div>
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-go" id="btnGo" onclick="confirmStart()" disabled>✓ เริ่มก่อสร้าง</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s||'').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ── State ──
+  let activePlots = [];      // จาก getActivePlots
+  let allPlots = [];          // จาก getSalesData.plots (483 แปลง)
+  let selected = new Set();
+
+  // ── API ──
+  async function api(action, params){
+    const url = new URL(API_URL);
+    url.searchParams.set('action', action);
+    Object.keys(params||{}).forEach(k => url.searchParams.set(k, params[k]));
+    const res = await fetch(url.toString());
+    return res.json();
+  }
+
+  function resolveType(typeCode){
+    if(!typeCode) return '';
+    const s = String(typeCode).toUpperCase();
+    if(s.indexOf('ULTRA')>=0) return 'ULTRA';
+    if(s.indexOf('MINUTE')>=0) return 'MINUTES';
+    if(s.indexOf('SECOND')>=0) return 'SECOND';
+    if(s.indexOf('MOMENT')>=0) return 'MOMENT';
+    return s;
+  }
+  function foremanOf(type){ return type === 'ULTRA' ? 'โก้' : 'ใหญ่'; }
+
+  async function loadAll(){
+    $('loadingState').style.display = '';
+    $('content').style.display = 'none';
+    $('errBox').innerHTML = '';
+    try {
+      const [salesRes, activeRes] = await Promise.all([
+        api('getSalesData'),
+        api('getActivePlots')
+      ]);
+      if(!salesRes.ok) throw new Error('โหลดข้อมูลขายไม่สำเร็จ');
+      if(!activeRes.ok) throw new Error(activeRes.error || 'โหลดข้อมูลก่อสร้างไม่สำเร็จ');
+      allPlots = (salesRes.plots || []).map(p => ({
+        plot: String(p.plot||'').trim(),
+        type: resolveType(p.typeCode),
+        typeCode: p.typeCode,
+        status: p.status || 'ว่าง',
+        cName: p.cName, cPhone: p.cPhone
+      })).filter(p => p.plot);
+      activePlots = activeRes.plots || [];
+      renderAll();
+      $('loadingState').style.display = 'none';
+      $('content').style.display = '';
+    } catch(e){
+      $('errBox').innerHTML = '<div class="err-banner">⚠️ '+esc(e.message||'โหลดข้อมูลไม่สำเร็จ')+
+        '<br><button class="btn-go" onclick="loadAll()" style="margin-top:8px;padding:6px 12px;font-size:12px">ลองใหม่</button></div>';
+      $('loadingState').style.display = 'none';
+    }
+  }
+
+  function renderAll(){
+    // stats
+    const koLoad = activePlots.filter(p => p.type === 'ULTRA').length;
+    const yaiLoad = activePlots.length - koLoad;
+    $('statActive').textContent = activePlots.length;
+    $('statEmpty').textContent = allPlots.length - activePlots.length;
+    $('statTotal').textContent = allPlots.length;
+    $('ctActive').textContent = activePlots.length + ' แปลง';
+    $('loadKo').innerHTML = koLoad+'<small> แปลง</small>';
+    $('loadYai').innerHTML = yaiLoad+'<small> แปลง</small>';
+
+    // table
+    const tb = $('activeRows');
+    if(activePlots.length === 0){
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">' +
+        'ยังไม่มีแปลงที่กำลังก่อสร้าง — กด "เริ่มก่อสร้างแปลงใหม่"</td></tr>';
+      return;
+    }
+    const sorted = [...activePlots].sort((a,b) => String(a.plot).localeCompare(String(b.plot)));
+    tb.innerHTML = sorted.map(p => {
+      const fm = p.foreman || foremanOf(p.type);
+      const av = p.type === 'ULTRA' ? 'โ' : 'ใ';
+      const avBg = p.type === 'ULTRA' ? '' : 'background:#6b21a8';
+      const last = p.lastUpdateAt ? thaiDate(p.lastUpdateAt) : '-';
+      const isWarn = p.lastUpdateAt && (Date.now() - new Date(p.lastUpdateAt)) > 3*86400000;
+      return `
+        <tr>
+          <td><span class="pid">C${p.plot}</span></td>
+          <td><span class="typ-badge typ-${p.type}">${p.type}</span></td>
+          <td><span class="foreman-tag"><span class="av" style="${avBg}">${av}</span>โฟร์แมน${esc(fm)}</span></td>
+          <td>
+            <span class="mini-bar"><div style="width:${p.progress||0}%"></div></span>
+            <span class="pct-txt">${p.progress||0}%</span>
+          </td>
+          <td>milestone ${p.curMilestoneId||'-'}</td>
+          <td>${isWarn?'<span style="color:var(--amber);font-weight:700">⚠️ ':''}${last}${isWarn?'</span>':''}</td>
+          <td class="r">
+            <div class="row-actions">
+              <a href="plot-detail.html?plot=${p.plot}" target="_blank">ดู</a>
+              <button class="danger" onclick="stopPlot('${p.plot}')">หยุด</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function thaiDate(d){
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt = new Date(d);
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543);
+  }
+
+  // ── Modal ──
+  function openModal(){
+    selected.clear();
+    $('searchBox').value = '';
+    $('typeFilter').value = '';
+    $('statusFilter').value = '';
+    filterPlots();
+    $('modal').classList.add('on');
+  }
+  function closeModal(){ $('modal').classList.remove('on'); }
+
+  function filterPlots(){
+    const q = $('searchBox').value.trim();
+    const tf = $('typeFilter').value;
+    const sf = $('statusFilter').value;
+    const activeIds = new Set(activePlots.map(p => String(p.plot)));
+
+    let pool = allPlots.filter(p => !activeIds.has(p.plot));
+    if(q) pool = pool.filter(p => p.plot.includes(q));
+    if(tf) pool = pool.filter(p => p.type === tf);
+    if(sf) pool = pool.filter(p => p.status === sf);
+
+    const total = pool.length;
+    pool = pool.slice(0, 100);
+    $('qres').textContent = `แสดง ${pool.length} จาก ${total} แปลงที่ยังไม่ก่อสร้าง`;
+
+    const grid = $('plotGrid');
+    if(pool.length === 0){
+      grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">ไม่พบแปลงที่ตรงเงื่อนไข</div>';
+    } else {
+      grid.innerHTML = pool.map(p => `
+        <div class="plot-row ${selected.has(p.plot)?'on':''}" onclick="toggleSelect('${p.plot}')">
+          <div class="cb">${selected.has(p.plot)?'✓':''}</div>
+          <div class="pid">C${p.plot}</div>
+          <span class="typ-badge typ-${p.type}">${p.type||'?'}</span>
+          <div class="st s-${p.status}">${esc(p.status)}</div>
+        </div>`).join('');
+    }
+    updateSelCount();
+  }
+
+  function toggleSelect(pid){
+    if(selected.has(pid)) selected.delete(pid);
+    else selected.add(pid);
+    filterPlots();
+  }
+
+  function updateSelCount(){
+    $('selN').textContent = selected.size;
+    $('btnGo').disabled = selected.size === 0;
+
+    if(selected.size > 0){
+      const byType = {};
+      selected.forEach(pid => {
+        const p = allPlots.find(x => x.plot === pid);
+        if(p) byType[p.type] = (byType[p.type]||0) + 1;
+      });
+      const lines = Object.entries(byType).map(([t,n]) =>
+        `• <b>${t}</b> ${n} แปลง → โฟร์แมน${foremanOf(t)}`);
+      $('autoBreak').innerHTML = lines.join('<br>');
+      $('autoInfo').style.display = '';
+    } else {
+      $('autoInfo').style.display = 'none';
+    }
+  }
+
+  async function confirmStart(){
+    if(selected.size === 0) return;
+    const n = selected.size;
+    $('btnGo').disabled = true;
+    $('btnGo').textContent = '⏳ กำลังบันทึก...';
+    try {
+      for(const pid of selected){
+        const r = await api('startBuilding', {plot: pid});
+        if(!r.ok) throw new Error(r.error||'failed at '+pid);
+      }
+      selected.clear();
+      closeModal();
+      showToast(`✅ เริ่มก่อสร้าง ${n} แปลงแล้ว — โฟร์แมนเห็นใน dropdown ทันที`);
+      await loadAll();
+    } catch(e){
+      alert('บันทึกไม่สำเร็จ: '+e.message);
+    } finally {
+      $('btnGo').disabled = false;
+      $('btnGo').textContent = '✓ เริ่มก่อสร้าง';
+    }
+  }
+
+  async function stopPlot(pid){
+    if(!confirm(`หยุดการก่อสร้างแปลง C${pid}?\n(จะออกจาก dropdown โฟร์แมน — ข้อมูลความคืบหน้ายังอยู่)`)) return;
+    try {
+      const r = await api('stopBuilding', {plot: pid});
+      if(!r.ok) throw new Error(r.error||'failed');
+      showToast(`⏸️ หยุดก่อสร้างแปลง C${pid} แล้ว`);
+      await loadAll();
+    } catch(e){
+      alert('หยุดไม่สำเร็จ: '+e.message);
+    }
+  }
+
+  function showToast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
+  }
+
+  loadAll();
+</script>
+</body>
+</html>
