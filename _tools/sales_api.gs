@@ -51,6 +51,27 @@ function doGet(e){
     if (action === 'foremanLogin')      return json(foremanLogin(p.foreman, p.pin));
     if (action === 'foremanInit')       return json(foremanInit(p.foreman, p.pin));
     if (action === 'getMilestonesAll')  return json(getMilestonesAll());
+    // ===== Auth (Round 5) — universal login + permissions =====
+    if (action === 'authLogin')      return json(authLogin(p.username, p.pin));
+    if (action === 'authVerify')     return json(authVerify(p.token));
+    if (action === 'authLogout')     return json(authLogout(p.token));
+    if (action === 'userList')       return json(userList(p.token));
+    if (action === 'userSave')       return json(userSave(p.token, parseData(p.data)));
+    if (action === 'userDelete')     return json(userDelete(p.token, p.userId));
+    // ===== Walkin v2 (Round 5) =====
+    if (action === 'getWalkinsV2')   return json(getWalkinsV2(p.token));
+    if (action === 'saveWalkinV2')   return json(saveWalkinV2(p.token, parseData(p.data)));
+    if (action === 'deleteWalkinV2') return json(deleteWalkinV2(p.token, p.walkinId));
+    // ===== Payment / Fee / Transfer (Round 5) =====
+    if (action === 'getPayments')        return json(getPayments(p.token));
+    if (action === 'savePayment')        return json(savePayment(p.token, parseData(p.data)));
+    if (action === 'getFees')            return json(getFees(p.token));
+    if (action === 'saveFee')            return json(saveFee(p.token, parseData(p.data)));
+    if (action === 'deleteFee')          return json(deleteFee(p.token, p.feeId));
+    if (action === 'getTransfers')       return json(getTransfers(p.token));
+    if (action === 'saveTransfer')       return json(saveTransfer(p.token, parseData(p.data)));
+    if (action === 'getChecklistState')  return json(getChecklistState(p.token, p.plot));
+    if (action === 'saveChecklistState') return json(saveChecklistState(p.token, parseData(p.data)));
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -86,6 +107,11 @@ function doPost(e){
       case 'saveUpdate':   return json(saveConstructionUpdate(body.data));
       case 'startBuilding':return json(startBuilding(body.plot, body.foreman));
       case 'stopBuilding': return json(stopBuilding(body.plot));
+      case 'savePayment':  return json(savePayment(body.token, body.data));
+      case 'saveFee':      return json(saveFee(body.token, body.data));
+      case 'saveWalkinV2': return json(saveWalkinV2(body.token, body.data));
+      case 'saveTransfer': return json(saveTransfer(body.token, body.data));
+      case 'userSave':     return json(userSave(body.token, body.data));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
@@ -923,6 +949,488 @@ function foremanLogin(foreman, pin){
     return {ok:false, error:'PIN ไม่ถูกต้อง'};
   }
   return {ok:true, foreman:foreman, name:'โฟร์แมน'+foreman};
+}
+
+// ============================================================
+// ===== Round 5 — Auth + Roles + production tabs
+// ============================================================
+//
+// users tab — column ที่ใช้ (extend จาก Round 1):
+//   user_id | line_user_id | display_name | line_picture_url | phone | role | active | created_at | last_login_at
+//   note: ใช้ "phone" column เก็บ PIN (4-6 หลัก) เพื่อรักษา schema เดิม
+//
+// 7 Roles + permissions (ตรงกับ demo-auth.js):
+const ROLE_PERMS = {
+  developer: ['*'],
+  admin: ['view.home','view.cost','view.sales.dashboard','view.income.calc',
+    'view.customers','view.transfer','view.construction.admin','view.payments','view.fees',
+    'manage.construction','manage.payments','manage.fees','manage.transfer','upload.cost',
+    'create.quotation','create.booking','create.contract','create.receipt','create.promotion','create.walkin'],
+  sales: ['view.home','view.sales.dashboard','view.income.calc','view.customers',
+    'create.quotation','create.booking','create.contract','create.receipt','create.promotion','create.walkin','view.payments'],
+  finance: ['view.home','view.sales.dashboard','view.payments','view.fees',
+    'manage.payments','manage.fees','create.receipt'],
+  foreman: ['view.foreman','update.field'],
+  transfer: ['view.home','view.transfer','manage.transfer','create.receipt'],
+  viewer: ['view.home','view.cost','view.sales.dashboard','view.customers','view.transfer']
+};
+
+function canPermission_(role, perm){
+  const perms = ROLE_PERMS[role] || [];
+  return perms.indexOf('*') >= 0 || perms.indexOf(perm) >= 0;
+}
+
+// Sessions เก็บใน Script Properties (ขึ้น/ลง = ภายใน 1 ชม. ก็โอเค) แต่ schema:
+// SessionMap = {token: {userId, role, username, expiresAt}}
+function loadSessions_(){
+  try {
+    const raw = PropertiesService.getScriptProperties().getProperty('OV_SESSIONS');
+    return raw ? JSON.parse(raw) : {};
+  } catch(e){ return {}; }
+}
+function saveSessions_(m){
+  PropertiesService.getScriptProperties().setProperty('OV_SESSIONS', JSON.stringify(m));
+}
+function pruneSessions_(m){
+  const now = Date.now(); let changed = false;
+  Object.keys(m).forEach(t => { if(m[t].expiresAt < now){ delete m[t]; changed=true; }});
+  if(changed) saveSessions_(m);
+  return m;
+}
+function genToken_(){
+  return 'tok_' + Date.now() + '_' + Math.random().toString(36).slice(2,12);
+}
+
+// authLogin — return {ok, token, user:{username,role,permissions}}
+function authLogin(username, pin){
+  if(!username || !pin) return {ok:false, error:'ต้องระบุชื่อ + PIN'};
+  const users = readTab('users');
+  const u = users.find(x =>
+    String(x.display_name||'').trim() === String(username).trim() &&
+    String(x.phone||'').trim() === String(pin).trim());
+  if(!u) return {ok:false, error:'ชื่อ หรือ PIN ไม่ถูกต้อง'};
+  if(String(u.active) === '0' || String(u.active).toLowerCase() === 'false')
+    return {ok:false, error:'บัญชีนี้ถูกระงับการใช้งาน'};
+
+  const token = genToken_();
+  const sessions = pruneSessions_(loadSessions_());
+  sessions[token] = {
+    userId: u.user_id,
+    username: u.display_name,
+    role: u.role || 'viewer',
+    expiresAt: Date.now() + (8 * 60 * 60 * 1000)  // 8 ชม.
+  };
+  saveSessions_(sessions);
+
+  return {
+    ok: true,
+    token: token,
+    user: {
+      userId: u.user_id,
+      username: u.display_name,
+      role: u.role || 'viewer',
+      permissions: ROLE_PERMS[u.role] || []
+    }
+  };
+}
+
+function authVerify(token){
+  if(!token) return {ok:false, error:'no token'};
+  const sessions = pruneSessions_(loadSessions_());
+  const s = sessions[token];
+  if(!s) return {ok:false, error:'session หมดอายุ — กรุณา login ใหม่'};
+  return {
+    ok: true,
+    user: {
+      userId: s.userId, username: s.username, role: s.role,
+      permissions: ROLE_PERMS[s.role] || []
+    }
+  };
+}
+
+function authLogout(token){
+  const sessions = loadSessions_();
+  delete sessions[token];
+  saveSessions_(sessions);
+  return {ok:true};
+}
+
+// requireAuth_ — helper สำหรับ functions ที่ต้องเช็คสิทธิ์ก่อน
+function requireAuth_(token, permission){
+  const v = authVerify(token);
+  if(!v.ok) return v;
+  if(permission && !canPermission_(v.user.role, permission)){
+    return {ok:false, error:'ไม่มีสิทธิ์: '+permission};
+  }
+  return {ok:true, user:v.user};
+}
+
+// ── User CRUD (admin/developer only) ──
+function userList(token){
+  const a = requireAuth_(token, '*');
+  // อนุญาตให้ admin ดู users ด้วย (ไม่ใช่แค่ dev)
+  if(!a.ok){
+    const a2 = requireAuth_(token);
+    if(!a2.ok) return a;
+    if(a2.user.role !== 'admin' && a2.user.role !== 'developer'){
+      return {ok:false, error:'ไม่มีสิทธิ์ดู users'};
+    }
+  }
+  const users = readTab('users');
+  return {ok:true, users:users};
+}
+
+function userSave(token, data){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(a.user.role !== 'developer'){
+    return {ok:false, error:'เฉพาะ developer แก้ users ได้'};
+  }
+  if(!data || !data.username || !data.pin) return {ok:false, error:'ต้องระบุ username + pin'};
+
+  const sh = sheet('users');
+  if(!sh) return {ok:false, error:'ไม่พบ tab: users'};
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+
+  // หาตำแหน่งของ row ที่ตรงกับ user_id หรือ display_name
+  let foundRow = -1;
+  if(data.userId){
+    for(let i=2; i<vals.length; i++){
+      if(String(vals[i][keys.indexOf('user_id')]) === String(data.userId)){ foundRow = i+1; break; }
+    }
+  }
+
+  // ถ้าไม่มี และเพิ่มใหม่ — ตรวจชื่อซ้ำ
+  if(foundRow < 0){
+    for(let i=2; i<vals.length; i++){
+      if(String(vals[i][keys.indexOf('display_name')]).trim() === String(data.username).trim()){
+        return {ok:false, error:'ชื่อนี้มีอยู่แล้ว'};
+      }
+    }
+  }
+
+  const row = {
+    user_id: data.userId || ('u_' + Date.now()),
+    line_user_id: '',
+    display_name: String(data.username).trim(),
+    line_picture_url: '',
+    phone: String(data.pin).trim(),
+    role: data.role || 'viewer',
+    active: (data.active === false || String(data.active)==='0') ? 0 : 1,
+    created_at: new Date().toISOString(),
+    last_login_at: ''
+  };
+
+  if(foundRow > 0){
+    // update
+    Object.keys(row).forEach(k => {
+      const col = keys.indexOf(k);
+      if(col >= 0 && k !== 'created_at') {  // keep created_at
+        sh.getRange(foundRow, col+1).setValue(row[k]);
+      }
+    });
+    return {ok:true, userId: row.user_id, action:'updated'};
+  } else {
+    const rowArr = keys.map(k => row[k] !== undefined ? row[k] : '');
+    sh.appendRow(rowArr);
+    return {ok:true, userId: row.user_id, action:'added'};
+  }
+}
+
+function userDelete(token, userId){
+  const a = requireAuth_(token);
+  if(!a.ok) return a;
+  if(a.user.role !== 'developer') return {ok:false, error:'เฉพาะ developer ลบ user ได้'};
+  if(!userId) return {ok:false, error:'ต้องระบุ userId'};
+
+  const sh = sheet('users');
+  if(!sh) return {ok:false, error:'ไม่พบ tab: users'};
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const userIdCol = keys.indexOf('user_id');
+  const roleCol = keys.indexOf('role');
+
+  for(let i=2; i<vals.length; i++){
+    if(String(vals[i][userIdCol]) === String(userId)){
+      // ห้ามลบ developer คนสุดท้าย
+      if(vals[i][roleCol] === 'developer'){
+        const devs = vals.filter((r,idx) => idx>=2 && r[roleCol] === 'developer');
+        if(devs.length <= 1) return {ok:false, error:'ต้องมี developer อย่างน้อย 1 คน'};
+      }
+      sh.deleteRow(i+1);
+      return {ok:true};
+    }
+  }
+  return {ok:false, error:'ไม่พบ user'};
+}
+
+// ============================================================
+// ===== Walkin v2 — Sheet tab "walkins_v2" (Round 5)
+// ============================================================
+const WALKIN_V2_KEYS = ['walkin_id','date','name','phone','fb','line','source',
+  'budget','houseType','plotInterest','promo','agent','compete','status','rating',
+  'feedback','followup','createdAt','updatedAt'];
+
+function ensureWalkinV2_(){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName('walkins_v2');
+  if(!sh){
+    sh = ss.insertSheet('walkins_v2');
+    sh.getRange(1,1,1,WALKIN_V2_KEYS.length).setValues([WALKIN_V2_KEYS]);
+    sh.getRange(2,1,1,WALKIN_V2_KEYS.length).setValues([['ID','วันที่','ชื่อ','โทร','Facebook','LINE','แหล่งที่มา',
+      'งบ','แบบบ้าน','แปลงสนใจ','โปรโม','เซลส์','คู่แข่ง','สถานะ','คะแนน',
+      'คำติชม','Follow-up','สร้างเมื่อ','แก้ไขเมื่อ']]);
+    sh.setFrozenRows(2);
+  }
+  return sh;
+}
+
+function getWalkinsV2(token){
+  const a = requireAuth_(token, 'view.customers');
+  if(!a.ok){
+    const a2 = requireAuth_(token, 'create.walkin');
+    if(!a2.ok) return a;
+  }
+  ensureWalkinV2_();
+  return {ok:true, walkins: readTab('walkins_v2')};
+}
+
+function saveWalkinV2(token, data){
+  const a = requireAuth_(token, 'create.walkin');
+  if(!a.ok) return a;
+  if(!data || !data.name) return {ok:false, error:'ต้องระบุชื่อ'};
+
+  const sh = ensureWalkinV2_();
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const now = new Date().toISOString();
+
+  if(data.walkin_id){
+    // Update
+    for(let i=2; i<vals.length; i++){
+      if(String(vals[i][keys.indexOf('walkin_id')]) === String(data.walkin_id)){
+        WALKIN_V2_KEYS.forEach(k => {
+          if(k === 'walkin_id' || k === 'createdAt') return;
+          const col = keys.indexOf(k);
+          if(col >= 0 && data[k] !== undefined){
+            sh.getRange(i+1, col+1).setValue(data[k]);
+          }
+        });
+        sh.getRange(i+1, keys.indexOf('updatedAt')+1).setValue(now);
+        return {ok:true, walkin_id: data.walkin_id, action:'updated'};
+      }
+    }
+  }
+  // Insert
+  const id = 'w_' + Date.now();
+  const row = {...data, walkin_id: id, createdAt: now, updatedAt: now};
+  const rowArr = keys.map(k => row[k] !== undefined ? row[k] : '');
+  sh.appendRow(rowArr);
+  return {ok:true, walkin_id: id, action:'added'};
+}
+
+function deleteWalkinV2(token, walkinId){
+  const a = requireAuth_(token, 'create.walkin');
+  if(!a.ok) return a;
+  if(!walkinId) return {ok:false, error:'ต้องระบุ walkinId'};
+  const sh = sheet('walkins_v2');
+  if(!sh) return {ok:false, error:'ไม่พบ tab'};
+  const vals = sh.getDataRange().getValues();
+  const idCol = vals[0].indexOf('walkin_id');
+  for(let i=2; i<vals.length; i++){
+    if(String(vals[i][idCol]) === String(walkinId)){
+      sh.deleteRow(i+1);
+      return {ok:true};
+    }
+  }
+  return {ok:false, error:'ไม่พบ'};
+}
+
+// ============================================================
+// ===== Payments / Fees / Transfers (Round 5)
+// ============================================================
+const PAYMENT_KEYS = ['payment_id','plot','installmentNo','dueDate','paid','paidDate',
+  'amount','method','slipUrl','note','createdAt'];
+const FEE_KEYS = ['fee_id','plot','date','months','amount','method','period','slipUrl','note','createdAt'];
+const TRANSFER_KEYS = ['plot','transferDate','bank','loanAmount','docsReady','docsTotal','status',
+  'cName','deed','landNo','contractPrice','assetPrice','evalPrice','note','updatedAt'];
+const CHECKLIST_KEYS = ['plot','checklist_state','updatedAt']; // JSON blob ใน checklist_state
+
+function ensureTab_(name, keys, labels){
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(name);
+  if(!sh){
+    sh = ss.insertSheet(name);
+    sh.getRange(1,1,1,keys.length).setValues([keys]);
+    sh.getRange(2,1,1,(labels||keys).length).setValues([labels||keys]);
+    sh.setFrozenRows(2);
+  }
+  return sh;
+}
+
+function getPayments(token){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  ensureTab_('down_installments', PAYMENT_KEYS);
+  return {ok:true, payments: readTab('down_installments')};
+}
+function savePayment(token, data){
+  const a = requireAuth_(token, 'manage.payments');
+  if(!a.ok) return a;
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = ensureTab_('down_installments', PAYMENT_KEYS);
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const now = new Date().toISOString();
+
+  // อัปสลิป ถ้ามี base64
+  let slipUrl = data.slipUrl || '';
+  if(data.slipBase64){
+    try {
+      const root = DriveApp.getFolderById(FILES_FOLDER_ID);
+      const downFolder = getOrCreateFolder(root, 'ผ่อนดาวน์');
+      const plotFolder = getOrCreateFolder(downFolder, 'แปลง '+data.plot);
+      const bytes = Utilities.base64Decode(data.slipBase64);
+      const fileName = data.slipFileName || ('slip-'+data.plot+'-งวด'+(data.installmentNo||'')+'-'+Date.now()+'.jpg');
+      const file = plotFolder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      slipUrl = file.getUrl();
+    } catch(e){}
+  }
+
+  // ค้น row เดิม (by plot + installmentNo)
+  if(data.installmentNo){
+    for(let i=2; i<vals.length; i++){
+      if(String(vals[i][keys.indexOf('plot')]) === String(data.plot) &&
+         String(vals[i][keys.indexOf('installmentNo')]) === String(data.installmentNo)){
+        // update
+        ['paid','paidDate','amount','method','note','dueDate'].forEach(k => {
+          const col = keys.indexOf(k);
+          if(col >= 0 && data[k] !== undefined) sh.getRange(i+1, col+1).setValue(data[k]);
+        });
+        if(slipUrl) sh.getRange(i+1, keys.indexOf('slipUrl')+1).setValue(slipUrl);
+        return {ok:true, slipUrl, action:'updated'};
+      }
+    }
+  }
+  // insert
+  const id = 'pay_' + Date.now();
+  const row = {...data, payment_id: id, slipUrl, createdAt: now};
+  sh.appendRow(keys.map(k => row[k] !== undefined ? row[k] : ''));
+  return {ok:true, payment_id: id, slipUrl, action:'added'};
+}
+
+function getFees(token){
+  const a = requireAuth_(token, 'view.fees');
+  if(!a.ok) return a;
+  ensureTab_('fees', FEE_KEYS);
+  return {ok:true, fees: readTab('fees')};
+}
+function saveFee(token, data){
+  const a = requireAuth_(token, 'manage.fees');
+  if(!a.ok) return a;
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = ensureTab_('fees', FEE_KEYS);
+
+  let slipUrl = data.slipUrl || '';
+  if(data.slipBase64){
+    try {
+      const root = DriveApp.getFolderById(FILES_FOLDER_ID);
+      const feeFolder = getOrCreateFolder(root, 'ค่าส่วนกลาง');
+      const plotFolder = getOrCreateFolder(feeFolder, 'แปลง '+data.plot);
+      const bytes = Utilities.base64Decode(data.slipBase64);
+      const fileName = data.slipFileName || ('fee-'+data.plot+'-'+Date.now()+'.jpg');
+      const file = plotFolder.createFile(Utilities.newBlob(bytes, 'image/jpeg', fileName));
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      slipUrl = file.getUrl();
+    } catch(e){}
+  }
+  const id = 'fee_' + Date.now();
+  const row = {...data, fee_id: id, slipUrl, createdAt: new Date().toISOString()};
+  const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  sh.appendRow(keys.map(k => row[k] !== undefined ? row[k] : ''));
+  return {ok:true, fee_id: id, slipUrl};
+}
+function deleteFee(token, feeId){
+  const a = requireAuth_(token, 'manage.fees');
+  if(!a.ok) return a;
+  const sh = sheet('fees');
+  if(!sh) return {ok:false, error:'ไม่พบ tab'};
+  const vals = sh.getDataRange().getValues();
+  const idCol = vals[0].indexOf('fee_id');
+  for(let i=2; i<vals.length; i++){
+    if(String(vals[i][idCol]) === String(feeId)){
+      sh.deleteRow(i+1);
+      return {ok:true};
+    }
+  }
+  return {ok:false, error:'ไม่พบ'};
+}
+
+function getTransfers(token){
+  const a = requireAuth_(token, 'view.transfer');
+  if(!a.ok) return a;
+  ensureTab_('transfers', TRANSFER_KEYS);
+  return {ok:true, transfers: readTab('transfers')};
+}
+function saveTransfer(token, data){
+  const a = requireAuth_(token, 'manage.transfer');
+  if(!a.ok) return a;
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = ensureTab_('transfers', TRANSFER_KEYS);
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const now = new Date().toISOString();
+
+  for(let i=2; i<vals.length; i++){
+    if(String(vals[i][keys.indexOf('plot')]) === String(data.plot)){
+      keys.forEach(k => {
+        if(k === 'plot' || data[k] === undefined) return;
+        const col = keys.indexOf(k);
+        if(col >= 0) sh.getRange(i+1, col+1).setValue(data[k]);
+      });
+      sh.getRange(i+1, keys.indexOf('updatedAt')+1).setValue(now);
+      return {ok:true, action:'updated'};
+    }
+  }
+  const row = {...data, updatedAt: now};
+  sh.appendRow(keys.map(k => row[k] !== undefined ? row[k] : ''));
+  return {ok:true, action:'added'};
+}
+
+function getChecklistState(token, plot){
+  const a = requireAuth_(token, 'view.transfer');
+  if(!a.ok) return a;
+  if(!plot) return {ok:false, error:'ต้องระบุ plot'};
+  ensureTab_('transfer_checklists', CHECKLIST_KEYS);
+  const all = readTab('transfer_checklists');
+  const row = all.find(x => String(x.plot) === String(plot));
+  if(!row) return {ok:true, state: null};
+  try {
+    return {ok:true, state: JSON.parse(row.checklist_state)};
+  } catch(e){
+    return {ok:true, state: null};
+  }
+}
+function saveChecklistState(token, data){
+  const a = requireAuth_(token, 'manage.transfer');
+  if(!a.ok) return a;
+  if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
+  const sh = ensureTab_('transfer_checklists', CHECKLIST_KEYS);
+  const vals = sh.getDataRange().getValues();
+  const keys = vals[0];
+  const blob = JSON.stringify(data.state || {});
+  const now = new Date().toISOString();
+  for(let i=2; i<vals.length; i++){
+    if(String(vals[i][keys.indexOf('plot')]) === String(data.plot)){
+      sh.getRange(i+1, keys.indexOf('checklist_state')+1).setValue(blob);
+      sh.getRange(i+1, keys.indexOf('updatedAt')+1).setValue(now);
+      return {ok:true, action:'updated'};
+    }
+  }
+  sh.appendRow([data.plot, blob, now]);
+  return {ok:true, action:'added'};
 }
 
 // ============================================================

@@ -129,81 +129,13 @@
     <p>ระบบบริหารครบวงจร — ต้นทุน · งานขาย · เอกสาร · ฐานข้อมูล ครบ 483 แปลง ในที่เดียว</p>
   </section>
 
+  <!-- Auth bar (inject via JS) -->
+  <div id="authBar"></div>
+
   <!-- TOOLS -->
   <section class="tools">
     <div class="wrap">
-      <div class="tgrid">
-        <a class="tcard" href="index.html">
-          <div class="ic">💰</div><div class="nm">แดชบอร์ดต้นทุนบ้าน</div>
-          <div class="ds">ต้นทุนวัสดุ + ค่าแรงรายหลัง ครบ 483 แปลง</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-dashboard.html">
-          <div class="ic">📊</div><div class="nm">แดชบอร์ดงานขาย</div>
-          <div class="ds">สถานะรายหลัง + รายงานรายเดือน/ปี + หลุดจอง</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="income-calculator.html">
-          <div class="ic">🧮</div><div class="nm">คำนวณรายได้ &amp; สินเชื่อ</div>
-          <div class="ds">ประเมินความสามารถผ่อน + วงเงินกู้</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-quotation.html">
-          <div class="ic">📄</div><div class="nm">ใบเสนอราคา</div>
-          <div class="ds">ออกใบเสนอราคา ดึงราคาจากฐานข้อมูล</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-booking.html">
-          <div class="ic">📋</div><div class="nm">ใบจอง</div>
-          <div class="ds">ออกใบจอง บันทึกเข้าฐานข้อมูลกลาง</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-contract.html">
-          <div class="ic">📜</div><div class="nm">สัญญาจะซื้อจะขาย</div>
-          <div class="ds">ออกสัญญา 17 ข้อ พร้อมตารางผ่อนดาวน์</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-receipt.html">
-          <div class="ic">🧾</div><div class="nm">ใบเสร็จรับเงิน</div>
-          <div class="ds">ออกใบเสร็จค่างวด บันทึกการชำระเงิน</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-promotion.html">
-          <div class="ic">🎁</div><div class="nm">ใบโปรโมชั่น</div>
-          <div class="ds">ใบยืนยันสิทธิ์โปรโมชั่นแนบสัญญา</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="sales-walkin.html">
-          <div class="ic">👥</div><div class="nm">ลูกค้าวอร์คอิน</div>
-          <div class="ds">บันทึกลูกค้าที่เข้าชมโครงการรายวัน เก็บข้อมูลวิเคราะห์งานขาย</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="admin-upload.html">
-          <div class="ic">📤</div><div class="nm">อัปโหลด Excel ต้นทุน</div>
-          <div class="ds">โยน .xlsx รายงาน Ecount → อัปเดตแดชบอร์ดต้นทุนอัตโนมัติ</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="admin-construction.html">
-          <div class="ic">🏗️</div><div class="nm">จัดการแปลงก่อสร้าง</div>
-          <div class="ds">เริ่ม/หยุดการก่อสร้างรายแปลง · auto-assign โฟร์แมนตามไทป์</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="foreman-update.html">
-          <div class="ic">👷</div><div class="nm">อัปเดตงานหน้าไซต์ (โฟร์แมน)</div>
-          <div class="ds">สำหรับโฟร์แมน — เลือก milestone · ถ่ายรูป · GPS · ส่งรายงาน</div>
-          <div class="go">เปิด →</div>
-        </a>
-        <a class="tcard" href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank">
-          <div class="ic">📁</div><div class="nm">Data base (Drive)</div>
-          <div class="ds">เปิดโฟลเดอร์ปลายทาง — สลิป/สัญญา/ใบเสร็จ/รูปหน้างาน · หาเอกสารเองได้</div>
-          <div class="go">เปิด ↗</div>
-        </a>
-        <a class="tcard" href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank">
-          <div class="ic">📊</div><div class="nm">Data base (Sheet)</div>
-          <div class="ds">เปิด Google Sheet ฐานข้อมูลกลาง — แก้ข้อมูลตรงจาก Sheet ได้</div>
-          <div class="go">เปิด ↗</div>
-        </a>
-      </div>
+      <div class="tgrid" id="toolsGrid"></div>
     </div>
   </section>
 
@@ -247,5 +179,46 @@
     </div>
   </footer>
 
+<script src="_tools/auth-client.js"></script>
+<script>
+  // ── Auth check ──
+  if(!Auth.require('view.home')) { /* redirected */ }
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  // ถ้าเป็นโฟร์แมน → ส่งไปหน้าโฟร์แมนเลย (ไม่เห็น home)
+  const u = Auth.getUser();
+  if(u && u.role === 'foreman'){
+    location.replace('foreman-update.html');
+  }
+
+  // ── Tools list (filter by permission) ──
+  const TOOLS = [
+    {href:'index.html',                ic:'💰',nm:'แดชบอร์ดต้นทุนบ้าน',ds:'ต้นทุนวัสดุ + ค่าแรงรายหลัง ครบ 483 แปลง', perm:'view.cost'},
+    {href:'sales-dashboard.html',      ic:'📊',nm:'แดชบอร์ดงานขาย',  ds:'สถานะรายหลัง + รายงานรายเดือน/ปี + หลุดจอง', perm:'view.sales.dashboard'},
+    {href:'admin-construction.html',   ic:'🏗️',nm:'แดชบอร์ดก่อสร้าง',ds:'เริ่ม/หยุดก่อสร้าง · auto-assign โฟร์แมน · ดู progress รายแปลง', perm:'view.construction.admin'},
+    {href:'transfer.html',             ic:'📋',nm:'แดชบอร์ดงานโอน',ds:'รายแปลงงานโอน · checklist · ใบชี้แจงเงิน · แยกเช็ค', perm:'view.transfer'},
+    {href:'income-calculator.html',    ic:'🧮',nm:'คำนวณรายได้ & สินเชื่อ',ds:'ประเมินความสามารถผ่อน + วงเงินกู้', perm:'view.income.calc'},
+    {href:'sales-walkin.html',         ic:'👥',nm:'ลูกค้าวอร์คอิน',ds:'บันทึกลูกค้าที่เข้าชม · FB/LINE/งบ/แบบบ้าน/agent/คู่แข่ง', perm:'create.walkin'},
+    {href:'payment.html',              ic:'💵',nm:'ผ่อนดาวน์ + แนบสลิป',ds:'บันทึกค่าผ่อนดาวน์รายงวด · แนบสลิป · เก็บใน Drive', perm:'view.payments'},
+    {href:'fee.html',                  ic:'🏘️',nm:'ค่าส่วนกลาง',ds:'รับเงินค่าส่วนกลางรายแปลง · แนบสลิป', perm:'view.fees'},
+    {href:'foreman-update.html',       ic:'👷',nm:'อัปเดตงานหน้าไซต์',ds:'สำหรับโฟร์แมน — milestone · ถ่ายรูป · GPS · รายงาน', perm:'view.foreman'},
+    {href:'admin-upload.html',         ic:'📤',nm:'อัปโหลด Excel ต้นทุน',ds:'โยน .xlsx Ecount → อัปเดตแดชบอร์ดอัตโนมัติ', perm:'upload.cost'},
+    {href:'developer.html',            ic:'🔧',nm:'จัดการ Users + Roles',ds:'เพิ่ม/ลบ/แก้ผู้ใช้งาน · ตั้ง PIN + role', perm:'*'},
+    {href:'https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk',target:'_blank',
+      ic:'📁',nm:'Data base (Drive)',ds:'เปิดโฟลเดอร์ปลายทาง — สลิป/สัญญา/ใบเสร็จ/รูปหน้างาน', perm:'view.home'},
+    {href:'https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit',target:'_blank',
+      ic:'📊',nm:'Data base (Sheet)',ds:'Google Sheet ฐานข้อมูลกลาง', perm:'view.home'}
+  ];
+
+  document.getElementById('toolsGrid').innerHTML = TOOLS
+    .filter(t => Auth.can(t.perm))
+    .map(t =>
+      `<a class="tcard" href="${t.href}" ${t.target?'target="'+t.target+'"':''}>
+        <div class="ic">${t.ic}</div>
+        <div class="nm">${t.nm}</div>
+        <div class="ds">${t.ds}</div>
+        <div class="go">เปิด ${t.target?'↗':'→'}</div>
+      </a>`).join('');
+</script>
 </body>
 </html>
