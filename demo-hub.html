@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎬 เดโม Workflow ก่อสร้าง — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-dk:#8d6d3f;
+    --bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;--soft:#f7f8fa;
+    --green:#16a34a;--amber:#d97706;--red:#dc2626;--blue:#2563eb;--purple:#6b21a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);min-height:100vh;
+    background:linear-gradient(135deg,#3d3d3d 0%,#1a1a1a 100%);padding:24px 16px;line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto}
+
+  .hero{text-align:center;color:#fff;padding:30px 20px 40px}
+  .hero h1{font-size:32px;font-weight:800;margin-bottom:8px;letter-spacing:-.5px}
+  .hero .sub{font-size:14px;opacity:.7;letter-spacing:2px;text-transform:uppercase;font-weight:500}
+  .hero .desc{margin-top:18px;max-width:560px;margin-left:auto;margin-right:auto;
+    font-size:15px;opacity:.85;line-height:1.6}
+
+  /* Demo cards */
+  .demos{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+  .demo-card{background:#fff;border-radius:18px;padding:24px 22px;text-decoration:none;color:inherit;
+    box-shadow:0 8px 30px rgba(0,0,0,.2);transition:all .2s;display:flex;flex-direction:column;
+    border-top:5px solid var(--gold)}
+  .demo-card:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.3)}
+  .demo-card.foreman{border-top-color:var(--blue)}
+  .demo-card.tracker{border-top-color:var(--green)}
+  .demo-card .ic{font-size:50px;margin-bottom:12px;line-height:1}
+  .demo-card .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;
+    text-transform:uppercase;margin-bottom:4px}
+  .demo-card h3{font-size:20px;font-weight:800;color:var(--charcoal);margin-bottom:10px}
+  .demo-card .role{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.55;flex:1}
+  .demo-card .role b{color:var(--charcoal)}
+  .demo-card .cta{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;
+    color:var(--gold);align-self:flex-start}
+  .demo-card.foreman .cta{color:var(--blue)}
+  .demo-card.tracker .cta{color:var(--green)}
+  .demo-card:hover .cta{gap:10px}
+
+  /* State panel */
+  .state-panel{background:#fff;border-radius:16px;padding:22px 24px;margin-bottom:16px;
+    box-shadow:0 6px 24px rgba(0,0,0,.15)}
+  .state-panel h2{font-size:15px;color:var(--charcoal);font-weight:800;margin-bottom:14px;
+    display:flex;align-items:center;gap:8px}
+  .state-panel h2 .live{display:inline-block;width:8px;height:8px;background:var(--green);
+    border-radius:50%;animation:blink 1.5s infinite}
+  @keyframes blink{50%{opacity:.3}}
+
+  .state-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:14px}
+  .state-cell{background:var(--soft);border-radius:10px;padding:12px 14px}
+  .state-cell .lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase;margin-bottom:3px}
+  .state-cell .num{font-size:22px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .state-cell .num small{font-size:11px;color:var(--muted);font-weight:600;margin-left:2px}
+  .state-cell.act .num{color:var(--amber)}
+  .state-cell.ko .num{color:var(--gold)}
+  .state-cell.yai .num{color:var(--purple)}
+
+  .active-list{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+  .ap-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:10px;
+    background:var(--soft);color:var(--charcoal)}
+  .ap-chip .typ{font-size:10px;color:var(--muted);margin-left:4px;font-weight:600}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .actions button{font-family:inherit;font-size:13px;font-weight:700;border:1px solid var(--line);
+    background:#fff;color:var(--charcoal);padding:9px 14px;border-radius:9px;cursor:pointer}
+  .actions button:hover{border-color:var(--gold);color:var(--gold)}
+  .actions button.danger:hover{border-color:var(--red);color:var(--red)}
+
+  /* Workflow guide */
+  .guide{background:#fff;border-radius:16px;padding:22px 24px;
+    box-shadow:0 6px 24px rgba(0,0,0,.15)}
+  .guide h2{font-size:15px;color:var(--charcoal);font-weight:800;margin-bottom:14px}
+  .steps{display:grid;gap:10px}
+  .step{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;background:var(--soft);
+    border-radius:10px;font-size:13.5px}
+  .step .n{flex-shrink:0;width:28px;height:28px;background:var(--gold);color:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .step .txt{flex:1;line-height:1.6}
+  .step .txt b{color:var(--charcoal)}
+  .step .role{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:7px;
+    background:#fff;border:1px solid var(--line);margin-left:6px}
+  .step .role.admin{color:var(--gold);border-color:#f5d8a0;background:#fff8e6}
+  .step .role.foreman{color:var(--blue);border-color:#bfdbfe;background:#eff6ff}
+  .step .role.tracker{color:var(--green);border-color:#bbf7d0;background:#f0fdf4}
+
+  footer{text-align:center;font-size:11px;color:rgba(255,255,255,.5);margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>🎬 เดโม Workflow ก่อสร้าง</h1>
+    <div class="sub">One Vela · Two Build Development</div>
+    <div class="desc">
+      ทดลองเล่นทั้ง 3 มุมมอง — admin · โฟร์แมน · ทีมขาย —<br>
+      ข้อมูลแชร์กันผ่าน localStorage · เปลี่ยนตรงไหน เห็นทุกมุมทันที
+    </div>
+  </div>
+
+  <!-- ── State panel ── -->
+  <div class="state-panel">
+    <h2><span class="live"></span> สถานะปัจจุบัน (live state)</h2>
+    <div class="state-grid">
+      <div class="state-cell act">
+        <div class="lbl">🏗️ กำลังก่อสร้าง</div>
+        <div class="num" id="cActive">—<small> แปลง</small></div>
+      </div>
+      <div class="state-cell">
+        <div class="lbl">📭 ยังไม่เริ่ม</div>
+        <div class="num" id="cEmpty">—<small> แปลง</small></div>
+      </div>
+      <div class="state-cell ko">
+        <div class="lbl">👷 โฟร์แมนโก้ (ULTRA)</div>
+        <div class="num" id="cKo">—<small> แปลง</small></div>
+      </div>
+      <div class="state-cell yai">
+        <div class="lbl">👷 โฟร์แมนใหญ่ (B/C/D)</div>
+        <div class="num" id="cYai">—<small> แปลง</small></div>
+      </div>
+    </div>
+
+    <div id="activeListWrap" style="display:none">
+      <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px;
+        letter-spacing:.4px;text-transform:uppercase">แปลงที่กำลังก่อสร้าง</div>
+      <div class="active-list" id="activeList"></div>
+    </div>
+
+    <div class="actions">
+      <button onclick="DemoState.reset();updateState()">🔄 รีเซ็ตข้อมูลเดโม</button>
+      <button onclick="copyState()">📋 ดู state (JSON)</button>
+    </div>
+  </div>
+
+  <!-- ── Demo cards ── -->
+  <div class="demos">
+    <a href="admin-construction-demo.html" class="demo-card admin">
+      <div class="ic">👤</div>
+      <div class="lbl">บทบาท: คุณไอซ์</div>
+      <h3>หน้า Admin</h3>
+      <div class="role">
+        จัดการแปลงก่อสร้าง — <b>เริ่ม/หยุด</b>การก่อสร้าง<br>
+        เลือกจาก 483 แปลง · ระบบ assign โฟร์แมนตามไทป์อัตโนมัติ
+      </div>
+      <div class="cta">เข้าหน้านี้ →</div>
+    </a>
+
+    <a href="foreman-demo.html" class="demo-card foreman">
+      <div class="ic">👷</div>
+      <div class="lbl">บทบาท: โฟร์แมน (มือถือ)</div>
+      <h3>หน้าโฟร์แมน</h3>
+      <div class="role">
+        เปิดบนมือถือ — โฟร์แมน<b>อัปเดตงาน</b>หน้าไซต์<br>
+        เห็นเฉพาะแปลงตัวเอง · เลือก milestone · ถ่ายรูป · GPS
+      </div>
+      <div class="cta">เข้าหน้านี้ →</div>
+    </a>
+
+    <a href="tracker-demo.html" class="demo-card tracker">
+      <div class="ic">📊</div>
+      <div class="lbl">บทบาท: ทีมขาย/แอดมิน</div>
+      <h3>หน้า Tracker</h3>
+      <div class="role">
+        การ์ดสถานะก่อสร้างที่<b>ฝังใน plot-detail</b><br>
+        ดู % · timeline · บันทึกโฟร์แมน · ภาพหน้างาน
+      </div>
+      <div class="cta">เข้าหน้านี้ →</div>
+    </a>
+  </div>
+
+  <!-- ── Workflow guide ── -->
+  <div class="guide">
+    <h2>🎯 ลองเล่นตาม Workflow นี้</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <div class="txt">เปิด <b>หน้า Admin</b> <span class="role admin">admin</span>
+          → กด <b>"+ เริ่มก่อสร้างแปลงใหม่"</b> → ค้น "230" → เลือกแปลง → กดเริ่ม</div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <div class="txt">เปิด <b>หน้าโฟร์แมน</b> <span class="role foreman">foreman</span>
+          → login โก้ (หรือใหญ่) → แปลงใหม่ที่เพิ่งเริ่มจะอยู่ในรายการ</div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div class="txt">เลือกแปลงนั้น → เลือก milestone ที่เสร็จ → ถ่ายรูป (mock) → ใส่บันทึก → กด <b>"บันทึกอัปเดต"</b></div>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <div class="txt">กลับมา <b>หน้า Admin</b> → เห็น % progress + อัปเดตล่าสุดของแปลงนั้นเปลี่ยนทันที</div>
+      </div>
+      <div class="step">
+        <div class="n">5</div>
+        <div class="txt">เปิด <b>หน้า Tracker</b> <span class="role tracker">tracker</span>
+          → เลือกแปลงเดียวกัน → เห็นบันทึกที่โฟร์แมนเพิ่งใส่ + รูปที่เพิ่งถ่าย</div>
+      </div>
+      <div class="step">
+        <div class="n">6</div>
+        <div class="txt">กลับ <b>Admin</b> → กดปุ่ม <b>"หยุด"</b> → แปลงนั้นจะหายจาก dropdown โฟร์แมน</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>เดโม workflow ก่อสร้าง · One Vela — Two Build Development · ไม่ deploy · localStorage demo</footer>
+</div>
+
+<script src="_tools/demo-state.js"></script>
+<script>
+  DemoState.init();
+
+  function updateState(){
+    const c = DemoState.getCounts();
+    document.getElementById('cActive').innerHTML = c.active+'<small> แปลง</small>';
+    document.getElementById('cEmpty').innerHTML = c.empty+'<small> แปลง</small>';
+    document.getElementById('cKo').innerHTML = c.koLoad+'<small> แปลง</small>';
+    document.getElementById('cYai').innerHTML = c.yaiLoad+'<small> แปลง</small>';
+
+    const active = DemoState.getActivePlots();
+    const wrap = document.getElementById('activeListWrap');
+    if(active.length){
+      wrap.style.display = '';
+      document.getElementById('activeList').innerHTML = active.map(p =>
+        `<span class="ap-chip">C${p.plot} <span class="typ">${p.type} · ${p.progress}%</span></span>`
+      ).join('');
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  function copyState(){
+    const s = DemoState.get();
+    const txt = JSON.stringify({counts: DemoState.getCounts(), active: DemoState.getActivePlots()}, null, 2);
+    navigator.clipboard.writeText(txt).then(
+      ()=>alert('คัดลอก state ลง clipboard แล้ว'),
+      ()=>alert('คัดลอกไม่สำเร็จ\n\n'+txt.slice(0,500))
+    );
+  }
+
+  DemoState.on(updateState);
+  updateState();
+  // refresh เมื่อกลับมาที่หน้านี้
+  window.addEventListener('focus', updateState);
+</script>
+</body>
+</html>

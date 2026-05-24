@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>📊 เดโม: ติดตามงานก่อสร้าง — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;
+    --grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--soft:#f7f8fa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;padding-top:64px}
+  .wrap{max-width:980px;margin:0 auto}
+
+  /* Demo nav */
+  .demo-nav{position:fixed;top:0;left:0;right:0;background:#1a1a1a;color:#fff;
+    padding:10px 16px;display:flex;align-items:center;gap:8px;z-index:90;
+    box-shadow:0 2px 12px rgba(0,0,0,.2);font-size:13px;flex-wrap:wrap}
+  .demo-nav .lbl{font-weight:700;opacity:.55;letter-spacing:.5px;text-transform:uppercase;
+    font-size:11px;margin-right:8px}
+  .demo-nav a{color:#fff;text-decoration:none;padding:6px 12px;border-radius:8px;font-weight:700;
+    background:rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:5px}
+  .demo-nav a:hover{background:var(--gold)}
+  .demo-nav a.on{background:var(--gold)}
+  .demo-nav .live{margin-left:auto;font-size:11.5px;opacity:.75;display:flex;align-items:center;gap:6px}
+  .demo-nav .live .dot{width:7px;height:7px;background:#4ade80;border-radius:50%;animation:blink 1.5s infinite}
+  .demo-nav .live b{color:var(--gold);font-weight:800}
+  @keyframes blink{50%{opacity:.4}}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+
+  .picker{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;
+    box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .picker .lbl{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;margin-bottom:8px}
+  .picker select{width:100%;font-family:inherit;font-size:15px;font-weight:600;
+    padding:11px 14px;border:2px solid var(--line);border-radius:9px;background:#fff;
+    color:var(--ink);appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%237d8794' d='M6 8L0 0h12z'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+  .picker .hint{margin-top:10px;font-size:12px;color:var(--muted);font-style:italic}
+
+  .demo-note{background:#fff8e6;border:1px dashed var(--gold);border-radius:10px;padding:10px 14px;
+    font-size:12.5px;color:#7a5a2e;margin-bottom:14px;text-align:center}
+
+  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:18px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:8px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+
+  .trk{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .trk-hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .trk-pct{font-size:30px;font-weight:800;color:var(--gold);line-height:1}
+  .trk-pct small{font-size:13px;color:var(--muted);margin-left:4px;font-weight:600}
+  .trk-cur{flex:1;min-width:200px}
+  .trk-cur .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+  .trk-cur .nm{font-size:15px;font-weight:700;color:var(--charcoal);margin-top:2px}
+  .trk-cur .cat{font-size:12px;color:var(--muted);margin-top:1px}
+  .trk-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;
+    font-size:12.5px;margin-top:4px}
+  .trk-meta .lbl{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .trk-meta .val{color:var(--ink);font-weight:600}
+  .trk-bar{height:10px;background:#eef1f4;border-radius:6px;overflow:hidden;margin:10px 0 14px}
+  .trk-bar>div{height:100%;background:linear-gradient(90deg,#b08d57,#d4b274);transition:width .6s}
+  .trk-sub{font-size:12.5px;font-weight:700;color:var(--muted);margin:16px 0 8px;
+    text-transform:uppercase;letter-spacing:.7px}
+
+  .trk-tl{list-style:none;padding:0;margin:0;border-left:2px solid var(--line);padding-left:14px}
+  .trk-tl li{position:relative;padding:6px 0 6px 4px;font-size:13px;line-height:1.4}
+  .trk-tl li::before{content:'';position:absolute;left:-21px;top:11px;width:10px;height:10px;
+    border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .trk-tl li.done::before{background:var(--green);border-color:var(--green)}
+  .trk-tl li.curr::before{background:var(--gold);border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(176,141,87,.25)}
+  .trk-tl li.done{color:var(--muted)}
+  .trk-tl li.done .nm{text-decoration:line-through}
+  .trk-tl li.curr{font-weight:700;color:var(--charcoal)}
+  .trk-tl .nm{display:inline-block}
+  .trk-tl .cat{font-size:11px;color:var(--muted);margin-left:6px;font-weight:500}
+
+  .trk-up{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .trk-up li{background:var(--soft);border-radius:8px;padding:9px 12px;font-size:12.5px;
+    border-left:3px solid var(--line)}
+  .trk-up li.issue{border-left-color:var(--red);background:#fef2f2}
+  .trk-up li.fresh{border-left-color:var(--green);background:#f0fdf4}
+  .trk-up .ut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .trk-up .dt{font-weight:700;color:var(--charcoal)}
+  .trk-up .who{color:var(--muted);font-size:11.5px}
+  .trk-up .nt{margin-top:3px;color:var(--ink)}
+  .trk-up .iss{margin-top:4px;font-size:11.5px;color:var(--red);font-weight:600}
+  .trk-up .ms{margin-top:3px;font-size:11.5px;color:var(--green);font-weight:600}
+  .trk-up .ph{margin-top:3px;font-size:11.5px;color:var(--muted)}
+
+  .trk-ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+  .trk-ph .box{aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#dfd7c8,#b08d57);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:300}
+
+  .trk-empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:14px}
+  .trk-empty .big{font-size:42px;margin-bottom:6px}
+  .trk-empty a{color:var(--gold);font-weight:700;text-decoration:none}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:24px 0}
+</style>
+</head>
+<body>
+
+<div class="demo-nav">
+  <span class="lbl">🎬 เดโม</span>
+  <a href="demo-hub.html">🏠 Hub</a>
+  <a href="admin-construction-demo.html">👤 Admin</a>
+  <a href="foreman-demo.html">👷 โฟร์แมน</a>
+  <a href="tracker-demo.html" class="on">📊 Tracker</a>
+  <div class="live">
+    <span class="dot"></span>
+    กำลังก่อสร้าง: <b id="navLive">—</b>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ttl">ติดตามงานก่อสร้าง<small>TRACKER · ทีมขาย/แอดมินดู</small></div>
+  </div>
+
+  <div class="demo-note">
+    🧪 <b>shared state</b> — ดูสถานะของแปลงที่ admin เริ่มก่อสร้าง + อัปเดตจากโฟร์แมน
+  </div>
+
+  <div class="picker">
+    <div class="lbl">เลือกแปลงที่กำลังก่อสร้าง</div>
+    <select id="plotSel" onchange="onPlotChange()"></select>
+    <div class="hint">💡 ส่วนนี้ของจริงจะฝังในหน้า <code>plot-detail.html?plot=XXX</code> — เห็นพร้อมเอกสารการขายเลย</div>
+  </div>
+
+  <h2 class="sec">🏗️ งานก่อสร้าง <span class="ct" id="ctTrk">—</span></h2>
+  <div id="tracker" class="trk"></div>
+
+  <footer>เดโม Tracker · One Vela — Two Build Development</footer>
+</div>
+
+<script src="_tools/demo-state.js"></script>
+<script>
+  DemoState.init();
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s||'').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function metaCell(lbl, val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+
+  function buildSelect(){
+    const sel = $('plotSel');
+    const active = DemoState.getActivePlots();
+    active.sort((a,b) => Number(a.plot) - Number(b.plot));
+    const urlPlot = new URLSearchParams(location.search).get('plot');
+    const current = sel.value || urlPlot || (active[0] && active[0].plot) || '';
+
+    if(active.length === 0){
+      sel.innerHTML = '<option value="">— ไม่มีแปลงกำลังก่อสร้าง —</option>';
+    } else {
+      sel.innerHTML = active.map(p => {
+        const fm = DemoState.foremanOfType(p.type);
+        return `<option value="${p.plot}" ${p.plot===current?'selected':''}>C${p.plot} · ${p.type} · ${p.progress}% · โฟร์แมน${fm}</option>`;
+      }).join('');
+    }
+    sel.disabled = active.length === 0;
+
+    onPlotChange();
+  }
+
+  function onPlotChange(){
+    const pid = $('plotSel').value;
+    if(!pid){
+      $('ctTrk').textContent = 'ไม่มี';
+      $('tracker').innerHTML = `
+        <div class="trk-empty">
+          <div class="big">📭</div>
+          <b>ยังไม่มีแปลงที่กำลังก่อสร้าง</b><br>
+          <span style="font-size:12px">เปิดหน้า <a href="admin-construction-demo.html">Admin</a> → กด "เริ่มก่อสร้าง"</span>
+        </div>
+      `;
+      return;
+    }
+    renderTracker(pid);
+  }
+
+  function renderTracker(pid){
+    const s = DemoState.get();
+    const p = s.plots[pid];
+    if(!p){ $('tracker').innerHTML = '<div class="trk-empty">ไม่พบแปลง C'+pid+'</div>'; return; }
+    const ms = DemoState.MILESTONES[p.type] || [];
+    const updates = DemoState.getUpdates(pid);
+    const fm = DemoState.foremanOfType(p.type);
+    const pct = p.progress || 0;
+    const curId = p.curMilestoneId;
+    const curMs = ms.find(m => m[0] === curId);
+
+    $('ctTrk').textContent = pct + '% · ' + (p.building ? 'กำลังก่อสร้าง' : 'หยุดแล้ว');
+
+    // ตรวจว่า milestone ไหนทำเสร็จแล้ว — id < curId หรืออยู่ใน msDone
+    const completed = new Set();
+    for(let i = 1; i < curId; i++) completed.add(i);
+    updates.forEach(u => {
+      (u.msDone || []).forEach(id => completed.add(Number(id)));
+    });
+
+    let html = '';
+
+    // หัว
+    html += '<div class="trk-hd">';
+    html += '<div class="trk-pct">'+pct+'<small>%</small></div>';
+    html += '<div class="trk-cur">';
+    html += '<div class="lbl">MILESTONE ปัจจุบัน</div>';
+    if(curMs){
+      html += '<div class="nm">'+curMs[0]+'. '+curMs[1]+'</div>';
+      html += '<div class="cat">'+curMs[2]+'</div>';
+    } else {
+      html += '<div class="nm" style="color:var(--muted)">ยังไม่ระบุ</div>';
+    }
+    html += '</div></div>';
+
+    html += '<div class="trk-bar"><div style="width:'+pct+'%"></div></div>';
+
+    html += '<div class="trk-meta">';
+    html += metaCell('สถานะ', p.building ? 'กำลังก่อสร้าง' : 'หยุดชั่วคราว');
+    html += metaCell('ไทป์บ้าน', p.type);
+    html += metaCell('โฟร์แมน', 'โฟร์แมน'+fm);
+    html += metaCell('วันเริ่ม', p.startedAt);
+    html += metaCell('อัปเดตล่าสุด', p.lastUpdateAt);
+    html += metaCell('สถานะขาย', p.status);
+    html += '</div>';
+
+    // Timeline
+    if(ms.length){
+      html += '<div class="trk-sub">📋 รายการงาน ('+ms.length+' รายการ · เสร็จ '+completed.size+')</div>';
+      html += '<ul class="trk-tl">';
+      ms.forEach(m => {
+        const [id, nm, cat] = m;
+        const isDone = completed.has(id);
+        const isCurr = id === curId;
+        const cls = isDone ? 'done' : (isCurr ? 'curr' : '');
+        html += '<li class="'+cls+'">'+
+          '<span class="nm">'+id+'. '+nm+'</span>'+
+          '<span class="cat">'+cat+'</span>'+
+        '</li>';
+      });
+      html += '</ul>';
+    }
+
+    // Updates
+    if(updates.length){
+      html += '<div class="trk-sub">📝 บันทึกล่าสุด ('+updates.length+' ครั้ง)</div>';
+      html += '<ul class="trk-up">';
+      updates.slice(0,10).forEach((u, idx) => {
+        const isFresh = idx === 0 && /เพิ่งอัปเดต|^25/.test(p.lastUpdateAt||'');
+        const cls = u.hasIssue ? 'issue' : (isFresh ? 'fresh' : '');
+        html += '<li class="'+cls+'">';
+        html += '<div class="ut"><span class="dt">'+(u.at||'-')+'</span>'+
+                '<span class="who">'+(u.by||'')+'</span></div>';
+        if(u.note) html += '<div class="nt">'+esc(u.note)+'</div>';
+        if(u.msDone && u.msDone.length){
+          const names = u.msDone.map(id => {
+            const found = ms.find(m => m[0] === Number(id));
+            return found ? found[1] : '#'+id;
+          });
+          html += '<div class="ms">✓ เสร็จ: '+esc(names.join(', '))+'</div>';
+        }
+        if(u.photos) html += '<div class="ph">📸 '+u.photos+' รูป</div>';
+        if(u.hasIssue && u.issueDesc){
+          html += '<div class="iss">⚠️ '+esc(u.issueDesc)+
+                  (u.issueSev?' ('+u.issueSev+')':'')+'</div>';
+        }
+        html += '</li>';
+      });
+      html += '</ul>';
+    }
+
+    // Photos (mock — แสดงตามจำนวนรวม)
+    const totalPhotos = updates.reduce((a,u) => a + (u.photos||0), 0);
+    if(totalPhotos > 0){
+      html += '<div class="trk-sub">📸 ภาพหน้างาน ('+totalPhotos+' รูป)</div>';
+      html += '<div class="trk-ph">';
+      for(let i = 0; i < Math.min(totalPhotos, 12); i++){
+        html += '<div class="box">📷</div>';
+      }
+      html += '</div>';
+    }
+
+    $('tracker').innerHTML = html;
+  }
+
+  function updateNav(){
+    document.getElementById('navLive').textContent = DemoState.getCounts().active + ' แปลง';
+  }
+
+  DemoState.on(()=>{ buildSelect(); updateNav(); });
+  window.addEventListener('focus', ()=>{ buildSelect(); updateNav(); });
+  buildSelect();
+  updateNav();
+</script>
+</body>
+</html>
