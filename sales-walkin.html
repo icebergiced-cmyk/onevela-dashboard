@@ -3,286 +3,476 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ลูกค้าวอร์คอิน — One Vela</title>
+<title>👥 ลูกค้าวอร์คอิน — One Vela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;
-    --grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;
-  }
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-d:#8d6d3f;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
-  .wrap{max-width:1140px;margin:0 auto}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto}
+
   .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
     margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .topbar .logo img{height:38px;width:auto;display:block}
   .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
   .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
-  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;
-    padding:9px 14px;cursor:pointer;background:var(--gold);color:#fff;text-decoration:none}
-  .topbar a.ghost{background:rgba(255,255,255,.15)}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);
+    color:#fff;text-decoration:none}
+  .topbar a.gold{background:var(--gold)}
+  .topbar a.green{background:var(--green)}
 
-  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:20px 0 10px;
-    border-left:4px solid var(--gold);padding-left:9px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:12px;padding:13px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    border-left:4px solid var(--gold)}
+  .stat-card .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .stat-card .num{font-size:24px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .stat-card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
 
-  .card{background:#fff;border-radius:13px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06);
-    margin-bottom:14px}
-  .form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}
-  .form .f-full{grid-column:1/-1}
-  .lbl{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:3px;letter-spacing:.3px}
-  .inp{width:100%;font-family:inherit;font-size:14px;padding:9px 12px;border:1.5px solid var(--line);
-    border-radius:9px;background:#fff}
-  .inp:focus{outline:none;border-color:var(--gold)}
-  textarea.inp{resize:vertical;min-height:60px}
-  .btn{font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:10px;
-    padding:11px 22px;cursor:pointer;background:var(--gold);color:#fff}
-  .btn:hover{filter:brightness(1.08)}
-  .btn.ghost{background:#efeae1;color:var(--charcoal);border:1px solid #ddd5c6}
-  .btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:20px 0 12px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:10px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
 
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
-  .stat{background:#fff;border-radius:11px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-  .stat .n{font-size:22px;font-weight:800;line-height:1.1;color:var(--gold)}
-  .stat .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;background:#fff;
+    padding:12px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .filter-bar input,.filter-bar select{font-family:inherit;font-size:13px;padding:9px 11px;
+    border:2px solid var(--line);border-radius:8px;background:#fff}
+  .filter-bar input{flex:1;min-width:140px}
 
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px}
-  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px}
-  .pill.s1{background:#fef3e2;color:var(--amber)}
-  .pill.s2{background:#e8eefc;color:var(--blue)}
-  .pill.s3{background:#e6f4ea;color:var(--green)}
-  .pill.s4{background:#eef1f4;color:var(--muted)}
-  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
-  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);
-    background:var(--green);color:#fff;font-weight:700;padding:10px 20px;
-    border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,.2);z-index:99999;display:none}
-  .toast.err{background:var(--red)}
-  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-  .filters input,.filters select{font-family:inherit;font-size:13px;padding:7px 12px;
-    border:1.5px solid var(--line);border-radius:20px;background:#fff}
-  .filters label{font-size:12px;color:var(--muted);font-weight:600}
+  .tbl-box{background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 5px rgba(0,0,0,.06);overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+  th{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.3px;
+    padding:10px 12px;text-align:left;border-bottom:2px solid var(--line);
+    text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc;cursor:pointer}
+  .nm{font-weight:800;color:var(--charcoal)}
+  .ic-link{display:inline-block;font-size:14px;text-decoration:none;margin-right:4px}
+  .ic-link.fb{color:#1877f2}
+  .ic-link.line{color:#06c755}
+  .ic-link.phone{color:var(--gold)}
+  .rating-stars{color:#fbbf24;font-size:13px}
+  .rating-stars .off{color:#e2e6ea}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:8px;
+    background:var(--soft);color:var(--muted)}
+  .pill.hot{background:#fee2e2;color:#991b1b}
+  .pill.warm{background:#fed7aa;color:#9a3412}
+  .pill.cold{background:#dbeafe;color:#1e40af}
+  .pill.lost{background:#e5e7eb;color:#374151}
+  .pill.booked{background:#dcfce7;color:#15803d}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:flex-start;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:780px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden;margin:20px 0}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+
+  .form-section{margin-bottom:18px}
+  .form-section h3{font-size:13px;font-weight:800;color:var(--charcoal);
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;
+    background:#f7f3eb;padding:6px 12px;border-radius:6px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .form-grid .fld{display:flex;flex-direction:column;gap:4px}
+  .form-grid .fld.full{grid-column:1/-1}
+  .form-grid .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{font-family:inherit;font-size:14px;
+    padding:9px 11px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--gold)}
+
+  .rating-pick{display:flex;gap:6px}
+  .rating-pick button{background:#f7f3eb;border:1.5px solid var(--line);border-radius:6px;
+    padding:6px 10px;font-family:inherit;font-size:16px;cursor:pointer;color:#fbbf24}
+  .rating-pick button.on{background:#fef3c7;border-color:#fbbf24}
+
+  .modal-ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;
+    justify-content:flex-end;background:var(--soft)}
+  .modal-ft button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;
+    border:none;border-radius:9px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--charcoal)}
+  .btn-del{background:#fff;border:1px solid #fca5a5!important;color:var(--red)}
+  .btn-save{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+
+  .loader{text-align:center;padding:30px;color:var(--muted)}
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:10px 14px;border-radius:9px;font-size:13px;margin-bottom:14px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);
+    color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none}
+  .toast.on{display:block}
 
   footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
-  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;
-    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
-    box-shadow:0 3px 12px rgba(0,0,0,.28)}
-  body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
-    url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}
-  @media(max-width:720px){.form{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<a href="home.html" class="home-fab">🏠 หน้าแรก</a>
-<div id="toast" class="toast"></div>
+<div id="authBar"></div>
 
 <div class="wrap">
+
   <div class="topbar">
-    <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
-      onerror="this.style.display='none'"></div>
-    <div class="ttl">ลูกค้าวอร์คอิน<small>WALK-IN CUSTOMERS · ONE VELA</small></div>
-    <a href="sales-dashboard.html" class="ghost">← แดชบอร์ดงานขาย</a>
+    <div class="ttl">👥 ลูกค้าวอร์คอิน<small>WALK-IN CUSTOMERS · ONE VELA</small></div>
+    <a href="home.html">← หน้าแรก</a>
+    <a class="gold" href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank">📊 เปิด Sheet ↗</a>
+    <a class="green" href="javascript:void(0)" onclick="openAdd()">+ เพิ่มลูกค้า</a>
   </div>
 
-  <h2 class="sec">📝 บันทึกลูกค้าใหม่</h2>
-  <div class="card">
-    <div class="form">
-      <div>
-        <label class="lbl">วันที่เข้าชม</label>
-        <input type="date" id="visitDate" class="inp">
-      </div>
-      <div>
-        <label class="lbl">เซลล์ผู้ดูแล</label>
-        <input type="text" id="salesPerson" class="inp" placeholder="ชื่อเซลล์">
-      </div>
-      <div>
-        <label class="lbl">ชื่อ-สกุลลูกค้า *</label>
-        <input type="text" id="cName" class="inp" placeholder="ชื่อ นามสกุล">
-      </div>
-      <div>
-        <label class="lbl">เบอร์โทร</label>
-        <input type="tel" id="cPhone" class="inp" placeholder="08X-XXX-XXXX">
-      </div>
-      <div>
-        <label class="lbl">แปลงที่สนใจ</label>
-        <input type="text" id="plotInterest" class="inp" placeholder="เช่น 140, 215">
-      </div>
-      <div>
-        <label class="lbl">แหล่งที่มา</label>
-        <select id="source" class="inp">
-          <option value="">เลือก...</option>
-          <option>Facebook</option>
-          <option>TikTok</option>
-          <option>Line</option>
-          <option>Google</option>
-          <option>ป้ายโฆษณา</option>
-          <option>เพื่อนแนะนำ</option>
-          <option>ผ่านมา</option>
-          <option>นายหน้า</option>
-          <option>อื่นๆ</option>
-        </select>
-      </div>
-      <div class="f-full">
-        <label class="lbl">หมายเหตุ / ความสนใจ</label>
-        <textarea id="note" class="inp" placeholder="งบประมาณ, แบบบ้านที่สนใจ, สิ่งที่ลูกค้าถาม..."></textarea>
-      </div>
+  <div class="stats">
+    <div class="stat-card">
+      <div class="lbl">👥 ลูกค้ารวม</div><div class="num" id="cTotal">—</div><div class="sub">ทั้งหมด</div>
     </div>
-    <div class="btn-row">
-      <button class="btn ghost" onclick="clearForm()">ล้างฟอร์ม</button>
-      <button class="btn" onclick="save()">💾 บันทึก</button>
+    <div class="stat-card" style="border-left-color:var(--red)">
+      <div class="lbl">🔥 Hot</div><div class="num" id="cHot">—</div><div class="sub">สนใจสูง</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--green)">
+      <div class="lbl">✓ จองแล้ว</div><div class="num" id="cBooked">—</div><div class="sub">ปิดการขายได้</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--blue)">
+      <div class="lbl">📅 7 วันล่าสุด</div><div class="num" id="c7d">—</div><div class="sub">ลูกค้าใหม่</div>
     </div>
   </div>
 
-  <h2 class="sec">📊 สรุปวันนี้</h2>
-  <div class="stats" id="stats"></div>
+  <div class="filter-bar">
+    <input type="text" id="qInp" placeholder="🔍 ค้นชื่อ / เบอร์ / agent..." oninput="renderList()">
+    <select id="statusFilter" onchange="renderList()">
+      <option value="">ทุกสถานะ</option>
+      <option value="hot">🔥 Hot</option>
+      <option value="warm">🟡 Warm</option>
+      <option value="cold">❄️ Cold</option>
+      <option value="booked">✓ จองแล้ว</option>
+      <option value="lost">❌ Lost</option>
+    </select>
+    <select id="agentFilter" onchange="renderList()">
+      <option value="">ทุกเซลส์</option>
+    </select>
+    <button onclick="loadData(true)" style="font-family:inherit;font-size:13px;font-weight:700;padding:9px 14px;border:2px solid var(--line);background:#fff;color:var(--charcoal);border-radius:8px;cursor:pointer">↻ รีเฟรช</button>
+  </div>
 
-  <h2 class="sec">📋 รายการวอร์คอิน</h2>
-  <div class="card">
-    <div class="filters">
-      <label>ช่วงเวลา:</label>
-      <select id="fRange" class="inp">
-        <option value="today">วันนี้</option>
-        <option value="7">7 วันล่าสุด</option>
-        <option value="30">30 วันล่าสุด</option>
-        <option value="all">ทั้งหมด</option>
-      </select>
-      <input id="fSearch" type="text" placeholder="ค้นหาชื่อ/แปลง/เซลล์">
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr>
-          <th>วันที่</th><th>ลูกค้า</th><th>เบอร์</th><th>แปลงที่สนใจ</th>
-          <th>แหล่งที่มา</th><th>เซลล์</th><th>หมายเหตุ</th>
-        </tr></thead>
-        <tbody id="tb"></tbody>
-      </table>
-    </div>
+  <div id="errBox"></div>
+
+  <div id="listBox">
+    <div class="loader">⏳ กำลังโหลด...</div>
   </div>
 
   <footer>ลูกค้าวอร์คอิน · One Vela — Two Build Development</footer>
 </div>
 
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="ttl" id="mTtl">+ เพิ่มลูกค้าวอร์คอิน</div>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd">
+
+      <div class="form-section">
+        <h3>👤 ข้อมูลลูกค้า</h3>
+        <div class="form-grid">
+          <div class="fld"><span class="lbl">วันที่เข้าชม</span><input type="date" id="inDate"></div>
+          <div class="fld"><span class="lbl">ชื่อลูกค้า *</span><input type="text" id="inName"></div>
+          <div class="fld"><span class="lbl">เบอร์โทร</span><input type="tel" id="inPhone"></div>
+          <div class="fld"><span class="lbl">Facebook</span><input type="text" id="inFB" placeholder="URL หรือชื่อโปรไฟล์"></div>
+          <div class="fld"><span class="lbl">LINE ID</span><input type="text" id="inLine"></div>
+          <div class="fld"><span class="lbl">แหล่งที่มา</span>
+            <select id="inSource">
+              <option value="Walk-in">Walk-in</option>
+              <option value="Facebook">Facebook</option>
+              <option value="LINE">LINE OA</option>
+              <option value="Google">Google</option>
+              <option value="แนะนำ">แนะนำ</option>
+              <option value="ป้าย">ป้ายโฆษณา</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>🏠 ความต้องการ</h3>
+        <div class="form-grid">
+          <div class="fld"><span class="lbl">งบประมาณ (บาท)</span><input type="number" id="inBudget"></div>
+          <div class="fld"><span class="lbl">แบบบ้านที่สนใจ</span>
+            <select id="inHouseType">
+              <option value="">— เลือก —</option>
+              <option value="ULTRA">A · ULTRA (บ้านเดี่ยว 2 ชั้น)</option>
+              <option value="MINUTES">B · MINUTES (บ้านเดี่ยวชั้นเดียว)</option>
+              <option value="SECOND">C · SECOND (บ้านแฝด)</option>
+              <option value="MOMENT">D · MOMENT (ทาวน์โฮม)</option>
+              <option value="หลายแบบ">หลายแบบ</option>
+            </select>
+          </div>
+          <div class="fld"><span class="lbl">แปลงที่สนใจ</span><input type="text" id="inPlotInterest" placeholder="เช่น A140, A155"></div>
+          <div class="fld"><span class="lbl">โปรโมชั่นที่ต้องการ</span><input type="text" id="inPromo"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>🎯 การติดตาม</h3>
+        <div class="form-grid">
+          <div class="fld"><span class="lbl">เซลส์ที่ดูแล *</span>
+            <select id="inAgent">
+              <option value="">— เลือก —</option>
+            </select>
+          </div>
+          <div class="fld"><span class="lbl">โครงการคู่แข่ง</span><input type="text" id="inCompete"></div>
+          <div class="fld"><span class="lbl">สถานะ</span>
+            <select id="inStatus">
+              <option value="hot">🔥 Hot</option>
+              <option value="warm">🟡 Warm</option>
+              <option value="cold">❄️ Cold</option>
+              <option value="booked">✓ จองแล้ว</option>
+              <option value="lost">❌ Lost</option>
+            </select>
+          </div>
+          <div class="fld"><span class="lbl">คะแนน 1-5</span>
+            <div class="rating-pick" id="ratingPick">
+              <button data-r="1" onclick="setRating(1)">★</button>
+              <button data-r="2" onclick="setRating(2)">★</button>
+              <button data-r="3" onclick="setRating(3)">★</button>
+              <button data-r="4" onclick="setRating(4)">★</button>
+              <button data-r="5" onclick="setRating(5)">★</button>
+            </div>
+          </div>
+          <div class="fld full"><span class="lbl">คำติชม / ความคิดเห็น</span><textarea id="inFeedback"></textarea></div>
+          <div class="fld full"><span class="lbl">บันทึก follow-up</span><textarea id="inFollowup"></textarea></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn-del" id="btnDel" style="display:none" onclick="delCustomer()">🗑️ ลบ</button>
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-save" id="btnSave" onclick="saveCustomer()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/auth-client.js"></script>
 <script>
-  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
-  const $=id=>document.getElementById(id);
-  const today=new Date().toISOString().slice(0,10);
-  let WALKINS=[];
+  Auth.require('create.walkin');
+  Auth.renderAuthBar(document.getElementById('authBar'));
 
-  $('visitDate').value=today;
+  let CUSTOMERS = [];
+  let editingId = null;
+  let pickedRating = 3;
 
-  function toast(msg, err){
-    const t=$('toast'); t.textContent=msg; t.className='toast'+(err?' err':'');
-    t.style.display='block';
-    setTimeout(()=>{t.style.display='none'},2800);
+  function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+  function thaiDate(d){
+    if(!d) return '-';
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt=new Date(d);
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2);
   }
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-  function clearForm(){
-    $('visitDate').value=today;
-    ['salesPerson','cName','cPhone','plotInterest','note'].forEach(k=>$(k).value='');
-    $('source').value='';
-  }
-
-  async function save(){
-    const name=$('cName').value.trim();
-    if(!name){ toast('กรุณากรอกชื่อลูกค้า', true); $('cName').focus(); return; }
-    const data={
-      visitDate: $('visitDate').value || today,
-      cName: name,
-      cPhone: $('cPhone').value.trim(),
-      plotInterest: $('plotInterest').value.trim(),
-      source: $('source').value,
-      note: $('note').value.trim(),
-      salesPerson: $('salesPerson').value.trim(),
-    };
-    try{
-      // GET แทน POST เลี่ยง 302 redirect bug
-      const url=API_URL+'?action=saveWalkIn&data='+encodeURIComponent(JSON.stringify(data));
-      await fetch(url);
-      // localStorage backup
-      const log=JSON.parse(localStorage.getItem('onevela_walkins')||'[]');
-      log.push({...data, createdAt:new Date().toISOString()});
-      localStorage.setItem('onevela_walkins', JSON.stringify(log));
-
-      toast('✅ บันทึกลูกค้า '+name+' เรียบร้อย');
-      clearForm();
-      setTimeout(load, 800);
-    }catch(e){
-      toast('บันทึกไม่สำเร็จ — ลองใหม่', true);
-    }
-  }
-
-  async function load(){
-    try{
-      const res=await fetch(API_URL+'?action=getSalesData');
-      const data=await res.json();
-      WALKINS=(data && data.ok && data.walkins) ? data.walkins : [];
-    }catch(e){
-      WALKINS=[];
-    }
-    render();
-  }
-
-  function render(){
-    const range=$('fRange').value;
-    const q=($('fSearch').value||'').trim().toLowerCase();
-    const cutoff=(()=>{
-      if(range==='all') return '';
-      if(range==='today') return today;
-      const d=new Date(); d.setDate(d.getDate()-Number(range)+1);
-      return d.toISOString().slice(0,10);
-    })();
-
-    const list=WALKINS.filter(w=>{
-      const vd=String(w.visitDate||'').slice(0,10);
-      if(cutoff && vd && vd<cutoff) return false;
-      if(range==='today' && vd!==today) return false;
-      if(q){
-        const hay=((w.cName||'')+' '+(w.plotInterest||'')+' '+(w.salesPerson||'')+' '+(w.cPhone||'')).toLowerCase();
-        if(!hay.includes(q)) return false;
+  async function loadData(){
+    try {
+      const r = await Auth.api('getWalkinsV2');
+      if(!r.ok){
+        document.getElementById('errBox').innerHTML = '<div class="err">⚠️ '+esc(r.error||'โหลดไม่สำเร็จ')+'</div>';
+        document.getElementById('listBox').innerHTML = '';
+        return;
       }
-      return true;
-    }).sort((a,b)=>String(b.visitDate||'').localeCompare(String(a.visitDate||'')));
+      CUSTOMERS = r.walkins || [];
+      document.getElementById('errBox').innerHTML = '';
+      populateAgentFilter();
+      renderStats();
+      renderList();
+    } catch(e){
+      document.getElementById('errBox').innerHTML = '<div class="err">⚠️ '+esc(e.message||'')+
+        '<br><button onclick="loadData()" style="margin-top:6px;padding:5px 12px;border:none;border-radius:6px;background:var(--gold);color:#fff;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
+    }
+  }
 
-    const todayList=WALKINS.filter(w=>String(w.visitDate||'').slice(0,10)===today);
-    const week=WALKINS.filter(w=>{
-      const vd=String(w.visitDate||'').slice(0,10);
-      const d=new Date(); d.setDate(d.getDate()-6);
-      return vd>=d.toISOString().slice(0,10);
+  function populateAgentFilter(){
+    const agents = [...new Set(CUSTOMERS.map(c => c.agent).filter(Boolean))].sort();
+    const sel = document.getElementById('agentFilter');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">ทุกเซลส์</option>' +
+      agents.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+    sel.value = cur;
+    // populate dropdown ใน form
+    const inAgent = document.getElementById('inAgent');
+    inAgent.innerHTML = '<option value="">— เลือก —</option>' +
+      ['ต้น','ฝน','อื่นๆ', ...agents.filter(a => !['ต้น','ฝน','อื่นๆ'].includes(a))]
+        .map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  }
+
+  function renderStats(){
+    document.getElementById('cTotal').textContent = CUSTOMERS.length;
+    document.getElementById('cHot').textContent = CUSTOMERS.filter(c => c.status === 'hot').length;
+    document.getElementById('cBooked').textContent = CUSTOMERS.filter(c => c.status === 'booked').length;
+    const week = Date.now() - 7*86400000;
+    document.getElementById('c7d').textContent = CUSTOMERS.filter(c => new Date(c.date) >= week).length;
+  }
+
+  function renderList(){
+    const q = document.getElementById('qInp').value.trim().toLowerCase();
+    const sf = document.getElementById('statusFilter').value;
+    const af = document.getElementById('agentFilter').value;
+    let list = [...CUSTOMERS];
+    if(q) list = list.filter(c =>
+      (c.name||'').toLowerCase().includes(q) ||
+      (c.phone||'').includes(q) ||
+      (c.agent||'').toLowerCase().includes(q));
+    if(sf) list = list.filter(c => c.status === sf);
+    if(af) list = list.filter(c => c.agent === af);
+    list.sort((a,b) => String(b.date).localeCompare(String(a.date)));
+
+    if(list.length === 0){
+      document.getElementById('listBox').innerHTML = '<div class="loader">ยังไม่มีลูกค้า — กด <b>+ เพิ่มลูกค้า</b> ด้านบน</div>';
+      return;
+    }
+    const html = `<div class="tbl-box"><table>
+      <thead><tr>
+        <th>วันที่</th><th>ชื่อ / ติดต่อ</th><th>งบ</th><th>แบบบ้าน</th>
+        <th>เซลส์</th><th>คู่แข่ง</th><th>โปรโม</th><th>คะแนน</th><th>สถานะ</th>
+      </tr></thead><tbody>` +
+      list.map(c => {
+        const statusInfo = {
+          hot:{cls:'hot',label:'🔥 Hot'}, warm:{cls:'warm',label:'🟡 Warm'},
+          cold:{cls:'cold',label:'❄️ Cold'}, booked:{cls:'booked',label:'✓ จอง'},
+          lost:{cls:'lost',label:'❌ Lost'}
+        }[c.status] || {cls:'',label:c.status};
+        let stars = ''; for(let i=1;i<=5;i++) stars += '<span class="'+(i<=c.rating?'':'off')+'">★</span>';
+        const links = [];
+        if(c.fb){
+          const url = c.fb.startsWith('http') ? c.fb : (c.fb.startsWith('facebook') ? 'https://'+c.fb : 'https://facebook.com/'+c.fb);
+          links.push(`<a class="ic-link fb" href="${esc(url)}" target="_blank" onclick="event.stopPropagation()">📘</a>`);
+        }
+        if(c.line) links.push(`<a class="ic-link line" href="https://line.me/ti/p/~${esc(String(c.line).replace(/^@/,''))}" target="_blank" onclick="event.stopPropagation()">💬</a>`);
+        if(c.phone) links.push(`<a class="ic-link phone" href="tel:${esc(c.phone)}" onclick="event.stopPropagation()">📞</a>`);
+        return `<tr onclick="openEdit('${esc(c.walkin_id)}')">
+          <td>${thaiDate(c.date)}</td>
+          <td><div class="nm">${esc(c.name)}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${esc(c.phone||'-')} ${links.join(' ')}</div></td>
+          <td>${c.budget?fmt(c.budget):'-'}</td>
+          <td>${esc(c.houseType||'-')}${c.plotInterest?'<br><small style="color:var(--muted)">'+esc(c.plotInterest)+'</small>':''}</td>
+          <td>${esc(c.agent||'-')}</td>
+          <td style="font-size:12px">${esc(c.compete||'-')}</td>
+          <td style="font-size:12px">${esc(c.promo||'-')}</td>
+          <td><span class="rating-stars">${stars}</span></td>
+          <td><span class="pill ${statusInfo.cls}">${statusInfo.label}</span></td>
+        </tr>`;
+      }).join('') + '</tbody></table></div>';
+    document.getElementById('listBox').innerHTML = html;
+  }
+
+  function openAdd(){
+    editingId = null;
+    pickedRating = 3;
+    document.getElementById('mTtl').textContent = '+ เพิ่มลูกค้าวอร์คอิน';
+    document.getElementById('btnDel').style.display = 'none';
+    ['inName','inPhone','inFB','inLine','inPlotInterest','inPromo','inCompete','inFeedback','inFollowup','inBudget'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('inSource').value = 'Walk-in';
+    document.getElementById('inHouseType').value = '';
+    document.getElementById('inAgent').value = '';
+    document.getElementById('inStatus').value = 'warm';
+    updateRatingUI();
+    document.getElementById('modal').classList.add('on');
+  }
+  function openEdit(id){
+    const c = CUSTOMERS.find(x => String(x.walkin_id) === String(id));
+    if(!c) return;
+    editingId = id;
+    pickedRating = Number(c.rating) || 3;
+    document.getElementById('mTtl').textContent = '✏️ แก้ไข — '+c.name;
+    document.getElementById('btnDel').style.display = '';
+    document.getElementById('inDate').value = String(c.date||'').slice(0,10);
+    document.getElementById('inName').value = c.name||'';
+    document.getElementById('inPhone').value = c.phone||'';
+    document.getElementById('inFB').value = c.fb||'';
+    document.getElementById('inLine').value = c.line||'';
+    document.getElementById('inSource').value = c.source||'Walk-in';
+    document.getElementById('inBudget').value = c.budget||'';
+    document.getElementById('inHouseType').value = c.houseType||'';
+    document.getElementById('inPlotInterest').value = c.plotInterest||'';
+    document.getElementById('inPromo').value = c.promo||'';
+    document.getElementById('inAgent').value = c.agent||'';
+    document.getElementById('inCompete').value = c.compete||'';
+    document.getElementById('inStatus').value = c.status||'warm';
+    document.getElementById('inFeedback').value = c.feedback||'';
+    document.getElementById('inFollowup').value = c.followup||'';
+    updateRatingUI();
+    document.getElementById('modal').classList.add('on');
+  }
+  function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+  function setRating(r){ pickedRating = r; updateRatingUI(); }
+  function updateRatingUI(){
+    document.querySelectorAll('#ratingPick button').forEach(b => {
+      b.classList.toggle('on', Number(b.dataset.r) <= pickedRating);
     });
-    const uniqSource={}; WALKINS.forEach(w=>{ if(w.source) uniqSource[w.source]=(uniqSource[w.source]||0)+1; });
-    const topSrc=Object.entries(uniqSource).sort((a,b)=>b[1]-a[1])[0];
+  }
+  async function saveCustomer(){
+    const data = {
+      date: document.getElementById('inDate').value,
+      name: document.getElementById('inName').value.trim(),
+      phone: document.getElementById('inPhone').value.trim(),
+      fb: document.getElementById('inFB').value.trim(),
+      line: document.getElementById('inLine').value.trim(),
+      source: document.getElementById('inSource').value,
+      budget: Number(document.getElementById('inBudget').value) || 0,
+      houseType: document.getElementById('inHouseType').value,
+      plotInterest: document.getElementById('inPlotInterest').value.trim(),
+      promo: document.getElementById('inPromo').value.trim(),
+      agent: document.getElementById('inAgent').value,
+      compete: document.getElementById('inCompete').value.trim(),
+      status: document.getElementById('inStatus').value,
+      rating: pickedRating,
+      feedback: document.getElementById('inFeedback').value.trim(),
+      followup: document.getElementById('inFollowup').value.trim()
+    };
+    if(!data.name){ alert('กรุณาใส่ชื่อ'); return; }
+    if(!data.agent){ alert('กรุณาเลือกเซลส์'); return; }
+    if(editingId) data.walkin_id = editingId;
 
-    $('stats').innerHTML=
-      stat(todayList.length, 'วอร์คอินวันนี้')+
-      stat(week.length, '7 วันล่าสุด')+
-      stat(WALKINS.length, 'ทั้งหมด')+
-      stat(topSrc?topSrc[0]+' ('+topSrc[1]+')':'-', 'แหล่งที่มาอันดับ 1');
-
-    $('tb').innerHTML=list.length?list.map(w=>{
-      const plot=String(w.plotInterest||'').trim();
-      const plotCell=plot ? plot.split(/[,\s]+/).filter(Boolean).map(p=>
-        '<a href="plot-detail.html?plot='+encodeURIComponent(p)+'" style="color:var(--gold);text-decoration:none;font-weight:700">'+p+'</a>'
-      ).join(', ') : '-';
-      return '<tr>'+
-        '<td>'+(String(w.visitDate||'').slice(0,10)||'-')+'</td>'+
-        '<td><b>'+(w.cName||'-')+'</b></td>'+
-        '<td>'+(w.cPhone||'-')+'</td>'+
-        '<td>'+plotCell+'</td>'+
-        '<td>'+(w.source?'<span class="pill s1">'+w.source+'</span>':'-')+'</td>'+
-        '<td>'+(w.salesPerson||'-')+'</td>'+
-        '<td>'+(w.note||'-')+'</td>'+
-      '</tr>';
-    }).join(''):'<tr><td colspan="7" class="empty">ยังไม่มีข้อมูลในช่วงที่เลือก</td></tr>';
+    document.getElementById('btnSave').disabled = true;
+    document.getElementById('btnSave').textContent = '⏳';
+    try {
+      const r = await Auth.api('saveWalkinV2', {data: JSON.stringify(data)});
+      if(!r.ok){ alert(r.error); return; }
+      closeModal();
+      showToast('✅ '+(editingId?'แก้ไข':'เพิ่ม')+' '+data.name+' แล้ว');
+      await loadData();
+    } catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+    finally {
+      document.getElementById('btnSave').disabled = false;
+      document.getElementById('btnSave').textContent = '💾 บันทึก';
+    }
+  }
+  async function delCustomer(){
+    if(!editingId) return;
+    if(!confirm('ลบลูกค้าคนนี้?')) return;
+    try {
+      const r = await Auth.api('deleteWalkinV2', {walkinId: editingId});
+      if(!r.ok){ alert(r.error); return; }
+      closeModal();
+      showToast('✅ ลบแล้ว');
+      await loadData();
+    } catch(e){ alert('ลบไม่สำเร็จ'); }
   }
 
-  function stat(n, l){
-    return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3000);
   }
 
-  $('fRange').addEventListener('change', render);
-  $('fSearch').addEventListener('input', render);
-  load();
+  loadData();
 </script>
 </body>
 </html>

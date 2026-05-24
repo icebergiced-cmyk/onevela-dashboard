@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🏦 รายการแยกเช็ค — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--yellow:#fef3c7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:920px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;text-decoration:none}
+  .topbar button.print{background:var(--gold)}
+  .picker{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .picker select{font-family:inherit;font-size:14px;padding:8px 11px;border:2px solid var(--line);border-radius:8px;min-width:240px}
+  .doc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:30px 36px;box-shadow:0 1px 5px rgba(0,0,0,.06);font-size:14px}
+  .doc-hd{text-align:center;margin-bottom:20px}
+  .doc-hd .prj{font-size:18px;font-weight:800;color:var(--charcoal)}
+  .doc-hd .ttl{font-size:16px;color:var(--charcoal);margin-top:4px;font-weight:700}
+  .info-row{display:flex;justify-content:space-between;margin-bottom:14px;font-size:13.5px}
+  .info-row .lbl{font-weight:700;min-width:90px}
+  .salutation{margin-bottom:14px;font-size:13.5px;line-height:1.7}
+  .salutation .row{display:flex;gap:8px}
+  .salutation .row .lbl{font-weight:700;min-width:60px}
+  .body-text{margin-bottom:18px;font-size:13.5px;line-height:1.85;text-indent:30px}
+  .body-text b{font-weight:800}
+  .detail-title{font-weight:800;font-size:14px;color:var(--charcoal);margin-bottom:8px}
+  .detail-row{display:grid;grid-template-columns:30px 1fr 100px 130px 70px 120px;gap:8px;padding:8px 4px;font-size:13px;border-bottom:1px dotted var(--line);align-items:center}
+  .detail-row.head{font-weight:700;background:var(--soft)}
+  .detail-row .ix{color:var(--muted);font-weight:700}
+  .detail-row .amt{text-align:right;font-weight:700} .detail-row .meta{color:var(--muted);font-size:11.5px}
+  .detail-row.total{background:var(--yellow);font-weight:800;padding:10px 4px;margin-top:6px;border-radius:6px;border-bottom:none}
+  .closing{margin-top:24px;font-size:13.5px;line-height:1.7}
+  .doc-foot{margin-top:30px;display:flex;justify-content:flex-end}
+  .doc-foot .sig{text-align:center;width:280px}
+  .doc-foot .sig .line{border-bottom:1.5px solid #000;height:50px;margin-bottom:6px}
+  .doc-foot .sig .lbl{font-weight:700}
+  @media print{
+    body{background:#fff;padding:0;font-size:11pt}
+    .topbar,.picker,#authBar{display:none!important}
+    .wrap{max-width:none} .doc{border:none;box-shadow:none;border-radius:0;padding:0}
+  }
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="ttl">🏦 รายการแยกเช็ค<small>CHEQUE BREAKDOWN · ONE VELA</small></div>
+    <a href="transfer.html">← ย้อนกลับ</a>
+    <button class="print" onclick="window.print()">🖨️ พิมพ์/PDF</button>
+  </div>
+
+  <div class="picker">
+    <span style="font-size:11px;color:var(--muted);font-weight:700">แปลง:</span>
+    <select id="plotSel" onchange="loadPlot()"></select>
+  </div>
+
+  <div class="doc">
+    <div class="doc-hd">
+      <div class="prj">โครงการ วันเวลา — อมตะชลบุรี</div>
+      <div class="ttl">เอกสารแจ้งธนาคารจำแนกเช็ค</div>
+    </div>
+
+    <div class="info-row">
+      <div></div>
+      <div><span class="lbl">วันที่</span><span id="iDate">-</span></div>
+    </div>
+
+    <div class="salutation">
+      <div class="row"><span class="lbl">เรียน</span><span>เจ้าหน้าที่ <b id="iBank">-</b></span></div>
+      <div class="row"><span class="lbl">เรื่อง</span><span>จำแนกเช็ค</span></div>
+    </div>
+
+    <div class="body-text">
+      ตามที่ <b id="iCName">-</b> แปลงที่ <b id="iPlot">-</b> บ้านเลขที่ <b id="iHouseNo">-</b>
+      ได้ทำเรื่องขออนุมัติวงเงิน <b id="iLoanTotal">-</b>.- สินเชื่อเพื่อที่อยู่อาศัยกับธนาคาร<b id="iBankFull">-</b>
+      และทางธนาคารได้พิจารณาอนุมัติแล้วเป็นจำนวนเงิน <b id="iLoanTotal2">-</b>.-
+      และนัดโอนกรรมสิทธิ์ <b id="iTransferDate">-</b> นั้น จึงขอให้ทางธนาคารช่วยจำแนกเช็คโดยมีรายละเอียดดังนี้
+    </div>
+
+    <div class="detail-title">รายละเอียดเช็ค &nbsp;&nbsp;<span id="iLoanTotal3" style="color:var(--gold)">-</span>.-</div>
+    <div class="detail-row head"><span></span><span>รายการ</span><span></span><span></span><span></span><span class="amt">จำนวนเงิน</span></div>
+    <div class="detail-row">
+      <span class="ix">1.</span>
+      <span>แคชเชียร์เช็ค สั่งจ่าย ธนาคารไทยพาณิชย์ จำกัด (มหาชน)</span>
+      <span class="meta">ปลอด</span><span class="meta">จำนวนเงิน</span><span></span>
+      <span class="amt"><span id="amt1">-</span> <small style="color:var(--muted)">บาท</small></span>
+    </div>
+    <div class="detail-row">
+      <span class="ix">2.</span>
+      <span>เข้าบัญชี บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด เลขที่บัญชี 796-4-37640-6 ธนาคารไทยพาณิชย์</span>
+      <span></span><span class="meta">จำนวนเงิน</span><span></span>
+      <span class="amt"><span id="amt2">-</span> <small style="color:var(--muted)">บาท</small></span>
+    </div>
+    <div class="detail-row">
+      <span class="ix">3.</span><span>ประกันชีวิต</span><span></span><span class="meta">จำนวนเงิน</span><span></span>
+      <span class="amt"><span id="amt3">106,661.00</span> <small style="color:var(--muted)">บาท</small></span>
+    </div>
+    <div class="detail-row">
+      <span class="ix">4.</span><span>ประกันอัคคีภัย</span><span></span><span class="meta">จำนวนเงิน</span><span></span>
+      <span class="amt"><span id="amt4">17,598.00</span> <small style="color:var(--muted)">บาท</small></span>
+    </div>
+    <div class="detail-row total">
+      <span></span><span style="text-align:right">รวมทั้งสิ้น</span><span></span><span></span><span></span>
+      <span class="amt"><span id="amtSum">-</span> <small style="color:var(--muted)">บาท</small></span>
+    </div>
+
+    <div class="closing">จึงเรียนมาเพื่อโปรดทราบและดำเนินการในส่วนที่เกี่ยวข้อง</div>
+
+    <div class="doc-foot">
+      <div class="sig">
+        <div class="line"></div>
+        <div class="lbl">(นางสาวกมลชนก สิมมาลา)</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">โครงการวันเวลาอมตะชลบุรี</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>รายการแยกเช็ค · One Vela</footer>
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  Auth.require('view.transfer');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  let SALES = {plots:[]};
+  let TRANSFERS = [];
+
+  function fmt(n,d){return Number(n||0).toLocaleString('th-TH', {minimumFractionDigits:d||0, maximumFractionDigits:d||0})}
+  function thaiDate(d){if(!d)return'-';const m=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];const days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return 'วัน'+days[dt.getDay()]+'ที่ '+dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543)}
+  function thaiDateShort(d){if(!d)return'-';const m=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543)}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function resolveType(tc){if(!tc)return'';const s=String(tc).toUpperCase();if(s.indexOf('ULTRA')>=0)return'ULTRA';if(s.indexOf('MINUTE')>=0)return'MINUTES';if(s.indexOf('SECOND')>=0)return'SECOND';if(s.indexOf('MOMENT')>=0)return'MOMENT';return s}
+  function plotCode(p,t){return (TYPE_PREFIX[t]||'?')+String(p||'').replace(/^0+/,'')}
+
+  async function init(){
+    const [sr,tr] = await Promise.all([Auth.api('getSalesData'), Auth.api('getTransfers')]);
+    if(!sr.ok){ alert('โหลดไม่สำเร็จ'); return; }
+    SALES = sr; TRANSFERS = (tr.ok ? tr.transfers : []) || [];
+    const eligible = (SALES.plots||[]).filter(p => ['สัญญา','ขายดาวน์','โอนแล้ว'].includes(p.status));
+    const sel = document.getElementById('plotSel');
+    sel.innerHTML = eligible.map(p =>
+      `<option value="${esc(p.plot)}">${plotCode(p.plot,resolveType(p.typeCode))} — ${esc(p.cName||'-')}</option>`).join('');
+    const wantPlot = new URLSearchParams(location.search).get('plot');
+    if(wantPlot) sel.value = wantPlot;
+    loadPlot();
+  }
+
+  function loadPlot(){
+    const plot = document.getElementById('plotSel').value;
+    const p = (SALES.plots||[]).find(x => String(x.plot).trim() === plot);
+    if(!p) return;
+    const t = TRANSFERS.find(x => String(x.plot).trim() === plot) || {};
+
+    const loanAmount = Number(t.loanAmount)||0;
+    const insurance = 106661 + 17598;
+    const transferDate = p.dateTransfer || t.transferDate || '';
+    const letterDate = new Date(transferDate); letterDate.setDate(letterDate.getDate()-7);
+
+    document.getElementById('iDate').textContent = thaiDateShort(letterDate);
+    document.getElementById('iBank').textContent = t.bank || 'ธนาคาร';
+    document.getElementById('iBankFull').textContent = t.bank === 'SCB' ? 'ไทยพาณิชย์' : (t.bank||'ไทยพาณิชย์');
+    document.getElementById('iCName').textContent = p.cName || '-';
+    document.getElementById('iPlot').textContent = p.plot || '-';
+    document.getElementById('iHouseNo').textContent = p.houseNo || '-';
+    document.getElementById('iLoanTotal').textContent = fmt(loanAmount);
+    document.getElementById('iLoanTotal2').textContent = fmt(loanAmount);
+    document.getElementById('iLoanTotal3').textContent = fmt(loanAmount);
+    document.getElementById('iTransferDate').textContent = thaiDate(transferDate);
+
+    // คำนวณยอดเช็ค (เช็ค 1 = ปลอด · เช็ค 2 = เข้าบัญชีบริษัท)
+    // สมมุติเช็ค 1 (ปลอด) = 60%, เช็ค 2 (เข้าบัญชี) = ส่วนที่เหลือหลังหักประกัน
+    const amt1 = Math.round((loanAmount - insurance) * 0.6 / 1000) * 1000;
+    const amt2 = loanAmount - insurance - amt1;
+    document.getElementById('amt1').textContent = fmt(amt1, 2);
+    document.getElementById('amt2').textContent = fmt(amt2, 2);
+    document.getElementById('amtSum').textContent = fmt(loanAmount, 2);
+  }
+
+  init();
+</script>
+</body>
+</html>

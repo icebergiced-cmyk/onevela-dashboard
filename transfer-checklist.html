@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>☑️ Checklist เอกสารวันโอน — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:920px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;text-decoration:none}
+  .topbar button.print{background:var(--gold)}
+  .picker{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .picker .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+  .picker select{font-family:inherit;font-size:15px;padding:10px 12px;border:2px solid var(--line);border-radius:9px;background:#fff;width:100%;max-width:400px}
+  .doc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:32px 36px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .doc-hd{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:2px solid var(--charcoal);margin-bottom:18px}
+  .doc-hd .logo{width:56px;height:56px;background:linear-gradient(135deg,var(--charcoal),#5a5a5a);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0}
+  .doc-hd .co{flex:1}
+  .doc-hd .co-nm{font-size:16px;font-weight:800;color:var(--charcoal);line-height:1.2}
+  .doc-hd .co-en{font-size:11px;color:var(--muted);margin-top:2px}
+  .doc-hd .co-addr{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .doc-title{font-size:22px;font-weight:800;color:var(--charcoal);text-align:center;margin-bottom:5px;letter-spacing:.5px}
+  .doc-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:20px}
+  .doc-info{background:var(--soft);border-radius:8px;padding:12px 16px;margin-bottom:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 16px;font-size:13.5px}
+  .doc-info .row{display:flex;gap:8px}
+  .doc-info .lbl{color:var(--muted);font-weight:600;min-width:90px}
+  .doc-info .val{font-weight:700;color:var(--charcoal)}
+  .doc-section{margin-bottom:20px}
+  .doc-section h3{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:10px;padding:6px 12px;background:#f7f3eb;border-left:4px solid var(--gold);border-radius:4px}
+  .check-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;cursor:pointer;user-select:none;font-size:14px;margin-bottom:6px}
+  .check-item:hover{background:#fff} .check-item.on{background:#f0fdf4;border-color:var(--green)}
+  .check-item .cb{width:22px;height:22px;border:2px solid var(--line);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;background:#fff;font-size:14px;font-weight:800}
+  .check-item.on .cb{background:var(--green);border-color:var(--green)}
+  .check-item .nm{flex:1}
+  .check-item .meta{font-size:11px;color:var(--muted);margin-left:auto}
+  .doc-foot{margin-top:24px;padding-top:14px;border-top:1px dashed var(--line);display:grid;grid-template-columns:1fr 1fr;gap:30px;font-size:13px}
+  .doc-foot .sig{text-align:center}
+  .doc-foot .sig .line{border-bottom:1px solid #000;margin-bottom:6px;height:50px}
+  .doc-foot .sig .lbl{font-weight:700;color:var(--charcoal)}
+  .doc-foot .sig .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  @media print{
+    body{background:#fff;padding:0;font-size:11pt}
+    .topbar,.picker,#authBar{display:none!important}
+    .wrap{max-width:none}
+    .doc{border:none;box-shadow:none;border-radius:0;padding:0}
+    .check-item{background:#fff!important;border:1px solid #000!important}
+    .check-item .cb{border:1.5px solid #000!important;background:#fff!important;color:#000!important}
+    .check-item.on .cb{background:#000!important;color:#fff!important}
+    .doc-section h3{background:#f0f0f0!important}
+  }
+  .loader{text-align:center;padding:30px;color:var(--muted)}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="ttl">☑️ Checklist เอกสารวันโอน<small>TRANSFER CHECKLIST · ONE VELA</small></div>
+    <a href="transfer.html">← ย้อนกลับ</a>
+    <button class="print" onclick="window.print()">🖨️ พิมพ์/PDF</button>
+  </div>
+
+  <div class="picker">
+    <div class="lbl">เลือกแปลง</div>
+    <select id="plotSel" onchange="loadPlot()"></select>
+  </div>
+
+  <div class="doc">
+    <div class="doc-hd">
+      <div class="logo">TB</div>
+      <div class="co">
+        <div class="co-nm">บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด</div>
+        <div class="co-en">TWO BUILD DEVELOPMENT CO., LTD.</div>
+        <div class="co-addr">89 หมู่ที่ 1 ต.คลองตำหรุ อ.เมืองชลบุรี จ.ชลบุรี 20000 · โทร 092-787-4222</div>
+      </div>
+    </div>
+    <div class="doc-title">รายการเอกสารที่ต้องเตรียมในวันโอนกรรมสิทธิ์</div>
+    <div class="doc-sub">โครงการ วันเวลา อมตะ-ชลบุรี (One Vela)</div>
+    <div class="doc-info" id="docInfo"><div class="loader">⏳ กำลังโหลด...</div></div>
+
+    <div class="doc-section"><h3>👤 เอกสารส่วนตัวลูกค้า</h3><div id="listPersonal"></div></div>
+    <div class="doc-section"><h3>🏦 เอกสารธนาคาร / สินเชื่อ</h3><div id="listBank"></div></div>
+    <div class="doc-section"><h3>💰 เอกสารการเงิน</h3><div id="listFinance"></div></div>
+    <div class="doc-section"><h3>📋 เอกสารจากโครงการ</h3><div id="listProject"></div></div>
+
+    <div class="doc-foot">
+      <div class="sig"><div class="line"></div><div class="lbl">ลูกค้า / ผู้รับโอน</div><div class="sub">วันที่ .............................</div></div>
+      <div class="sig"><div class="line"></div><div class="lbl">เจ้าหน้าที่โครงการ</div><div class="sub">วันที่ .............................</div></div>
+    </div>
+  </div>
+
+  <footer>Checklist เอกสารวันโอน · One Vela</footer>
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  Auth.require('view.transfer');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  const TYPE_NAMES={ULTRA:'บ้านเดี่ยว 2 ชั้น',MINUTES:'บ้านเดี่ยวชั้นเดียว',SECOND:'บ้านแฝด',MOMENT:'ทาวน์โฮม'};
+
+  const DEFAULT_LIST = {
+    personal:[
+      {nm:'สำเนาบัตรประชาชน (ผู้ซื้อ)',meta:'2 ชุด'},
+      {nm:'สำเนาทะเบียนบ้าน (ผู้ซื้อ)',meta:'2 ชุด'},
+      {nm:'สำเนาทะเบียนสมรส / หย่า (ถ้ามี)',meta:'1 ชุด'},
+      {nm:'สำเนาบัตรประชาชน (คู่สมรส)',meta:'1 ชุด'},
+      {nm:'หนังสือยินยอมคู่สมรส (ถ้ามี)',meta:''}
+    ],
+    bank:[
+      {nm:'หนังสือยืนยันวงเงินอนุมัติจากธนาคาร',meta:''},
+      {nm:'หนังสือนัดทำนิติกรรม',meta:''},
+      {nm:'แคชเชียร์เช็ค สั่งจ่าย ธนาคาร',meta:'ตามรายการแยกเช็ค'},
+      {nm:'ใบเปิดบัญชี (ถ้าต้องเปิดใหม่)',meta:''}
+    ],
+    finance:[
+      {nm:'เงินค่าโอนกรรมสิทธิ์ส่วนของลูกค้า',meta:'ตามใบชี้แจง'},
+      {nm:'เงินค่าส่วนกลาง 2 ปี ล่วงหน้า',meta:'1,500 × 24'},
+      {nm:'เงินค่ามิเตอร์น้ำ-ไฟ',meta:''},
+      {nm:'เงินค่าประกันชีวิต / อัคคีภัย',meta:''}
+    ],
+    project:[
+      {nm:'สัญญาจะซื้อจะขาย (ฉบับลูกค้า)',meta:''},
+      {nm:'ใบเสร็จเงินจอง / เงินดาวน์',meta:'ครบทุกใบ'},
+      {nm:'ใบรับรองการก่อสร้างเสร็จ',meta:''},
+      {nm:'หนังสือสิทธิ์โปรโมชั่น (ถ้ามี)',meta:''},
+      {nm:'รายงานสรุปงานก่อสร้าง',meta:''}
+    ]
+  };
+
+  let SALES = {plots:[]};
+  let currentPlot = null;
+  let currentState = {checked:{}};
+
+  function plotCode(p,t){return (TYPE_PREFIX[t]||'?')+String(p||'').replace(/^0+/,'')}
+  function resolveType(tc){if(!tc)return'';const s=String(tc).toUpperCase();if(s.indexOf('ULTRA')>=0)return'ULTRA';if(s.indexOf('MINUTE')>=0)return'MINUTES';if(s.indexOf('SECOND')>=0)return'SECOND';if(s.indexOf('MOMENT')>=0)return'MOMENT';return s}
+  function thaiDate(d){if(!d)return'-';const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543)}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  async function init(){
+    const r = await Auth.api('getSalesData');
+    if(!r.ok){ alert('โหลดไม่สำเร็จ'); return; }
+    SALES = r;
+    const eligible = (r.plots||[]).filter(p => ['สัญญา','ขายดาวน์','โอนแล้ว'].includes(p.status));
+    const sel = document.getElementById('plotSel');
+    sel.innerHTML = eligible.map(p =>
+      `<option value="${esc(p.plot)}">${plotCode(p.plot,resolveType(p.typeCode))} — ${esc(p.cName||'-')}</option>`).join('');
+    const wantPlot = new URLSearchParams(location.search).get('plot');
+    if(wantPlot && eligible.find(p=>String(p.plot).trim()===wantPlot)) sel.value = wantPlot;
+    loadPlot();
+  }
+
+  async function loadPlot(){
+    const plot = document.getElementById('plotSel').value;
+    currentPlot = (SALES.plots||[]).find(p => String(p.plot).trim() === plot);
+    if(!currentPlot) return;
+    const type = resolveType(currentPlot.typeCode);
+    const code = plotCode(currentPlot.plot, type);
+    document.getElementById('docInfo').innerHTML = `
+      <div class="row"><span class="lbl">รหัสบ้าน</span><span class="val" style="color:var(--gold)">${code}</span></div>
+      <div class="row"><span class="lbl">บ้านเลขที่</span><span class="val">${esc(currentPlot.houseNo||'-')}</span></div>
+      <div class="row"><span class="lbl">ไทป์บ้าน</span><span class="val">${type} — ${esc(TYPE_NAMES[type]||'-')}</span></div>
+      <div class="row"><span class="lbl">โฉนดที่ดิน</span><span class="val">${esc(currentPlot.deed||'-')}</span></div>
+      <div class="row"><span class="lbl">ลูกค้า</span><span class="val">${esc(currentPlot.cName||'-')}</span></div>
+      <div class="row"><span class="lbl">วันที่นัดโอน</span><span class="val" style="color:var(--gold)">${thaiDate(currentPlot.dateTransfer||'')}</span></div>
+    `;
+
+    // โหลดสถานะ checklist จาก backend
+    try {
+      const r = await Auth.api('getChecklistState', {plot: plot});
+      currentState = (r.ok && r.state) ? r.state : {checked:{}};
+    } catch(e){ currentState = {checked:{}}; }
+    renderLists();
+  }
+
+  function renderLists(){
+    Object.keys(DEFAULT_LIST).forEach(group => {
+      const el = document.getElementById('list'+capit(group));
+      el.innerHTML = DEFAULT_LIST[group].map((it,i) => {
+        const key = group+'_'+i;
+        const on = currentState.checked && currentState.checked[key];
+        return `<div class="check-item ${on?'on':''}" onclick="toggle('${key}')">
+          <div class="cb">${on?'✓':''}</div>
+          <div class="nm">${esc(it.nm)}</div>
+          ${it.meta?'<div class="meta">'+esc(it.meta)+'</div>':''}
+        </div>`;
+      }).join('');
+    });
+  }
+  function capit(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+
+  async function toggle(key){
+    if(!currentState.checked) currentState.checked = {};
+    currentState.checked[key] = !currentState.checked[key];
+    renderLists();
+    // บันทึก backend (ถ้ามีสิทธิ์)
+    if(Auth.can('manage.transfer')){
+      try {
+        await Auth.api('saveChecklistState', {data: JSON.stringify({plot: currentPlot.plot, state: currentState})});
+      } catch(e){}
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>📋 แดชบอร์ดงานโอน — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb;--purple:#6b21a8}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a{font-family:inherit;font-size:13px;font-weight:700;border-radius:9px;padding:8px 14px;
+    background:rgba(255,255,255,.15);color:#fff;text-decoration:none}
+  .topbar a.gold{background:var(--gold)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);border-left:4px solid var(--gold)}
+  .stat-card.act{border-left-color:var(--amber)}.stat-card.done{border-left-color:var(--green)}.stat-card.ready{border-left-color:var(--blue)}
+  .stat-card .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .stat-card .num{font-size:26px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .stat-card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+  .tools-bar{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:14px;
+    display:flex;gap:8px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .tools-bar a{font-family:inherit;font-size:13px;font-weight:700;text-decoration:none;
+    padding:9px 14px;border-radius:9px;border:1.5px solid var(--line);background:#fff;color:var(--charcoal);
+    display:inline-flex;align-items:center;gap:6px}
+  .tools-bar a.calc{background:#e6f4ea;border-color:#b6dbc1;color:#15803d}
+  .tools-bar a.checklist{background:#dbeafe;border-color:#93c5fd;color:#1e40af}
+  .tools-bar a.money{background:#fff8e6;border-color:#f5d8a0;color:#7a5a2e}
+  .tools-bar a.cheque{background:#f3e8ff;border-color:#d8b4fe;color:#6b21a8}
+  .tools-bar a.fee{background:#fef3e2;border-color:#f5d8a0;color:#9a3412}
+
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:20px 0 12px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:10px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;padding:2px 9px;border-radius:20px}
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;background:#fff;padding:12px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .filter-bar input,.filter-bar select{font-family:inherit;font-size:13px;padding:9px 11px;border:2px solid var(--line);border-radius:8px}
+  .filter-bar input{flex:1;min-width:140px}
+  .tbl-box{background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 5px rgba(0,0,0,.06);overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:880px}
+  th{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.3px;padding:11px 12px;text-align:left;border-bottom:2px solid var(--line);text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line)} tr:hover td{background:#fafbfc}
+  .pid{font-weight:800;color:var(--charcoal);font-size:14px}
+  .typ-badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:10px;letter-spacing:.4px}
+  .typ-ULTRA{background:#fef3e2;color:#9a3412}.typ-MINUTES{background:#e0f2fe;color:#075985}
+  .typ-SECOND{background:#dbeafe;color:#1e40af}.typ-MOMENT{background:#f3e8ff;color:#6b21a8}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px}
+  .pill.wait{background:#fef3c7;color:#92400e}.pill.ready{background:#dbeafe;color:#1e40af}
+  .pill.done{background:#dcfce7;color:#15803d}.pill.delay{background:#fee2e2;color:#991b1b}
+  .row-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+  .row-actions a{font-family:inherit;font-size:11px;font-weight:700;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--charcoal);text-decoration:none}
+  .row-actions a:hover{border-color:var(--gold);color:var(--gold)}
+  .loader{text-align:center;padding:30px;color:var(--muted)}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ttl">📋 แดชบอร์ดงานโอนกรรมสิทธิ์<small>TRANSFER · ONE VELA</small></div>
+    <a href="home.html">← หน้าแรก</a>
+    <a class="gold" href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank">📁 Data base ↗</a>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card act"><div class="lbl">📋 รอกำหนดวันโอน</div><div class="num" id="cWait">—</div><div class="sub">สัญญาแล้ว · ยังไม่นัด</div></div>
+    <div class="stat-card ready"><div class="lbl">📅 นัดโอนเดือนนี้</div><div class="num" id="cMonth">—</div><div class="sub">มีวันนัด</div></div>
+    <div class="stat-card done"><div class="lbl">✅ โอนแล้ว</div><div class="num" id="cDone">—</div><div class="sub">เสร็จสมบูรณ์</div></div>
+    <div class="stat-card" style="border-left-color:var(--red)"><div class="lbl">⚠️ เลื่อน/มีปัญหา</div><div class="num" id="cDelay">—</div><div class="sub">เอกสารยังไม่ครบ</div></div>
+  </div>
+
+  <div class="tools-bar">
+    <span style="font-size:12px;color:var(--muted);font-weight:700;align-self:center">เครื่องมือ:</span>
+    <a class="calc" href="https://lecs.dol.go.th/rcal/#/calculate-start" target="_blank">⚖️ คำนวณค่าโอน (กรมที่ดิน) ↗</a>
+    <a class="checklist" href="transfer-checklist.html">☑️ Checklist</a>
+    <a class="money" href="transfer-money.html">📄 ใบชี้แจงเงิน</a>
+    <a class="cheque" href="transfer-cheque.html">🏦 แยกเช็ค</a>
+    <a class="fee" href="fee.html">🏘️ ค่าส่วนกลาง</a>
+  </div>
+
+  <h2 class="sec">📋 รายการแปลงงานโอน <span class="ct" id="plotCount">—</span></h2>
+  <div class="filter-bar">
+    <input type="text" id="qInp" placeholder="🔍 ค้นรหัสบ้าน / ชื่อ..." oninput="renderList()">
+    <select id="statusFilter" onchange="renderList()">
+      <option value="">ทุกสถานะ</option>
+      <option value="wait">📋 รอกำหนด</option>
+      <option value="ready">📅 นัดแล้ว</option>
+      <option value="done">✅ โอนแล้ว</option>
+      <option value="delay">⚠️ เลื่อน</option>
+    </select>
+    <select id="typeFilter" onchange="renderList()">
+      <option value="">ทุกไทป์</option>
+      <option value="ULTRA">A · ULTRA</option><option value="MINUTES">B · MINUTES</option>
+      <option value="SECOND">C · SECOND</option><option value="MOMENT">D · MOMENT</option>
+    </select>
+  </div>
+  <div id="listBox"><div class="loader">⏳ กำลังโหลด...</div></div>
+
+  <footer>แดชบอร์ดงานโอน · One Vela</footer>
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  Auth.require('view.transfer');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  let SALES = {plots:[],contracts:[]};
+  let TRANSFERS = [];
+
+  function plotCode(p,t){return (TYPE_PREFIX[t]||'?')+String(p||'').replace(/^0+/,'')}
+  function resolveType(tc){if(!tc)return'';const s=String(tc).toUpperCase();if(s.indexOf('ULTRA')>=0)return'ULTRA';if(s.indexOf('MINUTE')>=0)return'MINUTES';if(s.indexOf('SECOND')>=0)return'SECOND';if(s.indexOf('MOMENT')>=0)return'MOMENT';return s}
+  function thaiDate(d){if(!d)return'-';const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2)}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  function buildPlots(){
+    // join: metadata(status: สัญญา/ขายดาวน์/โอนแล้ว) + contracts + transfers
+    const fromSales = (SALES.plots||[]).filter(p =>
+      ['สัญญา','ขายดาวน์','โอนแล้ว'].includes(p.status));
+    return fromSales.map(p => {
+      const c = (SALES.contracts||[]).find(x => String(x.plot||x.plotNo).trim() === String(p.plot).trim());
+      const t = TRANSFERS.find(x => String(x.plot).trim() === String(p.plot).trim());
+      const type = resolveType(p.typeCode);
+      let status = 'wait';
+      if(p.status === 'โอนแล้ว') status = 'done';
+      else if(t && t.transferDate) status = 'ready';
+      if(t && t.status === 'delay') status = 'delay';
+      return {
+        plot: String(p.plot).trim(),
+        type, houseNo: p.houseNo,
+        cName: p.cName || (c ? c.cName : '-'),
+        contractDate: c ? c.contractDate : null,
+        transferDate: t ? t.transferDate : '',
+        bank: t ? t.bank : '',
+        docsReady: t ? Number(t.docsReady)||0 : 0,
+        docsTotal: t ? Number(t.docsTotal)||10 : 10,
+        status
+      };
+    });
+  }
+
+  async function loadAll(){
+    try {
+      const [salesRes, trRes] = await Promise.all([
+        Auth.api('getSalesData'), Auth.api('getTransfers')
+      ]);
+      if(!salesRes.ok) throw new Error('โหลด sales ไม่ได้');
+      SALES = salesRes;
+      TRANSFERS = (trRes.ok ? trRes.transfers : []) || [];
+      renderAll();
+    } catch(e){
+      document.getElementById('listBox').innerHTML =
+        '<div class="loader" style="color:var(--red)">⚠️ '+esc(e.message)+'</div>';
+    }
+  }
+
+  function renderAll(){
+    const plots = buildPlots();
+    const now = new Date(), nowMonth = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('cWait').textContent = plots.filter(p=>p.status==='wait').length;
+    document.getElementById('cMonth').textContent = plots.filter(p =>
+      p.transferDate && String(p.transferDate).startsWith(nowMonth) && p.status !== 'done').length;
+    document.getElementById('cDone').textContent = plots.filter(p=>p.status==='done').length;
+    document.getElementById('cDelay').textContent = plots.filter(p=>p.status==='delay').length;
+    renderList();
+  }
+
+  function renderList(){
+    const plots = buildPlots();
+    const q = document.getElementById('qInp').value.trim().toLowerCase();
+    const sf = document.getElementById('statusFilter').value;
+    const tf = document.getElementById('typeFilter').value;
+    let list = plots;
+    if(q) list = list.filter(p =>
+      plotCode(p.plot,p.type).toLowerCase().includes(q) ||
+      (p.cName||'').toLowerCase().includes(q));
+    if(sf) list = list.filter(p => p.status === sf);
+    if(tf) list = list.filter(p => p.type === tf);
+    list.sort((a,b) => String(b.transferDate||'9').localeCompare(String(a.transferDate||'9')));
+
+    document.getElementById('plotCount').textContent = list.length+' แปลง';
+    if(list.length === 0){
+      document.getElementById('listBox').innerHTML = '<div class="loader">ไม่พบแปลง</div>';
+      return;
+    }
+    const html = `<div class="tbl-box"><table><thead><tr>
+      <th>แปลง</th><th>ไทป์</th><th>ลูกค้า</th><th>วันสัญญา</th><th>วันโอน</th>
+      <th>ธนาคาร</th><th>เอกสาร</th><th>สถานะ</th><th style="text-align:right">การจัดการ</th>
+    </tr></thead><tbody>` +
+      list.map(p => {
+        const stMap = {wait:{cls:'wait',label:'📋 รอกำหนด'},ready:{cls:'ready',label:'📅 นัด'},
+          done:{cls:'done',label:'✅ โอนแล้ว'},delay:{cls:'delay',label:'⚠️ เลื่อน'}};
+        const st = stMap[p.status]||{cls:'',label:p.status};
+        const docPct = Math.round(p.docsReady/p.docsTotal*100);
+        const enc = encodeURIComponent(p.plot);
+        return `<tr>
+          <td><span class="pid">${plotCode(p.plot,p.type)}</span><br><small style="color:var(--muted)">${esc(p.houseNo||'')}</small></td>
+          <td><span class="typ-badge typ-${p.type}">${p.type}</span></td>
+          <td>${esc(p.cName)}</td>
+          <td>${thaiDate(p.contractDate)}</td>
+          <td><b>${thaiDate(p.transferDate)}</b></td>
+          <td>${esc(p.bank||'-')}</td>
+          <td><span style="font-weight:700;color:${docPct===100?'var(--green)':docPct>=70?'var(--amber)':'var(--red)'}">${p.docsReady}/${p.docsTotal}</span> <small style="color:var(--muted)">(${docPct}%)</small></td>
+          <td><span class="pill ${st.cls}">${st.label}</span></td>
+          <td style="text-align:right">
+            <div class="row-actions">
+              <a href="transfer-checklist.html?plot=${enc}">☑️</a>
+              <a href="transfer-money.html?plot=${enc}">📄</a>
+              <a href="transfer-cheque.html?plot=${enc}">🏦</a>
+              <a href="construction-detail.html?plot=${enc}" target="_blank">🏗️</a>
+            </div>
+          </td>
+        </tr>`;
+      }).join('') + '</tbody></table></div>';
+    document.getElementById('listBox').innerHTML = html;
+  }
+
+  loadAll();
+</script>
+</body>
+</html>
