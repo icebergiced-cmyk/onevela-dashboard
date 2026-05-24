@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>👥 ลูกค้าวอร์คอิน (ใหม่) — One Vela (เดโม่)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb;
+    --pink:#db2777}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto}
+
+  .demo-bar{background:#fff8e6;border:1px dashed var(--gold);border-radius:10px;padding:10px 14px;
+    margin-bottom:14px;font-size:12.5px;color:#7a5a2e;text-align:center}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);
+    color:#fff;text-decoration:none}
+  .topbar a.gold{background:var(--gold)}
+  .topbar a.green{background:var(--green)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:12px;padding:13px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    border-left:4px solid var(--gold)}
+  .stat-card .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase}
+  .stat-card .num{font-size:24px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .stat-card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:20px 0 12px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:10px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+  h2.sec .btn{margin-left:auto;font-family:inherit;font-size:13px;font-weight:700;
+    background:var(--gold);color:#fff;border:none;padding:9px 16px;border-radius:9px;cursor:pointer}
+
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;background:#fff;
+    padding:12px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .filter-bar input,.filter-bar select{font-family:inherit;font-size:13px;padding:9px 11px;
+    border:2px solid var(--line);border-radius:8px;background:#fff}
+  .filter-bar input{flex:1;min-width:140px}
+
+  .tbl-box{background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+  th{color:var(--muted);font-weight:700;font-size:11px;letter-spacing:.3px;
+    padding:10px 12px;text-align:left;border-bottom:2px solid var(--line);
+    text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc;cursor:pointer}
+  .nm{font-weight:800;color:var(--charcoal)}
+  .ic-link{display:inline-block;font-size:14px;text-decoration:none;margin-right:4px;
+    transition:opacity .15s}
+  .ic-link:hover{opacity:.7}
+  .ic-link.fb{color:#1877f2}
+  .ic-link.line{color:#06c755}
+  .ic-link.phone{color:var(--gold)}
+  .rating-stars{color:#fbbf24;font-size:13px}
+  .rating-stars .off{color:#e2e6ea}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:8px;
+    background:var(--soft);color:var(--muted)}
+  .pill.hot{background:#fee2e2;color:#991b1b}
+  .pill.warm{background:#fed7aa;color:#9a3412}
+  .pill.cold{background:#dbeafe;color:#1e40af}
+  .pill.lost{background:#e5e7eb;color:#374151}
+  .pill.booked{background:#dcfce7;color:#15803d}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:flex-start;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:780px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden;margin:20px 0}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;
+    align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+
+  .form-section{margin-bottom:18px}
+  .form-section h3{font-size:13px;font-weight:800;color:var(--charcoal);
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;
+    background:#f7f3eb;padding:6px 12px;border-radius:6px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .form-grid .fld{display:flex;flex-direction:column;gap:4px}
+  .form-grid .fld.full{grid-column:1/-1}
+  .form-grid .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{font-family:inherit;font-size:14px;
+    padding:9px 11px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--gold)}
+
+  .rating-pick{display:flex;gap:6px}
+  .rating-pick button{background:#f7f3eb;border:1.5px solid var(--line);border-radius:6px;
+    padding:6px 10px;font-family:inherit;font-size:16px;cursor:pointer;color:#fbbf24}
+  .rating-pick button.on{background:#fef3c7;border-color:#fbbf24}
+
+  .modal-ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;
+    justify-content:flex-end;background:var(--soft)}
+  .modal-ft button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;
+    border:none;border-radius:9px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--charcoal)}
+  .btn-save{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+
+  .info-banner{background:#e0f2fe;border:1px solid #7dd3fc;color:#075985;padding:10px 14px;
+    border-radius:9px;font-size:12.5px;margin-bottom:14px;line-height:1.6}
+  .info-banner code{background:#fff;padding:1px 6px;border-radius:4px;color:var(--gold);font-weight:700}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);
+    color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none}
+  .toast.on{display:block}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="demo-bar">
+    🧪 <b>เดโม่</b> — ลูกค้าวอร์คอินใหม่ · เก็บใน localStorage ·
+    ของจริงจะลิงก์ Sheet ใหม่ (separate จาก sales-walkin เดิม)
+  </div>
+
+  <div class="topbar">
+    <div class="ttl">👥 ลูกค้าวอร์คอิน (ใหม่)<small>WALK-IN CUSTOMERS · ONE VELA</small></div>
+    <a href="home-demo.html">← หน้าแรก</a>
+    <a class="gold" href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank">📊 เปิด Sheet ↗</a>
+    <a class="green" href="javascript:void(0)" onclick="openAdd()">+ เพิ่มลูกค้า</a>
+  </div>
+
+  <div class="info-banner">
+    💡 <b>เพิ่มเติมจากระบบเดิม:</b> ลิงก์ Facebook · ID LINE · งบประมาณ · แบบบ้านที่สนใจ ·
+    คำติชม · ชื่อเอเจนต์ · โครงการคู่แข่ง · โปรโมชั่นที่อยากได้
+    — เก็บใน Sheet ใหม่ <code>walkins_v2</code> (แยกจากเดิม)
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="lbl">👥 ลูกค้ารวม</div>
+      <div class="num" id="cTotal">—</div>
+      <div class="sub">ลูกค้าทั้งหมด</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--red)">
+      <div class="lbl">🔥 Hot Lead</div>
+      <div class="num" id="cHot">—</div>
+      <div class="sub">สนใจสูง · ตามด่วน</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--green)">
+      <div class="lbl">✓ จองแล้ว</div>
+      <div class="num" id="cBooked">—</div>
+      <div class="sub">ปิดการขายได้</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--blue)">
+      <div class="lbl">📅 7 วันล่าสุด</div>
+      <div class="num" id="c7d">—</div>
+      <div class="sub">ลูกค้าใหม่</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <input type="text" id="qInp" placeholder="🔍 ค้นชื่อ / เบอร์ / agent..." oninput="renderList()">
+    <select id="statusFilter" onchange="renderList()">
+      <option value="">ทุกสถานะ</option>
+      <option value="hot">🔥 Hot</option>
+      <option value="warm">🟡 Warm</option>
+      <option value="cold">❄️ Cold</option>
+      <option value="booked">✓ จองแล้ว</option>
+      <option value="lost">❌ Lost</option>
+    </select>
+    <select id="agentFilter" onchange="renderList()">
+      <option value="">ทุกเซลส์</option>
+      <option value="ต้น">ต้น</option>
+      <option value="ฝน">ฝน</option>
+    </select>
+  </div>
+
+  <div class="tbl-box">
+    <table>
+      <thead>
+        <tr>
+          <th>วันที่</th>
+          <th>ชื่อลูกค้า / ติดต่อ</th>
+          <th>งบ</th>
+          <th>แบบบ้าน</th>
+          <th>เซลส์</th>
+          <th>คู่แข่ง</th>
+          <th>โปรโมชั่นต้องการ</th>
+          <th>คะแนน</th>
+          <th>สถานะ</th>
+        </tr>
+      </thead>
+      <tbody id="custRows"></tbody>
+    </table>
+  </div>
+
+  <footer>เดโม่ ระบบลูกค้าวอร์คอินใหม่ · One Vela — Two Build Development</footer>
+</div>
+
+<!-- Add/Edit modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="ttl" id="mTtl">+ เพิ่มลูกค้าวอร์คอิน</div>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd">
+
+      <div class="form-section">
+        <h3>👤 ข้อมูลลูกค้า</h3>
+        <div class="form-grid">
+          <div class="fld">
+            <span class="lbl">วันที่เข้าชม</span>
+            <input type="date" id="inDate">
+          </div>
+          <div class="fld">
+            <span class="lbl">ชื่อลูกค้า *</span>
+            <input type="text" id="inName" placeholder="คุณ...">
+          </div>
+          <div class="fld">
+            <span class="lbl">เบอร์โทร</span>
+            <input type="tel" id="inPhone" placeholder="08X-XXX-XXXX">
+          </div>
+          <div class="fld">
+            <span class="lbl">Facebook (URL หรือชื่อ)</span>
+            <input type="text" id="inFB" placeholder="facebook.com/... หรือชื่อโปรไฟล์">
+          </div>
+          <div class="fld">
+            <span class="lbl">LINE ID</span>
+            <input type="text" id="inLine" placeholder="@... หรือ ID">
+          </div>
+          <div class="fld">
+            <span class="lbl">แหล่งที่มา</span>
+            <select id="inSource">
+              <option value="Walk-in">Walk-in (เข้าชมเอง)</option>
+              <option value="Facebook">Facebook</option>
+              <option value="LINE">LINE OA</option>
+              <option value="Google">Google Search</option>
+              <option value="แนะนำ">แนะนำ</option>
+              <option value="ป้าย">ป้ายโฆษณา</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>🏠 ความต้องการ</h3>
+        <div class="form-grid">
+          <div class="fld">
+            <span class="lbl">งบประมาณ (บาท)</span>
+            <input type="number" id="inBudget" placeholder="เช่น 3000000">
+          </div>
+          <div class="fld">
+            <span class="lbl">แบบบ้านที่สนใจ</span>
+            <select id="inHouseType">
+              <option value="">— เลือก —</option>
+              <option value="ULTRA">A · ULTRA (บ้านเดี่ยว 2 ชั้น)</option>
+              <option value="MINUTES">B · MINUTES (บ้านเดี่ยวชั้นเดียว)</option>
+              <option value="SECOND">C · SECOND (บ้านแฝด)</option>
+              <option value="MOMENT">D · MOMENT (ทาวน์โฮม)</option>
+              <option value="หลายแบบ">หลายแบบ</option>
+            </select>
+          </div>
+          <div class="fld">
+            <span class="lbl">แปลงที่สนใจ</span>
+            <input type="text" id="inPlotInterest" placeholder="เช่น A140, A155">
+          </div>
+          <div class="fld">
+            <span class="lbl">โปรโมชั่นที่ต้องการ</span>
+            <input type="text" id="inPromo" placeholder="เช่น ฟรีค่าโอน, แอร์ฟรี">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>🎯 การติดตาม</h3>
+        <div class="form-grid">
+          <div class="fld">
+            <span class="lbl">เซลส์ที่ดูแล *</span>
+            <select id="inAgent">
+              <option value="">— เลือก —</option>
+              <option value="ต้น">ต้น</option>
+              <option value="ฝน">ฝน</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+          <div class="fld">
+            <span class="lbl">โครงการคู่แข่งที่เทียบ</span>
+            <input type="text" id="inCompete" placeholder="เช่น โครงการ X, Y">
+          </div>
+          <div class="fld">
+            <span class="lbl">สถานะ</span>
+            <select id="inStatus">
+              <option value="hot">🔥 Hot — สนใจสูง</option>
+              <option value="warm">🟡 Warm — สนใจปานกลาง</option>
+              <option value="cold">❄️ Cold — ดูเฉยๆ</option>
+              <option value="booked">✓ จองแล้ว</option>
+              <option value="lost">❌ Lost — ไม่ซื้อ</option>
+            </select>
+          </div>
+          <div class="fld">
+            <span class="lbl">คะแนน (1-5)</span>
+            <div class="rating-pick" id="ratingPick">
+              <button data-r="1" onclick="setRating(1)">★</button>
+              <button data-r="2" onclick="setRating(2)">★</button>
+              <button data-r="3" onclick="setRating(3)">★</button>
+              <button data-r="4" onclick="setRating(4)">★</button>
+              <button data-r="5" onclick="setRating(5)">★</button>
+            </div>
+          </div>
+          <div class="fld full">
+            <span class="lbl">คำติชม / ความคิดเห็นลูกค้า</span>
+            <textarea id="inFeedback" placeholder="เช่น ชอบแบบบ้าน ULTRA แต่ราคาสูงเกินงบ..."></textarea>
+          </div>
+          <div class="fld full">
+            <span class="lbl">บันทึก follow-up</span>
+            <textarea id="inFollowup" placeholder="เช่น โทรนัดวันที่ 25 พ.ค. เพื่อพาดูแปลง A140..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="saveCustomer()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/demo-auth.js"></script>
+<script>
+  DemoAuth.init();
+  if(!DemoAuth.can('create.walkin') && !DemoAuth.can('view.customers')){
+    location.replace('login-demo.html?deny=1&next='+encodeURIComponent(location.pathname));
+  }
+
+  const STORAGE_KEY = 'ov_walkin_v2_demo';
+  let editingId = null;
+  let pickedRating = 0;
+
+  function fmt(n){ return Number(n||0).toLocaleString('th-TH'); }
+  function thaiDate(d){
+    if(!d) return '-';
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt=new Date(d);
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2);
+  }
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function genMock(){
+    return [
+      {id:'w1', date:'2026-05-23', name:'คุณสมหญิง รักบ้าน', phone:'089-111-2222',
+       fb:'facebook.com/somying', line:'@somying', source:'Walk-in',
+       budget:3500000, houseType:'ULTRA', plotInterest:'A140,A155',
+       promo:'ฟรีค่าโอน + แอร์ 2 ตัว',
+       agent:'ต้น', compete:'โครงการ X', status:'hot', rating:5,
+       feedback:'ชอบมาก ลูกค้าเด็กจะอยู่กับครอบครัว', followup:'นัดดูแปลง 25 พ.ค.'},
+      {id:'w2', date:'2026-05-22', name:'คุณวินัย ใจดี', phone:'088-333-4444',
+       fb:'', line:'winaiX', source:'Facebook',
+       budget:2800000, houseType:'MINUTES', plotInterest:'B200',
+       promo:'ส่วนลด 100,000',
+       agent:'ฝน', compete:'-', status:'warm', rating:3,
+       feedback:'งบไม่พอ ขอลดราคาเพิ่ม', followup:'โทรเสนอ promo เพิ่ม'},
+      {id:'w3', date:'2026-05-20', name:'คุณอาทิตย์ ตะวันออก', phone:'081-555-6666',
+       fb:'facebook.com/atit.sun', line:'', source:'แนะนำ',
+       budget:5000000, houseType:'ULTRA', plotInterest:'A170',
+       promo:'-',
+       agent:'ต้น', compete:'โครงการ Y, โครงการ Z', status:'booked', rating:5,
+       feedback:'จองแล้ว!', followup:'นัดเซ็นสัญญา 30 พ.ค.'},
+      {id:'w4', date:'2026-05-18', name:'คุณพิมพ์ สิริ', phone:'082-777-8888',
+       fb:'', line:'@pim_siri', source:'LINE',
+       budget:2200000, houseType:'MOMENT', plotInterest:'D45',
+       promo:'',
+       agent:'ฝน', compete:'-', status:'cold', rating:2,
+       feedback:'ยังไม่พร้อม รอเงินก้อน', followup:'follow-up เดือนหน้า'},
+      {id:'w5', date:'2026-05-15', name:'คุณวิภา สวยงาม', phone:'084-999-0000',
+       fb:'facebook.com/wipa', line:'wipaeve', source:'Walk-in',
+       budget:3200000, houseType:'SECOND', plotInterest:'C12',
+       promo:'แต่งห้องครัวฟรี',
+       agent:'ต้น', compete:'โครงการ ABC', status:'lost', rating:1,
+       feedback:'ไปจองโครงการอื่น', followup:'-'}
+    ];
+  }
+
+  function loadData(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) return JSON.parse(raw);
+    } catch(e){}
+    const data = genMock();
+    saveData(data);
+    return data;
+  }
+  function saveData(data){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let CUSTOMERS = loadData();
+
+  function renderStats(){
+    document.getElementById('cTotal').textContent = CUSTOMERS.length;
+    document.getElementById('cHot').textContent = CUSTOMERS.filter(c => c.status === 'hot').length;
+    document.getElementById('cBooked').textContent = CUSTOMERS.filter(c => c.status === 'booked').length;
+    const week = Date.now() - 7*86400000;
+    document.getElementById('c7d').textContent = CUSTOMERS.filter(c => new Date(c.date) >= week).length;
+  }
+
+  function renderList(){
+    const q = document.getElementById('qInp').value.trim().toLowerCase();
+    const sf = document.getElementById('statusFilter').value;
+    const af = document.getElementById('agentFilter').value;
+    let list = [...CUSTOMERS];
+    if(q) list = list.filter(c =>
+      (c.name||'').toLowerCase().includes(q) ||
+      (c.phone||'').includes(q) ||
+      (c.agent||'').toLowerCase().includes(q));
+    if(sf) list = list.filter(c => c.status === sf);
+    if(af) list = list.filter(c => c.agent === af);
+    list.sort((a,b) => String(b.date).localeCompare(String(a.date)));
+
+    const el = document.getElementById('custRows');
+    if(list.length === 0){
+      el.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">ไม่พบลูกค้า</td></tr>';
+      return;
+    }
+    el.innerHTML = list.map(c => {
+      const statusInfo = {
+        hot:    {cls:'hot', label:'🔥 Hot'},
+        warm:   {cls:'warm', label:'🟡 Warm'},
+        cold:   {cls:'cold', label:'❄️ Cold'},
+        booked: {cls:'booked', label:'✓ จอง'},
+        lost:   {cls:'lost', label:'❌ Lost'}
+      }[c.status] || {cls:'', label:c.status};
+
+      let stars = '';
+      for(let i=1; i<=5; i++) stars += '<span class="'+(i<=c.rating?'':'off')+'">★</span>';
+
+      const links = [];
+      if(c.fb){
+        const url = c.fb.startsWith('http') ? c.fb : (c.fb.startsWith('facebook') ? 'https://'+c.fb : 'https://facebook.com/'+c.fb);
+        links.push(`<a class="ic-link fb" href="${esc(url)}" target="_blank" title="Facebook" onclick="event.stopPropagation()">📘</a>`);
+      }
+      if(c.line) links.push(`<a class="ic-link line" href="https://line.me/ti/p/~${esc(c.line.replace(/^@/,''))}" target="_blank" title="LINE: ${esc(c.line)}" onclick="event.stopPropagation()">💬</a>`);
+      if(c.phone) links.push(`<a class="ic-link phone" href="tel:${esc(c.phone)}" title="${esc(c.phone)}" onclick="event.stopPropagation()">📞</a>`);
+
+      return `
+        <tr onclick="openEdit('${c.id}')">
+          <td>${thaiDate(c.date)}</td>
+          <td>
+            <div class="nm">${esc(c.name)}</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">
+              ${esc(c.phone||'-')} ${links.join(' ')}
+            </div>
+          </td>
+          <td>${c.budget ? fmt(c.budget) : '-'}</td>
+          <td>${esc(c.houseType||'-')}${c.plotInterest?'<br><small style="color:var(--muted)">'+esc(c.plotInterest)+'</small>':''}</td>
+          <td>${esc(c.agent||'-')}</td>
+          <td style="font-size:12px">${esc(c.compete||'-')}</td>
+          <td style="font-size:12px">${esc(c.promo||'-')}</td>
+          <td><span class="rating-stars">${stars}</span></td>
+          <td><span class="pill ${statusInfo.cls}">${statusInfo.label}</span></td>
+        </tr>`;
+    }).join('');
+  }
+
+  function openAdd(){
+    editingId = null;
+    pickedRating = 3;
+    document.getElementById('mTtl').textContent = '+ เพิ่มลูกค้าวอร์คอิน';
+    ['inName','inPhone','inFB','inLine','inPlotInterest','inPromo','inCompete','inFeedback','inFollowup','inBudget'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('inSource').value = 'Walk-in';
+    document.getElementById('inHouseType').value = '';
+    document.getElementById('inAgent').value = '';
+    document.getElementById('inStatus').value = 'warm';
+    updateRatingUI();
+    document.getElementById('modal').classList.add('on');
+  }
+  function openEdit(id){
+    const c = CUSTOMERS.find(x => x.id === id);
+    if(!c) return;
+    editingId = id;
+    pickedRating = c.rating || 3;
+    document.getElementById('mTtl').textContent = '✏️ แก้ไขลูกค้า — '+c.name;
+    document.getElementById('inDate').value = c.date;
+    document.getElementById('inName').value = c.name||'';
+    document.getElementById('inPhone').value = c.phone||'';
+    document.getElementById('inFB').value = c.fb||'';
+    document.getElementById('inLine').value = c.line||'';
+    document.getElementById('inSource').value = c.source||'Walk-in';
+    document.getElementById('inBudget').value = c.budget||'';
+    document.getElementById('inHouseType').value = c.houseType||'';
+    document.getElementById('inPlotInterest').value = c.plotInterest||'';
+    document.getElementById('inPromo').value = c.promo||'';
+    document.getElementById('inAgent').value = c.agent||'';
+    document.getElementById('inCompete').value = c.compete||'';
+    document.getElementById('inStatus').value = c.status||'warm';
+    document.getElementById('inFeedback').value = c.feedback||'';
+    document.getElementById('inFollowup').value = c.followup||'';
+    updateRatingUI();
+    document.getElementById('modal').classList.add('on');
+  }
+  function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+  function setRating(r){ pickedRating = r; updateRatingUI(); }
+  function updateRatingUI(){
+    document.querySelectorAll('#ratingPick button').forEach(b => {
+      b.classList.toggle('on', Number(b.dataset.r) <= pickedRating);
+    });
+  }
+  function saveCustomer(){
+    const data = {
+      date: document.getElementById('inDate').value,
+      name: document.getElementById('inName').value.trim(),
+      phone: document.getElementById('inPhone').value.trim(),
+      fb: document.getElementById('inFB').value.trim(),
+      line: document.getElementById('inLine').value.trim(),
+      source: document.getElementById('inSource').value,
+      budget: Number(document.getElementById('inBudget').value) || 0,
+      houseType: document.getElementById('inHouseType').value,
+      plotInterest: document.getElementById('inPlotInterest').value.trim(),
+      promo: document.getElementById('inPromo').value.trim(),
+      agent: document.getElementById('inAgent').value,
+      compete: document.getElementById('inCompete').value.trim(),
+      status: document.getElementById('inStatus').value,
+      rating: pickedRating,
+      feedback: document.getElementById('inFeedback').value.trim(),
+      followup: document.getElementById('inFollowup').value.trim()
+    };
+    if(!data.name){ alert('กรุณาใส่ชื่อ'); return; }
+    if(!data.agent){ alert('กรุณาเลือกเซลส์'); return; }
+
+    if(editingId){
+      const c = CUSTOMERS.find(x => x.id === editingId);
+      Object.assign(c, data);
+    } else {
+      data.id = 'w_' + Date.now();
+      CUSTOMERS.push(data);
+    }
+    saveData(CUSTOMERS);
+    renderStats(); renderList();
+    closeModal();
+    showToast('✅ '+(editingId?'แก้ไข':'เพิ่ม')+' ลูกค้า '+data.name+' แล้ว');
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
+  }
+
+  renderStats();
+  renderList();
+</script>
+</body>
+</html>

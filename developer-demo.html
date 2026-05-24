@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔧 Developer — จัดการ Users (เดโม่)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1100px;margin:0 auto}
+
+  .demo-bar{background:#fff8e6;border:1px dashed var(--gold);border-radius:10px;padding:10px 14px;
+    margin-bottom:14px;font-size:12.5px;color:#7a5a2e;text-align:center}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);
+    color:#fff;text-decoration:none}
+  .topbar button.danger{background:#7f1d1d}
+
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:18px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:8px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+  h2.sec .btn{margin-left:auto;font-family:inherit;font-size:13px;font-weight:700;
+    background:var(--gold);color:#fff;border:none;padding:9px 16px;border-radius:9px;cursor:pointer}
+
+  .roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:16px}
+  .role-card{background:#fff;border-radius:10px;padding:12px 14px;border-left:4px solid var(--gold);
+    box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .role-card .nm{font-size:14px;font-weight:800;color:var(--charcoal)}
+  .role-card .desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .role-card .perms{font-size:11px;color:var(--gold);margin-top:6px;font-weight:600}
+
+  .tbl-box{background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px;
+    padding:12px 14px;text-align:left;border-bottom:2px solid var(--line);
+    text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc}
+  .badge-role{display:inline-block;font-size:11px;font-weight:800;color:#fff;padding:3px 9px;
+    border-radius:10px;letter-spacing:.4px}
+  .av{width:32px;height:32px;background:var(--gold);color:#fff;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;
+    margin-right:8px;vertical-align:middle}
+  .uname{font-weight:800;color:var(--charcoal);display:inline-block;vertical-align:middle}
+  .pin{font-family:monospace;color:var(--gold);font-weight:700}
+  .row-actions{display:flex;gap:5px;justify-content:flex-end}
+  .row-actions button,.row-actions select{font-family:inherit;font-size:11.5px;font-weight:700;
+    border:1px solid var(--line);background:#fff;padding:4px 9px;border-radius:7px;cursor:pointer;
+    color:var(--charcoal)}
+  .row-actions button:hover{border-color:var(--gold);color:var(--gold)}
+  .row-actions button.danger:hover{border-color:var(--red);color:var(--red)}
+  .row-actions .tg{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+  .row-actions .sw{width:32px;height:18px;background:var(--line);border-radius:10px;position:relative;
+    transition:background .2s}
+  .row-actions .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;
+    background:#fff;border-radius:50%;transition:transform .2s}
+  .row-actions .tg.on .sw{background:var(--green)}
+  .row-actions .tg.on .sw::after{transform:translateX(14px)}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:center;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:480px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;
+    align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+  .fld{margin-bottom:12px}
+  .fld .lbl{display:block;font-size:12px;color:var(--muted);font-weight:700;
+    letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase}
+  .fld input,.fld select{width:100%;font-family:inherit;font-size:15px;padding:10px 12px;
+    border:2px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--gold)}
+  .modal-ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;
+    justify-content:flex-end;background:var(--soft)}
+  .modal-ft button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;
+    border:none;border-radius:9px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--charcoal)}
+  .btn-save{background:var(--green);color:#fff}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="demo-bar">🧪 <b>เดโม่</b> — Developer page · เก็บใน localStorage · ไม่กระทบระบบจริง</div>
+
+  <div class="topbar">
+    <div class="ttl">🔧 Developer — จัดการ Users<small>USER MANAGEMENT · ONE VELA</small></div>
+    <a href="home-demo.html">← หน้าแรก</a>
+    <button class="danger" onclick="resetUsers()">🔄 รีเซ็ต users default</button>
+  </div>
+
+  <h2 class="sec">🎭 Roles + สิทธิ์ <span class="ct">7 บทบาท</span></h2>
+  <div class="roles" id="rolesGrid"></div>
+
+  <h2 class="sec">
+    👥 รายชื่อผู้ใช้ <span class="ct" id="userCount">0</span>
+    <button class="btn" onclick="openAdd()">+ เพิ่ม User</button>
+  </h2>
+  <div class="tbl-box">
+    <table>
+      <thead>
+        <tr>
+          <th>ผู้ใช้</th>
+          <th>PIN</th>
+          <th>บทบาท</th>
+          <th>หมายเหตุ</th>
+          <th>ใช้งาน</th>
+          <th class="r" style="text-align:right">การจัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="userRows"></tbody>
+    </table>
+  </div>
+
+  <footer>เดโม่ Developer page · One Vela — Two Build Development</footer>
+</div>
+
+<!-- Modal: Add/Edit user -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="ttl" id="modalTtl">+ เพิ่ม User</div>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fld">
+        <label class="lbl">ชื่อผู้ใช้</label>
+        <input type="text" id="inUsername" placeholder="เช่น สมชาย">
+      </div>
+      <div class="fld">
+        <label class="lbl">PIN (4-6 หลัก)</label>
+        <input type="text" id="inPin" inputmode="numeric" placeholder="เช่น 1234">
+      </div>
+      <div class="fld">
+        <label class="lbl">บทบาท</label>
+        <select id="inRole"></select>
+      </div>
+      <div class="fld">
+        <label class="lbl">หมายเหตุ (เผื่อจำ)</label>
+        <input type="text" id="inNote" placeholder="เช่น เซลส์ฝั่ง A">
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-save" id="btnSave" onclick="saveUser()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script src="_tools/demo-auth.js"></script>
+<script>
+  DemoAuth.init();
+  if(!DemoAuth.can('*')){
+    location.replace('login-demo.html?deny=1&next='+encodeURIComponent(location.pathname));
+  }
+
+  let editingId = null;
+
+  function renderRoles(){
+    const el = document.getElementById('rolesGrid');
+    el.innerHTML = Object.entries(DemoAuth.ROLES).map(([key, r]) => {
+      const permsShort = r.permissions[0] === '*' ? 'ทั้งหมด' :
+        r.permissions.slice(0,4).join(', ') + (r.permissions.length>4?` + ${r.permissions.length-4} อื่น`:'');
+      return `
+        <div class="role-card" style="border-left-color:${r.color}">
+          <div class="nm" style="color:${r.color}">${r.label}</div>
+          <div class="desc">${r.desc}</div>
+          <div class="perms">${r.permissions.length === 1 && r.permissions[0]==='*' ? '🔓 ทุกสิทธิ์' : `🔑 ${r.permissions.length} permissions`}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderUsers(){
+    const users = DemoAuth.listUsers();
+    document.getElementById('userCount').textContent = users.length + ' คน';
+    const el = document.getElementById('userRows');
+    el.innerHTML = users.map(u => {
+      const r = DemoAuth.ROLES[u.role] || {label:u.role,color:'#666'};
+      return `
+        <tr>
+          <td>
+            <span class="av" style="background:${r.color}">${u.username.charAt(0)}</span>
+            <span class="uname">${esc(u.username)}</span>
+          </td>
+          <td><span class="pin">${esc(u.pin)}</span></td>
+          <td><span class="badge-role" style="background:${r.color}">${r.label}</span></td>
+          <td style="font-size:12px;color:var(--muted)">${esc(u.note||'-')}</td>
+          <td>
+            <div class="row-actions" style="justify-content:flex-start">
+              <div class="tg ${u.active?'on':''}" onclick="toggleActive('${u.id}',${!u.active})">
+                <div class="sw"></div>
+                <span style="font-size:11.5px;color:${u.active?'var(--green)':'var(--muted)'};font-weight:700">
+                  ${u.active?'ใช้งาน':'ระงับ'}
+                </span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button onclick="openEdit('${u.id}')">แก้ไข</button>
+              <button class="danger" onclick="delUser('${u.id}')">ลบ</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Populate role select
+  function populateRoleSelect(){
+    const sel = document.getElementById('inRole');
+    sel.innerHTML = Object.entries(DemoAuth.ROLES).map(([key, r]) =>
+      `<option value="${key}">${r.label}</option>`
+    ).join('');
+  }
+  populateRoleSelect();
+
+  function openAdd(){
+    editingId = null;
+    document.getElementById('modalTtl').textContent = '+ เพิ่ม User';
+    document.getElementById('inUsername').value = '';
+    document.getElementById('inPin').value = '';
+    document.getElementById('inRole').value = 'viewer';
+    document.getElementById('inNote').value = '';
+    document.getElementById('inUsername').disabled = false;
+    document.getElementById('modal').classList.add('on');
+  }
+  function openEdit(id){
+    const u = DemoAuth.listUsers().find(x => x.id === id);
+    if(!u) return;
+    editingId = id;
+    document.getElementById('modalTtl').textContent = '✏️ แก้ไข User';
+    document.getElementById('inUsername').value = u.username;
+    document.getElementById('inUsername').disabled = (u.role === 'developer' && u.username === 'ไอซ์');
+    document.getElementById('inPin').value = u.pin;
+    document.getElementById('inRole').value = u.role;
+    document.getElementById('inNote').value = u.note || '';
+    document.getElementById('modal').classList.add('on');
+  }
+  function closeModal(){
+    document.getElementById('modal').classList.remove('on');
+  }
+  function saveUser(){
+    const data = {
+      username: document.getElementById('inUsername').value.trim(),
+      pin: document.getElementById('inPin').value.trim(),
+      role: document.getElementById('inRole').value,
+      note: document.getElementById('inNote').value.trim()
+    };
+    if(!data.username) { alert('กรุณากรอกชื่อ'); return; }
+    if(data.pin.length < 4) { alert('PIN ต้อง 4-6 หลัก'); return; }
+
+    if(editingId){
+      const r = DemoAuth.updateUser(editingId, data);
+      if(!r.ok){ alert(r.error); return; }
+    } else {
+      const r = DemoAuth.addUser(data);
+      if(!r.ok){ alert(r.error); return; }
+    }
+    closeModal();
+    renderUsers();
+  }
+  function delUser(id){
+    const u = DemoAuth.listUsers().find(x => x.id === id);
+    if(!u) return;
+    if(!confirm(`ลบ user "${u.username}"?`)) return;
+    const r = DemoAuth.deleteUser(id);
+    if(!r.ok){ alert(r.error); return; }
+    renderUsers();
+  }
+  function toggleActive(id, active){
+    DemoAuth.updateUser(id, {active: active});
+    renderUsers();
+  }
+  function resetUsers(){
+    if(!confirm('รีเซ็ต users กลับเป็น default? (8 คน)\n(ผู้ใช้ที่เพิ่มเองจะหายหมด)')) return;
+    DemoAuth.resetUsers();
+    renderUsers();
+  }
+
+  renderRoles();
+  renderUsers();
+</script>
+</body>
+</html>

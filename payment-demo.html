@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>💵 ผ่อนดาวน์ + แนบสลิป — One Vela (เดโม่)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1140px;margin:0 auto}
+
+  .demo-bar{background:#fff8e6;border:1px dashed var(--gold);border-radius:10px;padding:10px 14px;
+    margin-bottom:14px;font-size:12.5px;color:#7a5a2e;text-align:center}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);
+    color:#fff;text-decoration:none}
+  .topbar a.gold{background:var(--gold)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    border-left:4px solid var(--gold)}
+  .stat-card.warn{border-left-color:var(--amber)}
+  .stat-card.good{border-left-color:var(--green)}
+  .stat-card.over{border-left-color:var(--red)}
+  .stat-card .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase}
+  .stat-card .num{font-size:24px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .stat-card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:20px 0 12px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:10px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+
+  .tbl-box{background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px;
+    padding:12px 14px;text-align:left;border-bottom:2px solid var(--line);
+    text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbfc;cursor:pointer}
+  td.r{text-align:right}
+  .pid{font-weight:800;color:var(--charcoal);font-size:15px}
+  .typ-badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:10px;letter-spacing:.4px}
+  .typ-ULTRA{background:#fef3e2;color:#9a3412}
+  .typ-MINUTES{background:#e0f2fe;color:#075985}
+  .typ-SECOND{background:#dbeafe;color:#1e40af}
+  .typ-MOMENT{background:#f3e8ff;color:#6b21a8}
+  .progress{display:inline-block;width:100px;height:6px;background:#eef1f4;border-radius:3px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--green),#4ade80)}
+  .progress.over>div{background:linear-gradient(90deg,var(--amber),#f59e0b)}
+  .st-pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px}
+  .st-on{background:#dcfce7;color:#15803d}
+  .st-wait{background:#fef3c7;color:#92400e}
+  .st-over{background:#fee2e2;color:#991b1b}
+
+  /* Detail modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:flex-start;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:760px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden;margin:20px 0}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;
+    align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+
+  .plot-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 14px;
+    background:var(--soft);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px}
+  .plot-info .lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.4px}
+  .plot-info .val{color:var(--ink);font-weight:700}
+  .plot-info .val.gold{color:var(--gold)}
+
+  .pay-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
+    margin-bottom:14px}
+  .pay-summary .cell{background:var(--soft);border-radius:10px;padding:10px 14px}
+  .pay-summary .cell .lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase}
+  .pay-summary .cell .num{font-size:18px;font-weight:800;color:var(--charcoal);margin-top:3px}
+  .pay-summary .cell .num.gold{color:var(--gold)}
+  .pay-summary .cell .num.green{color:var(--green)}
+
+  .pay-list{margin-bottom:14px}
+  .pay-row{background:var(--soft);border-radius:10px;padding:12px 14px;margin-bottom:8px;
+    display:flex;align-items:center;gap:12px;font-size:13px}
+  .pay-row.paid{background:#f0fdf4;border-left:3px solid var(--green)}
+  .pay-row.due{background:#fef3c7;border-left:3px solid var(--amber)}
+  .pay-row.over{background:#fee2e2;border-left:3px solid var(--red)}
+  .pay-row .ix{width:32px;height:32px;background:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;
+    border:2px solid var(--line);color:var(--muted)}
+  .pay-row.paid .ix{border-color:var(--green);color:var(--green);background:#fff}
+  .pay-row .info{flex:1;min-width:0}
+  .pay-row .nm{font-weight:700;color:var(--charcoal)}
+  .pay-row .meta{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .pay-row .amt{font-weight:800;color:var(--charcoal);font-size:15px}
+  .pay-row .actions{display:flex;gap:5px;flex-wrap:wrap}
+  .pay-row .actions button,.pay-row .actions a{font-family:inherit;font-size:11.5px;font-weight:700;
+    padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;
+    color:var(--charcoal);cursor:pointer;text-decoration:none}
+  .pay-row .actions button:hover,.pay-row .actions a:hover{border-color:var(--gold);color:var(--gold)}
+  .pay-row .actions button.paid-btn{background:var(--green);color:#fff;border-color:var(--green)}
+  .pay-row .actions button.paid-btn:hover{color:#fff;background:#15803d}
+
+  /* Add payment form */
+  .form-box{background:#fff;border:2px dashed var(--gold);border-radius:12px;padding:16px 18px;
+    margin-bottom:14px}
+  .form-box .ttl{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:10px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .form-grid .fld{display:flex;flex-direction:column;gap:4px}
+  .form-grid .fld .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase}
+  .form-grid input,.form-grid select{font-family:inherit;font-size:14px;padding:9px 11px;
+    border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .form-grid .fld.slip{grid-column:1/-1}
+  .slip-area{background:var(--soft);border:2px dashed var(--line);border-radius:9px;
+    padding:14px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;position:relative}
+  .slip-area:hover{border-color:var(--gold);background:#fff8e6;color:var(--gold-dk)}
+  .slip-area input[type=file]{display:none}
+  .slip-area.has-file{background:#f0fdf4;border-color:var(--green);color:var(--green);font-weight:700}
+  .slip-area .preview{max-width:200px;max-height:160px;margin-top:8px;display:block;
+    margin-left:auto;margin-right:auto;border-radius:8px}
+  .form-actions{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
+  .form-actions button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;
+    border:none;border-radius:9px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--muted)}
+  .btn-save{background:var(--green);color:#fff;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+
+  .drive-link{background:#e0e7ff;border:1px solid #c7d2fe;color:#1e3a8a;padding:10px 14px;
+    border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;display:inline-flex;
+    align-items:center;gap:6px;margin-bottom:14px}
+  .drive-link:hover{background:#1e3a8a;color:#fff}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);
+    color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none}
+  .toast.on{display:block}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="demo-bar">
+    🧪 <b>เดโม่</b> — ข้อมูลเก็บใน localStorage · สลิป mock (ไม่อัปจริง) ·
+    ของจริงจะเก็บใน Sheet "payments" + Drive โฟลเดอร์ "ผ่อนดาวน์/แปลง_XXX/"
+  </div>
+
+  <div class="topbar">
+    <div class="ttl">💵 ผ่อนดาวน์ + แนบสลิป<small>PAYMENT TRACKING · ONE VELA</small></div>
+    <a href="home-demo.html">← หน้าแรก</a>
+    <a class="gold" href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank">📁 Data base ↗</a>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card warn">
+      <div class="lbl">📋 ลูกค้าที่ทำสัญญา</div>
+      <div class="num" id="cTotal">—</div>
+      <div class="sub">มีงวดดาวน์ที่ต้องผ่อน</div>
+    </div>
+    <div class="stat-card good">
+      <div class="lbl">💰 รับเข้าแล้ว</div>
+      <div class="num" id="cPaid">—</div>
+      <div class="sub">รวมทุกแปลง</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="lbl">⏳ ค้างชำระ (รวม)</div>
+      <div class="num" id="cWait">—</div>
+      <div class="sub">งวดที่ยังไม่ครบกำหนด</div>
+    </div>
+    <div class="stat-card over">
+      <div class="lbl">⚠️ เลยกำหนด</div>
+      <div class="num" id="cOver">—</div>
+      <div class="sub">งวดที่เลยวันกำหนด</div>
+    </div>
+  </div>
+
+  <h2 class="sec">📋 รายการลูกค้าผ่อนดาวน์ <span class="ct" id="custCount">0</span></h2>
+  <div class="tbl-box">
+    <table>
+      <thead>
+        <tr>
+          <th>แปลง</th>
+          <th>ไทป์</th>
+          <th>ลูกค้า</th>
+          <th>วันสัญญา</th>
+          <th class="r">ยอดดาวน์</th>
+          <th>งวด</th>
+          <th>ความคืบหน้า</th>
+          <th>สถานะ</th>
+        </tr>
+      </thead>
+      <tbody id="custRows"></tbody>
+    </table>
+  </div>
+
+  <footer>เดโม่ ระบบผ่อนดาวน์ · One Vela — Two Build Development</footer>
+</div>
+
+<!-- ── DETAIL MODAL ── -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="ttl" id="mTtl">💵 รายละเอียดผ่อนดาวน์</div>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd" id="mBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/demo-auth.js"></script>
+<script>
+  DemoAuth.init();
+  if(!DemoAuth.can('view.payments')){
+    location.replace('login-demo.html?deny=1&next='+encodeURIComponent(location.pathname));
+  }
+
+  // ── Mock data: ลูกค้าที่ทำสัญญา + งวดผ่อนดาวน์ ──
+  const STORAGE_KEY = 'ov_payments_demo_v1';
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  function plotCode(plot, type){
+    return (TYPE_PREFIX[type]||'?') + String(plot||'').replace(/^0+/,'');
+  }
+  function fmt(n){ return Number(n||0).toLocaleString('th-TH'); }
+  function thaiDate(d){
+    if(!d) return '-';
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt=new Date(d);
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543);
+  }
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function genCustomers(){
+    return [
+      {plot:'140',type:'ULTRA',cName:'นางสาวมณฑา เอี่ยมส่วนมณฑา',contractDate:'2026-02-15',
+       totalDown:170000, months:12, agent:'ต้น'},
+      {plot:'155',type:'ULTRA',cName:'นายสมชาย ใจดี',contractDate:'2026-03-01',
+       totalDown:180000, months:6, agent:'ฝน'},
+      {plot:'088',type:'MINUTES',cName:'คุณวิภา สวยงาม',contractDate:'2026-01-20',
+       totalDown:120000, months:8, agent:'ต้น'},
+      {plot:'092',type:'SECOND',cName:'นายอาทิตย์ ตะวันออก',contractDate:'2026-04-05',
+       totalDown:140000, months:10, agent:'ฝน'},
+      {plot:'200',type:'MOMENT',cName:'นางสาวพิมพ์ สิริ',contractDate:'2026-04-22',
+       totalDown:100000, months:6, agent:'ต้น'}
+    ];
+  }
+
+  function loadData(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ return JSON.parse(raw); }
+    } catch(e){}
+    // generate fresh
+    const customers = genCustomers().map(c => {
+      const monthAmount = Math.round(c.totalDown / c.months);
+      const today = new Date();
+      const startDate = new Date(c.contractDate);
+      const installments = [];
+      for(let i=0; i<c.months; i++){
+        const due = new Date(startDate);
+        due.setMonth(due.getMonth() + i + 1);
+        // pre-fill some as paid (mock realistic state)
+        const monthsAgo = (today - due) / 86400000 / 30;
+        const isPaid = monthsAgo > -0.1; // already due → paid (mock)
+        installments.push({
+          installmentNo: i+1,
+          dueDate: due.toISOString().slice(0,10),
+          amount: monthAmount,
+          paid: isPaid && i < c.months - 2, // last 2 not paid for demo
+          paidDate: isPaid && i < c.months - 2 ? due.toISOString().slice(0,10) : null,
+          slipDataUrl: null,
+          method: isPaid && i < c.months - 2 ? 'โอนผ่านธนาคาร' : null,
+          note: ''
+        });
+      }
+      return {...c, installments};
+    });
+    saveData(customers);
+    return customers;
+  }
+  function saveData(customers){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+  }
+
+  let CUSTOMERS = loadData();
+  let currentPlotId = null;
+
+  function getStatus(inst){
+    if(inst.paid) return 'paid';
+    const today = new Date(), due = new Date(inst.dueDate);
+    if(due < today) return 'over';
+    return 'due';
+  }
+
+  function renderStats(){
+    let totalPaid = 0, totalWait = 0, totalOver = 0;
+    CUSTOMERS.forEach(c => {
+      c.installments.forEach(inst => {
+        const st = getStatus(inst);
+        if(st === 'paid') totalPaid += inst.amount;
+        else if(st === 'over') totalOver += inst.amount;
+        else totalWait += inst.amount;
+      });
+    });
+    document.getElementById('cTotal').textContent = CUSTOMERS.length;
+    document.getElementById('cPaid').textContent = fmt(totalPaid);
+    document.getElementById('cWait').textContent = fmt(totalWait);
+    document.getElementById('cOver').textContent = fmt(totalOver);
+  }
+
+  function renderList(){
+    document.getElementById('custCount').textContent = CUSTOMERS.length + ' ลูกค้า';
+    const el = document.getElementById('custRows');
+    el.innerHTML = CUSTOMERS.map(c => {
+      const paidCount = c.installments.filter(x => x.paid).length;
+      const pct = Math.round(paidCount / c.installments.length * 100);
+      const overdue = c.installments.some(x => !x.paid && new Date(x.dueDate) < new Date());
+      const st = overdue ? '<span class="st-pill st-over">⚠️ ค้างชำระ</span>'
+        : pct === 100 ? '<span class="st-pill st-on">✓ ครบแล้ว</span>'
+        : '<span class="st-pill st-wait">⏳ กำลังผ่อน</span>';
+      return `
+        <tr onclick="openDetail('${c.plot}')">
+          <td><span class="pid">${plotCode(c.plot, c.type)}</span></td>
+          <td><span class="typ-badge typ-${c.type}">${c.type}</span></td>
+          <td>${esc(c.cName)} <small style="color:var(--muted)">· ${esc(c.agent)}</small></td>
+          <td>${thaiDate(c.contractDate)}</td>
+          <td class="r"><b>${fmt(c.totalDown)}</b></td>
+          <td>${paidCount}/${c.installments.length}</td>
+          <td>
+            <span class="progress ${overdue?'over':''}"><div style="width:${pct}%"></div></span>
+            <small style="margin-left:4px;color:var(--muted)">${pct}%</small>
+          </td>
+          <td>${st}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function openDetail(plot){
+    currentPlotId = plot;
+    const c = CUSTOMERS.find(x => x.plot === plot);
+    if(!c) return;
+
+    const code = plotCode(c.plot, c.type);
+    const paidCount = c.installments.filter(x => x.paid).length;
+    const paidSum = c.installments.filter(x => x.paid).reduce((a,x) => a+x.amount, 0);
+    const remain = c.totalDown - paidSum;
+    const driveFolder = 'https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
+
+    document.getElementById('mTtl').innerHTML = '💵 ผ่อนดาวน์ — '+code+' · '+esc(c.cName);
+
+    let html = '';
+    html += '<div class="plot-info">';
+    html += '<div><div class="lbl">แปลง</div><div class="val gold">'+code+'</div></div>';
+    html += '<div><div class="lbl">ลูกค้า</div><div class="val">'+esc(c.cName)+'</div></div>';
+    html += '<div><div class="lbl">วันสัญญา</div><div class="val">'+thaiDate(c.contractDate)+'</div></div>';
+    html += '<div><div class="lbl">เซลส์</div><div class="val">'+esc(c.agent)+'</div></div>';
+    html += '</div>';
+
+    html += '<a href="'+driveFolder+'" target="_blank" class="drive-link">📁 เปิดโฟลเดอร์สลิป (Drive)</a>';
+
+    html += '<div class="pay-summary">';
+    html += '<div class="cell"><div class="lbl">ยอดดาวน์รวม</div><div class="num gold">'+fmt(c.totalDown)+'</div></div>';
+    html += '<div class="cell"><div class="lbl">รับเข้าแล้ว</div><div class="num green">'+fmt(paidSum)+'</div></div>';
+    html += '<div class="cell"><div class="lbl">คงเหลือ</div><div class="num">'+fmt(remain)+'</div></div>';
+    html += '<div class="cell"><div class="lbl">งวดที่ผ่อน</div><div class="num">'+paidCount+'/'+c.installments.length+'</div></div>';
+    html += '</div>';
+
+    html += '<h3 style="font-size:14px;font-weight:800;color:var(--charcoal);margin:14px 0 8px">📊 รายงวด</h3>';
+    html += '<div class="pay-list">';
+    c.installments.forEach((inst, idx) => {
+      const st = getStatus(inst);
+      const cls = st === 'paid' ? 'paid' : (st === 'over' ? 'over' : 'due');
+      html += '<div class="pay-row '+cls+'">';
+      html += '<div class="ix">'+(inst.paid?'✓':inst.installmentNo)+'</div>';
+      html += '<div class="info">';
+      html += '<div class="nm">งวดที่ '+inst.installmentNo+' · '+thaiDate(inst.dueDate)+'</div>';
+      if(inst.paid){
+        html += '<div class="meta">✓ ชำระแล้ว '+thaiDate(inst.paidDate)+' · '+esc(inst.method||'-')+'</div>';
+      } else {
+        html += '<div class="meta" style="color:'+(st==='over'?'var(--red)':'var(--amber)')+'">'+
+          (st==='over'?'⚠️ เลยกำหนด':'⏳ ยังไม่ครบกำหนด')+'</div>';
+      }
+      html += '</div>';
+      html += '<div class="amt">'+fmt(inst.amount)+' บาท</div>';
+      html += '<div class="actions">';
+      if(inst.slipDataUrl){
+        html += '<a href="'+inst.slipDataUrl+'" target="_blank">📎 ดูสลิป</a>';
+      }
+      if(inst.paid){
+        html += '<button onclick="event.stopPropagation();unpay('+idx+')">↶ ยกเลิก</button>';
+      } else {
+        html += '<button class="paid-btn" onclick="event.stopPropagation();openPayForm('+idx+')">+ บันทึก</button>';
+      }
+      html += '</div></div>';
+    });
+    html += '</div>';
+
+    // Add form (hidden by default)
+    html += '<div id="payFormBox"></div>';
+
+    document.getElementById('mBody').innerHTML = html;
+    document.getElementById('modal').classList.add('on');
+  }
+
+  function closeModal(){
+    document.getElementById('modal').classList.remove('on');
+    currentPlotId = null;
+  }
+
+  function openPayForm(idx){
+    const c = CUSTOMERS.find(x => x.plot === currentPlotId);
+    const inst = c.installments[idx];
+    const today = new Date().toISOString().slice(0,10);
+
+    const formHtml = `
+      <div class="form-box">
+        <div class="ttl">+ บันทึกการชำระ งวด ${inst.installmentNo} · ${fmt(inst.amount)} บาท</div>
+        <div class="form-grid">
+          <div class="fld">
+            <span class="lbl">วันที่ชำระ</span>
+            <input type="date" id="payDate" value="${today}">
+          </div>
+          <div class="fld">
+            <span class="lbl">วิธีชำระ</span>
+            <select id="payMethod">
+              <option value="โอนผ่านธนาคาร">โอนผ่านธนาคาร</option>
+              <option value="เงินสด">เงินสด</option>
+              <option value="เช็ค">เช็ค</option>
+            </select>
+          </div>
+          <div class="fld">
+            <span class="lbl">ยอดที่ชำระ (บาท)</span>
+            <input type="number" id="payAmount" value="${inst.amount}">
+          </div>
+          <div class="fld">
+            <span class="lbl">หมายเหตุ</span>
+            <input type="text" id="payNote" placeholder="(ไม่จำเป็น)">
+          </div>
+          <div class="fld slip">
+            <span class="lbl">📎 แนบสลิป</span>
+            <label class="slip-area" id="slipArea">
+              <span id="slipText">📷 คลิกเพื่อเลือก/ถ่ายรูปสลิป</span>
+              <input type="file" accept="image/*" id="slipFile" onchange="onSlipPick(event)">
+              <img id="slipPreview" class="preview" style="display:none">
+            </label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="cancelPayForm()">ยกเลิก</button>
+          <button class="btn-save" onclick="confirmPay(${idx})">💾 บันทึก + อัปสลิป</button>
+        </div>
+      </div>`;
+    document.getElementById('payFormBox').innerHTML = formHtml;
+    // scroll to form
+    document.getElementById('payFormBox').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  let pendingSlipDataUrl = null;
+  function onSlipPick(e){
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      // resize ก่อน — กัน base64 ใหญ่เกิน
+      const img = new Image();
+      img.onload = () => {
+        const max = 1000;
+        const r = Math.min(max/img.width, max/img.height, 1);
+        const w = Math.round(img.width*r), h = Math.round(img.height*r);
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        pendingSlipDataUrl = cv.toDataURL('image/jpeg', 0.8);
+        const prev = document.getElementById('slipPreview');
+        prev.src = pendingSlipDataUrl;
+        prev.style.display = 'block';
+        document.getElementById('slipText').textContent = '✓ ใส่สลิปแล้ว — คลิกเพื่อเปลี่ยน';
+        document.getElementById('slipArea').classList.add('has-file');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function cancelPayForm(){
+    pendingSlipDataUrl = null;
+    document.getElementById('payFormBox').innerHTML = '';
+  }
+
+  function confirmPay(idx){
+    const c = CUSTOMERS.find(x => x.plot === currentPlotId);
+    const inst = c.installments[idx];
+    const payDate = document.getElementById('payDate').value;
+    const method = document.getElementById('payMethod').value;
+    const amount = Number(document.getElementById('payAmount').value) || 0;
+    const note = document.getElementById('payNote').value.trim();
+
+    if(!payDate){ alert('กรุณาระบุวันที่'); return; }
+    if(amount <= 0){ alert('กรุณาระบุยอด'); return; }
+
+    inst.paid = true;
+    inst.paidDate = payDate;
+    inst.method = method;
+    inst.amount = amount; // อาจชำระเกิน/ขาด
+    inst.note = note;
+    inst.slipDataUrl = pendingSlipDataUrl;  // ของจริงจะอัป Drive
+    pendingSlipDataUrl = null;
+
+    saveData(CUSTOMERS);
+    renderStats(); renderList();
+    showToast('✅ บันทึกชำระงวด '+inst.installmentNo+' แล้ว — สลิปเก็บใน Drive (mock)');
+    openDetail(currentPlotId); // re-render modal
+  }
+
+  function unpay(idx){
+    if(!confirm('ยกเลิกการชำระงวดนี้?')) return;
+    const c = CUSTOMERS.find(x => x.plot === currentPlotId);
+    const inst = c.installments[idx];
+    inst.paid = false;
+    inst.paidDate = null;
+    inst.method = null;
+    inst.slipDataUrl = null;
+    inst.note = '';
+    saveData(CUSTOMERS);
+    renderStats(); renderList();
+    openDetail(currentPlotId);
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
+  }
+
+  renderStats();
+  renderList();
+</script>
+</body>
+</html>

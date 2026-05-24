@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🏠 One Vela — ระบบบริหารโครงการ (เดโม่)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/brand/logo-icon.png">
+<style>
+  :root{
+    --ink:#2b2a27;--charcoal:#3d3d3d;--gold:#b08d57;--gold-d:#917341;
+    --cream:#f6f4ef;--sand:#ece7dd;--line:#e3ddd2;--muted:#8c8678;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:#fff;line-height:1.7;font-weight:300}
+  .serif{font-family:'Cormorant Garamond',serif}
+  img{display:block;max-width:100%}
+
+  .demo-bar{background:#fff8e6;border-bottom:1px dashed var(--gold);padding:10px 16px;
+    text-align:center;font-size:12.5px;color:#7a5a2e;font-weight:600}
+  .demo-bar a{color:var(--gold);font-weight:700;text-decoration:none}
+
+  /* Top auth bar */
+  .auth-bar{background:var(--charcoal);color:#fff;padding:10px 20px;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px}
+  .auth-bar .me{display:flex;align-items:center;gap:10px}
+  .auth-bar .av{width:34px;height:34px;background:var(--gold);color:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:800}
+  .auth-bar .me .nm{font-weight:800;font-size:14px}
+  .auth-bar .me .ro{font-size:11px;opacity:.75}
+  .auth-bar .links{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .auth-bar .links a,.auth-bar .links button{font-family:inherit;font-size:12.5px;font-weight:700;
+    color:#fff;text-decoration:none;background:rgba(255,255,255,.12);
+    border:none;padding:6px 12px;border-radius:7px;cursor:pointer}
+  .auth-bar .links a:hover,.auth-bar .links button:hover{background:var(--gold)}
+
+  .hero{
+    position:relative;height:80vh;min-height:480px;
+    background:#1a1a1a url('assets/photos/village/hero.jpg') center 60%/cover no-repeat;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+  }
+  .hero::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(20,18,15,.34) 0%,rgba(20,18,15,.16) 42%,rgba(20,18,15,.62) 100%);}
+  .hero-in{position:relative;z-index:2;color:#fff;padding:24px}
+  .hero-logo{height:280px;width:auto;max-width:92vw;object-fit:contain;margin:0 auto 10px;
+    filter:brightness(0) invert(1) drop-shadow(0 3px 16px rgba(0,0,0,.5))}
+  .hr-line{width:46px;height:1px;background:var(--gold);margin:18px auto}
+  .hero .role{font-size:14px;font-weight:300;letter-spacing:2px;opacity:.85}
+
+  .intro{max-width:680px;margin:0 auto;text-align:center;padding:60px 26px 30px}
+  .eyebrow{font-size:11px;letter-spacing:5px;color:var(--gold);font-weight:600;text-transform:uppercase}
+  .intro h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:30px;
+    color:var(--charcoal);margin:14px 0 10px;line-height:1.3}
+  .intro p{font-size:14.5px;color:var(--muted);font-weight:300}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 26px}
+
+  .tools{padding:20px 0 70px}
+  .tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line)}
+  .tcard{background:#fff;padding:26px 20px;text-decoration:none;color:inherit;
+    display:flex;flex-direction:column;gap:8px;transition:.2s;min-height:170px;position:relative}
+  .tcard:hover{background:var(--charcoal)}
+  .tcard:hover .nm{color:#fff}
+  .tcard:hover .ds{color:#cdc6b6}
+  .tcard:hover .go{color:var(--gold)}
+  .tcard .ic{font-size:26px}
+  .tcard .nm{font-size:15px;font-weight:600;color:var(--charcoal)}
+  .tcard .ds{font-size:12px;color:var(--muted);font-weight:300;line-height:1.55;flex:1}
+  .tcard .go{font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:600}
+  .tcard.locked{opacity:.45;cursor:not-allowed;pointer-events:none}
+  .tcard.locked::after{content:'🔒';position:absolute;top:10px;right:14px;font-size:14px;opacity:.65}
+  .role-section-hd{padding:24px 0 12px;font-size:13px;font-weight:800;color:var(--charcoal);
+    text-transform:uppercase;letter-spacing:2px;text-align:center}
+  .role-section-hd small{display:block;font-size:11px;font-weight:500;color:var(--muted);
+    margin-top:4px;letter-spacing:1px;text-transform:none}
+
+  footer{background:var(--charcoal);color:#b8b3a8;text-align:center;padding:40px 26px}
+  footer .fname{font-family:'Cormorant Garamond',serif;font-size:22px;letter-spacing:8px;
+    color:#fff;text-indent:8px}
+  footer .fsub{font-size:11px;letter-spacing:4px;margin-top:4px;color:var(--gold)}
+  footer .fco{font-size:12px;margin-top:14px;font-weight:300;line-height:1.7}
+
+  @media(max-width:900px){
+    .tgrid{grid-template-columns:repeat(2,1fr)}
+    .hero-logo{height:200px}
+    .hero{height:60vh;min-height:380px}
+  }
+  @media(max-width:520px){
+    .tgrid{grid-template-columns:1fr}
+    .hero-logo{height:160px}
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  🧪 <b>เดโม่ Auth + Roles</b> — ปุ่มที่ไม่มีสิทธิ์จะถูกซ่อน · ไม่ใช่ production ·
+  <a href="login-demo.html?relogin=1" onclick="DemoAuth.logout()">เปลี่ยน user</a>
+</div>
+
+<div class="auth-bar">
+  <div class="me">
+    <div class="av" id="meAv">?</div>
+    <div>
+      <div class="nm" id="meNm">—</div>
+      <div class="ro" id="meRo">—</div>
+    </div>
+  </div>
+  <div class="links">
+    <a href="developer-demo.html" id="lnkDev" style="display:none">🔧 จัดการ Users</a>
+    <button onclick="doLogout()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="hero-in">
+    <img class="hero-logo" src="assets/brand/logo-vertical.png" alt="One Vela — Amata Chonburi">
+    <div class="hr-line"></div>
+    <div class="role">ระบบบริหารโครงการ</div>
+  </div>
+</header>
+
+<section class="intro">
+  <div class="eyebrow">One Vela Management</div>
+  <h2 class="serif">โครงการบ้านจัดสรร วันเวลา อมตะ-ชลบุรี</h2>
+  <p>ระบบบริหารครบวงจร — ต้นทุน · งานขาย · ก่อสร้าง · โอนกรรมสิทธิ์ · 483 แปลง</p>
+</section>
+
+<section class="tools">
+  <div class="wrap">
+
+    <!-- กลุ่มแดชบอร์ดหลัก -->
+    <div class="role-section-hd">📊 แดชบอร์ดหลัก<small>Main Dashboards</small></div>
+    <div class="tgrid" id="grid-main"></div>
+
+    <!-- กลุ่มงานขาย -->
+    <div class="role-section-hd">💼 งานขาย<small>Sales</small></div>
+    <div class="tgrid" id="grid-sales"></div>
+
+    <!-- กลุ่มก่อสร้าง -->
+    <div class="role-section-hd">🏗️ งานก่อสร้าง<small>Construction</small></div>
+    <div class="tgrid" id="grid-construction"></div>
+
+    <!-- กลุ่มการเงิน + โอน -->
+    <div class="role-section-hd">💰 การเงิน + งานโอน<small>Finance &amp; Transfer</small></div>
+    <div class="tgrid" id="grid-finance"></div>
+
+    <!-- กลุ่ม Data base -->
+    <div class="role-section-hd">📁 Data base<small>Drive &amp; Sheet</small></div>
+    <div class="tgrid" id="grid-data"></div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="fname">ONE VELA</div>
+  <div class="fsub">AMATA · CHONBURI</div>
+  <div class="fco">
+    บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด<br>
+    ระบบบริหารโครงการ · 483 แปลง · เดโม่ Auth
+  </div>
+</footer>
+
+<script src="_tools/demo-auth.js"></script>
+<script>
+  DemoAuth.init();
+  const cur = DemoAuth.currentUser();
+  if(!cur){ location.replace('login-demo.html'); }
+
+  const role = DemoAuth.ROLES[cur.role];
+  document.getElementById('meAv').textContent = cur.username.charAt(0);
+  document.getElementById('meAv').style.background = role.color;
+  document.getElementById('meNm').textContent = cur.username;
+  document.getElementById('meRo').textContent = role.label;
+  if(DemoAuth.can('*')) document.getElementById('lnkDev').style.display = '';
+
+  // foreman → ส่งเข้า foreman-demo เลย
+  if(cur.role === 'foreman'){
+    location.replace('foreman-demo.html');
+  }
+
+  function doLogout(){
+    if(confirm('ออกจากระบบ?')){
+      DemoAuth.logout();
+      location.replace('login-demo.html');
+    }
+  }
+
+  // ── Tools by group + required permission ──
+  const TOOLS = {
+    main: [
+      {href:'index.html',                ic:'💰',nm:'แดชบอร์ดต้นทุนบ้าน',ds:'ต้นทุนวัสดุ + ค่าแรงรายหลัง ครบ 483 แปลง', perm:'view.cost'},
+      {href:'sales-dashboard.html',      ic:'📊',nm:'แดชบอร์ดงานขาย',  ds:'สถานะรายหลัง + รายงานรายเดือน/ปี + หลุดจอง', perm:'view.sales.dashboard'},
+      {href:'admin-construction.html',   ic:'🏗️',nm:'แดชบอร์ดก่อสร้าง',ds:'เริ่ม/หยุดก่อสร้าง · auto-assign โฟร์แมน', perm:'view.construction.admin'},
+      {href:'transfer-demo.html',        ic:'📋',nm:'แดชบอร์ดงานโอน',ds:'รายแปลงงานโอน · checklist · เอกสาร · เช็ค', perm:'view.transfer'}
+    ],
+    sales: [
+      {href:'income-calculator.html',    ic:'🧮',nm:'คำนวณรายได้ & สินเชื่อ',ds:'ประเมินความสามารถผ่อน + วงเงินกู้', perm:'view.income.calc'},
+      {href:'sales-walkin.html',         ic:'👥',nm:'ลูกค้าวอร์คอิน (เดิม)',ds:'ระบบเดิม — มีปัญหาข้อมูลไม่วิ่ง', perm:'create.walkin'},
+      {href:'walkin-demo.html',          ic:'✨',nm:'ลูกค้าวอร์คอิน (ใหม่)',ds:'เพิ่มฟิลด์ FB/LINE/งบ/แบบบ้าน/agent/คู่แข่ง · Sheet ใหม่', perm:'create.walkin'}
+    ],
+    construction: [
+      {href:'foreman-update.html',       ic:'👷',nm:'อัปเดตงานหน้าไซต์',ds:'สำหรับโฟร์แมน — milestone · ถ่ายรูป · GPS · รายงาน', perm:'view.foreman'},
+      {href:'admin-upload.html',         ic:'📤',nm:'อัปโหลด Excel ต้นทุน',ds:'โยน .xlsx Ecount → อัปเดตแดชบอร์ดอัตโนมัติ', perm:'upload.cost'}
+    ],
+    finance: [
+      {href:'payment-demo.html',         ic:'💵',nm:'ผ่อนดาวน์ + แนบสลิป',ds:'บันทึกค่าผ่อนดาวน์รายงวด · แนบสลิป · เก็บใน Drive', perm:'view.payments'},
+      {href:'fee-demo.html',             ic:'🏘️',nm:'ค่าส่วนกลาง',ds:'รับเงินค่าส่วนกลางรายแปลง · แนบสลิป', perm:'view.fees'},
+      {href:'transfer-checklist-demo.html',ic:'☑️',nm:'Checklist เอกสารวันโอน',ds:'ติ๊ก checklist → ปริ้นแบบฟอร์มให้ลูกค้า', perm:'manage.transfer'},
+      {href:'transfer-money-demo.html',  ic:'📄',nm:'ใบชี้แจงเงินวันโอน',ds:'แบบฟอร์มชี้แจงเงิน ลูกค้า + บริษัท', perm:'manage.transfer'},
+      {href:'transfer-cheque-demo.html', ic:'🏦',nm:'รายการแยกเช็ค',ds:'เอกสารแจ้งธนาคารจำแนกเช็ค', perm:'manage.transfer'},
+      {href:'https://lecs.dol.go.th/rcal/#/calculate-start',target:'_blank',ic:'⚖️',nm:'คำนวณค่าโอน (กรมที่ดิน)',ds:'เครื่องคำนวณของกรมที่ดิน ↗', perm:'manage.transfer'}
+    ],
+    data: [
+      {href:'https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk',target:'_blank',
+        ic:'📁',nm:'Data base (Drive)',ds:'เปิดโฟลเดอร์ปลายทาง — สลิป/สัญญา/รูปหน้างาน', perm:'view.home'},
+      {href:'https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit',target:'_blank',
+        ic:'📊',nm:'Data base (Sheet)',ds:'Google Sheet ฐานข้อมูลกลาง', perm:'view.home'}
+    ]
+  };
+
+  function renderTools(){
+    Object.entries(TOOLS).forEach(([groupKey, items]) => {
+      const grid = document.getElementById('grid-'+groupKey);
+      const allowed = items.filter(t => DemoAuth.can(t.perm));
+      if(allowed.length === 0){
+        grid.parentElement.querySelector('.role-section-hd').style.display='none';
+        grid.style.display='none';
+        return;
+      }
+      grid.innerHTML = allowed.map(t =>
+        `<a class="tcard" href="${t.href}" ${t.target?'target="'+t.target+'"':''}>
+          <div class="ic">${t.ic}</div>
+          <div class="nm">${t.nm}</div>
+          <div class="ds">${t.ds}</div>
+          <div class="go">เปิด ${t.target?'↗':'→'}</div>
+        </a>`
+      ).join('');
+    });
+  }
+  renderTools();
+</script>
+</body>
+</html>

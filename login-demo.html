@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔐 เข้าสู่ระบบ — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/brand/logo-icon.png">
+<style>
+  :root{--gold:#b08d57;--charcoal:#3d3d3d;--ink:#2b2b2b;--muted:#7d8794;--line:#e2e6ea;--red:#dc2626;--soft:#f7f8fa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);
+    background:linear-gradient(135deg,#1a1a1a,#3d3d3d);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:#fff;border-radius:18px;width:100%;max-width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);padding:30px 28px;text-align:center}
+  .demo-tag{position:absolute;top:14px;left:14px;background:#fff8e6;border:1px dashed var(--gold);
+    border-radius:8px;padding:6px 12px;font-size:11.5px;color:#7a5a2e;font-weight:700}
+  .logo img{max-width:140px;height:auto;margin-bottom:10px}
+  h1{font-size:22px;color:var(--charcoal);font-weight:800;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .lbl{text-align:left;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.5px;
+    margin-bottom:6px;text-transform:uppercase}
+  select,input{width:100%;font-family:inherit;font-size:16px;font-weight:600;
+    padding:13px 14px;border:2px solid var(--line);border-radius:11px;background:#fff;
+    color:var(--ink);margin-bottom:14px}
+  select{appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%237d8794' d='M6 8L0 0h12z'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+  input[type=password]{font-size:22px;font-weight:700;text-align:center;letter-spacing:6px}
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:10px 14px;border-radius:9px;font-size:13px;margin-bottom:14px;display:none}
+  .err.on{display:block}
+  .btn{width:100%;font-family:inherit;font-size:16px;font-weight:800;
+    padding:14px;border:none;border-radius:11px;background:var(--gold);color:#fff;
+    cursor:pointer;letter-spacing:.5px;box-shadow:0 4px 14px rgba(176,141,87,.35)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .hint{margin-top:18px;font-size:11.5px;color:var(--muted);line-height:1.6;
+    padding-top:14px;border-top:1px dashed var(--line)}
+  .hint b{color:var(--charcoal)}
+  .hint code{background:var(--soft);padding:1px 6px;border-radius:4px;color:var(--gold);font-weight:700}
+  .deny-banner{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:16px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="demo-tag">🧪 เดโม่ — ไม่ใช่ login จริง</div>
+
+<div class="card">
+  <div class="logo">
+    <img src="assets/brand/logo-vertical.png" alt="One Vela" onerror="this.style.display='none'">
+  </div>
+  <h1>เข้าสู่ระบบ</h1>
+  <div class="sub">One Vela · Two Build Development</div>
+
+  <div class="deny-banner" id="denyBanner" style="display:none">
+    ⛔ คุณไม่มีสิทธิ์เข้าหน้านี้ — กรุณา login ด้วย user ที่มีสิทธิ์เพียงพอ
+  </div>
+
+  <div class="lbl">ชื่อผู้ใช้</div>
+  <select id="usernameSel">
+    <option value="">— เลือกชื่อ —</option>
+  </select>
+
+  <div class="lbl">PIN</div>
+  <input type="password" id="pinInp" maxlength="6" inputmode="numeric" placeholder="••••">
+
+  <div class="err" id="err"></div>
+
+  <button class="btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+
+  <div class="hint">
+    🧪 <b>PIN ของเดโม่:</b><br>
+    <code>0000</code> = ไอซ์ (developer) · <code>1234</code> = admin ·
+    <code>1111</code> = ต้น (sales) · <code>1112</code> = ฝน (sales) ·<br>
+    <code>2222</code> = การเงิน · <code>3333</code> = โก้ (foreman) ·
+    <code>3334</code> = ใหญ่ (foreman) · <code>4444</code> = โอน (transfer)
+  </div>
+</div>
+
+<script src="_tools/demo-auth.js"></script>
+<script>
+  DemoAuth.init();
+
+  // Populate dropdown
+  const sel = document.getElementById('usernameSel');
+  DemoAuth.listUsers().filter(u=>u.active).forEach(u=>{
+    const role = DemoAuth.ROLES[u.role];
+    const opt = document.createElement('option');
+    opt.value = u.username;
+    opt.textContent = u.username + ' — ' + (role ? role.label : u.role);
+    sel.appendChild(opt);
+  });
+
+  // Check ?deny=1
+  const params = new URLSearchParams(location.search);
+  if(params.get('deny') === '1'){
+    document.getElementById('denyBanner').style.display = '';
+  }
+
+  // ถ้า login อยู่แล้ว → redirect ไป next หรือ home
+  const cur = DemoAuth.currentUser();
+  if(cur && params.get('deny') !== '1'){
+    const next = params.get('next');
+    location.replace(next || 'home-demo.html');
+  }
+
+  function showErr(msg){
+    const e = document.getElementById('err');
+    e.textContent = '⚠️ '+msg;
+    e.classList.add('on');
+  }
+  function doLogin(){
+    const u = sel.value;
+    const pin = document.getElementById('pinInp').value;
+    if(!u){ showErr('กรุณาเลือกชื่อ'); return; }
+    if(pin.length < 4){ showErr('กรุณากรอก PIN'); return; }
+    document.getElementById('loginBtn').disabled = true;
+    const r = DemoAuth.login(u, pin);
+    if(!r.ok){
+      showErr(r.error);
+      document.getElementById('loginBtn').disabled = false;
+      return;
+    }
+    // redirect — ถ้ามี next + มีสิทธิ์ก็ไป next ไม่งั้นไป home-demo
+    const next = params.get('next');
+    if(next && next !== '/login-demo.html'){
+      location.replace(decodeURIComponent(next));
+    } else {
+      // default landing ตาม role
+      const role = r.user.role;
+      if(role === 'foreman') location.replace('foreman-demo.html');
+      else location.replace('home-demo.html');
+    }
+  }
+
+  // Enter เพื่อ submit
+  document.getElementById('pinInp').addEventListener('keydown', e => {
+    if(e.key === 'Enter') doLogin();
+  });
+</script>
+</body>
+</html>

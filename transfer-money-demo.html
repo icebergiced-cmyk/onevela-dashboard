@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>📄 ใบชี้แจงเงินวันโอน — One Vela (เดโม่)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--blue:#2563eb;
+    --pink:#fde2e8;--lightblue:#dbeafe;--yellow:#fef3c7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1000px;margin:0 auto}
+
+  .demo-bar{background:#fff8e6;border:1px dashed var(--gold);border-radius:10px;padding:10px 14px;
+    margin-bottom:14px;font-size:12.5px;color:#7a5a2e;text-align:center}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);
+    color:#fff;text-decoration:none}
+  .topbar button.print{background:var(--gold)}
+
+  .picker{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;
+    box-shadow:0 1px 5px rgba(0,0,0,.06);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .picker .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase;margin-right:4px}
+  .picker select,.picker input{font-family:inherit;font-size:14px;padding:8px 11px;
+    border:2px solid var(--line);border-radius:8px;background:#fff}
+
+  /* Document */
+  .doc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px;
+    box-shadow:0 1px 5px rgba(0,0,0,.06);font-size:13px}
+  .doc-title{background:var(--pink);border:1px solid #f9b4c0;padding:8px 14px;border-radius:6px;
+    text-align:center;font-weight:800;color:#9f1239;font-size:14.5px;margin-bottom:14px}
+
+  /* Header info grid */
+  .info-grid{display:grid;grid-template-columns:120px 1fr 110px 1fr;gap:6px 10px;
+    margin-bottom:14px;font-size:13px}
+  .info-grid .lbl{color:var(--muted);font-weight:600}
+  .info-grid .val{font-weight:700;color:var(--charcoal)}
+  .info-grid .val.highlight{background:var(--pink);padding:2px 8px;border-radius:4px;display:inline-block}
+
+  /* Section title bar (สีฟ้า/ชมพู) */
+  .sec-bar{background:var(--pink);border:1px solid #f9b4c0;padding:6px 12px;border-radius:6px;
+    margin:14px 0 8px;font-weight:800;color:#9f1239;font-size:13px}
+  .sec-bar.blue{background:var(--lightblue);border-color:#93c5fd;color:#1e40af}
+
+  /* List rows */
+  .row{display:grid;grid-template-columns:30px 1fr 100px 110px 140px;gap:8px;
+    padding:5px 8px;font-size:12.5px;border-bottom:1px dotted var(--line);align-items:center}
+  .row.head{font-weight:700;background:var(--soft);border-bottom:1px solid var(--line)}
+  .row .ix{color:var(--muted)}
+  .row .amt{text-align:right;font-weight:700;font-family:'Sarabun',sans-serif}
+  .row .label{color:var(--muted);font-size:11px}
+  .row .who{font-size:11px;color:var(--muted)}
+  .row .who.cust{color:#9f1239;background:var(--pink);padding:2px 7px;border-radius:4px;font-weight:700}
+  .row .who.proj{color:#1e40af;background:var(--lightblue);padding:2px 7px;border-radius:4px;font-weight:700}
+  .row .who.deduct{color:#92400e;background:#fef3c7;padding:2px 7px;border-radius:4px;font-weight:700}
+  .row .amt.yellow{background:var(--yellow);padding:3px 8px;border-radius:4px}
+
+  .totals-row{display:flex;justify-content:flex-end;padding:8px 12px;margin-top:6px;
+    background:var(--soft);border-radius:6px;font-weight:800;font-size:13.5px}
+  .totals-row .lbl{margin-right:14px;color:var(--muted)}
+  .totals-row .val{color:var(--charcoal)}
+
+  .doc-foot{margin-top:20px;padding-top:14px;border-top:1px dashed var(--line);
+    display:grid;grid-template-columns:1fr 1fr;gap:30px;font-size:12.5px}
+  .doc-foot .sig{text-align:center}
+  .doc-foot .sig .line{border-bottom:1px solid #000;height:42px;margin-bottom:5px}
+  .doc-foot .sig .lbl{font-weight:700;color:var(--charcoal)}
+  .doc-foot .sig .sub{font-size:11px;color:var(--muted)}
+
+  @media print{
+    body{background:#fff!important;padding:0;font-size:10pt}
+    .demo-bar,.topbar,.picker{display:none!important}
+    .wrap{max-width:none}
+    .doc{border:none;box-shadow:none;border-radius:0;padding:0}
+    .row{font-size:9.5pt}
+  }
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="demo-bar">
+    🧪 <b>เดโม่</b> — ใบชี้แจงเงินวันโอน (ตามรูปที่ 1 ที่คุณไอซ์ส่งมา) ·
+    แก้ตัวเลขได้ในช่อง · กดพิมพ์ → PDF
+  </div>
+
+  <div class="topbar">
+    <div class="ttl">📄 ใบชี้แจงเงินวันโอนกรรมสิทธิ์<small>TRANSFER MONEY STATEMENT · ONE VELA</small></div>
+    <a href="transfer-demo.html">← ย้อนกลับ</a>
+    <button class="print" onclick="window.print()">🖨️ พิมพ์/PDF</button>
+  </div>
+
+  <div class="picker">
+    <span class="lbl">แปลง:</span>
+    <select id="plotSel" onchange="loadPlot()"></select>
+  </div>
+
+  <div class="doc" id="docArea">
+    <div class="doc-title">รายละเอียดค่าใช้จ่ายวันโอนกรรมสิทธิ์โครงการ วันเวลาอมตะชลบุรี</div>
+
+    <div class="info-grid">
+      <div class="lbl">TYPE</div><div class="val highlight" id="iType">A</div>
+      <div class="lbl">บ้านเลขที่</div><div class="val" id="iHouseNo">89/9</div>
+
+      <div class="lbl">ชื่อลูกค้า</div><div class="val" style="grid-column:2/5" id="iCName">นางสาวมณฑา เอี่ยมส่วนมณฑา</div>
+
+      <div class="lbl">วันที่โอนกรรมสิทธิ์</div><div class="val" id="iTransferDate">7 พ.ค. 69</div>
+      <div class="lbl">โทร.</div><div class="val" id="iPhone">-</div>
+
+      <div class="lbl">ขึ้นกู้ธนาคาร</div><div class="val highlight" id="iBank">SCB - กู้คนเดียว</div>
+      <div class="lbl">โสด</div><div class="val">-</div>
+
+      <div class="lbl">เนื้อที่ตามโฉนด</div><div class="val" id="iArea">73.30 ตารางวา</div>
+      <div class="lbl">เลขที่ดิน</div><div class="val" id="iLandNo">2043</div>
+
+      <div class="lbl">เลขที่โฉนด</div><div class="val" id="iDeed">247064</div>
+      <div class="lbl"></div><div class="val"></div>
+    </div>
+
+    <!-- 1. ยอดเงินที่ธนาคารฯ อนุมัติ -->
+    <div class="sec-bar">1. ยอดเงินที่ธนาคารฯ อนุมัติ <span style="margin-left:8px"><b id="iLoanTotal">4,824,259</b></span></div>
+    <div class="row"><span class="ix">1.1</span><span>ยอดอนุมัติสินเชื่อ</span><span></span><span></span><span class="amt"><span id="m11">4,700,000</span> <span class="label">จ่ายโครงการ</span></span></div>
+    <div class="row"><span class="ix">1.2</span><span>วงเงินตกแต่ง</span><span></span><span></span><span class="amt">-</span></div>
+    <div class="row"><span class="ix">1.3</span><span>หักค่าประกันชีวิต</span><span></span><span></span><span class="amt"><span id="m13">106,661</span> <span class="label">หักรวมใช้จ่ายเพิ่มเติม</span></span></div>
+    <div class="row"><span class="ix">1.4</span><span>ประกันอัคคีภัย</span><span></span><span></span><span class="amt"><span id="m14">17,598</span> <span class="label">หักรวมใช้จ่ายเพิ่มเติม</span></span></div>
+    <div class="totals-row"><span class="lbl">ยอดอนุมัติจริง</span><span class="val"><span id="mNet">4,824,259</span></span></div>
+
+    <!-- 2. ส่วนที่เหลือต้องชำระ -->
+    <div class="sec-bar">2. จำนวนเงินส่วนที่เหลือที่ต้องชำระ ณ วันโอนกรรมสิทธิ์</div>
+    <div class="row"><span class="ix">2.1</span><span>ราคาขายจริงตามสัญญา</span><span></span><span></span><span class="amt"><span id="m21">4,000,000</span></span></div>
+    <div class="row"><span class="ix">2.2</span><span>หัก ค่าบ้านที่ชำระแล้ว (จอง+สัญญา+ผ่อนดาวน์)</span><span></span><span></span><span class="amt"><span id="m22">170,000</span></span></div>
+    <div class="totals-row" style="background:var(--yellow)">
+      <span class="lbl">คงเหลือค่าบ้านที่ต้องชำระ ณ วันโอน</span>
+      <span class="val"><span id="m2Net">3,830,000</span> <span style="font-size:11px;color:var(--muted)">ลูกค้าจ่ายโครงการ</span></span>
+    </div>
+
+    <!-- 3. ค่าใช้จ่ายเพิ่มเติมในวันโอน (ของลูกค้า) -->
+    <div class="sec-bar">3. ค่าใช้จ่ายเพิ่มเติมในวันโอนกรรมสิทธิ์ (ของลูกค้า)
+      <span style="float:right;font-size:11px;color:#9f1239">ราคาทุนทรัพย์ <b id="iAssetPrice">5,404,550</b></span></div>
+    <div class="row"><span class="ix">3.1</span><span>ค่าธรรมเนียมในจำนวนโอนกรรมสิทธิ์ 0.01% ของราคาทุนทรัพย์</span><span class="who proj">(โครงการจ่าย)</span><span></span><span class="amt"><span id="m31">540</span></span></div>
+    <div class="row"><span class="ix">3.3</span><span>ค่าธรรมเนียมอื่น ๆ (ค่าอากร+ค่าพยาน+มอบ ฯลฯ)</span><span class="who proj">(โครงการจ่าย)</span><span></span><span class="amt"><span id="m33">20</span></span></div>
+    <div class="row"><span class="ix">3.4</span><span>ค่าส่วนกลาง เก็บล่วงหน้า 2 ปี (1500×24)</span><span class="who cust">(ลูกค้าจ่าย)</span><span></span><span class="amt"><span id="m34">36,000</span></span></div>
+    <div class="row"><span class="ix">3.5</span><span>ค่ามิเตอร์/มิเตอร์ประปา</span><span class="who proj">(โครงการจ่าย)</span><span></span><span class="amt"><span id="m35">3,600</span></span></div>
+    <div class="row"><span class="ix">3.6</span><span>ค่ามิเตอร์/มิเตอร์ไฟฟ้า</span><span class="who proj">(โครงการจ่าย)</span><span></span><span class="amt"><span id="m36">750</span></span></div>
+    <div class="row"><span class="ix">3.7</span><span>(โครงการรับจริง 4,000,000 ผลตั้งโอนที่ 5,404,550.- ส่วนต่างอยู่ที่ 1,404,550)</span><span class="who cust">(ลูกค้าจ่าย)</span><span></span><span class="amt"><span id="m37">60,395.65</span> <span class="label">ภาษีขอกู้เกิน 4.3%</span></span></div>
+    <div class="totals-row"><span class="lbl">รวมค่าใช้จ่ายในวันโอนกรรมสิทธิ์</span><span class="val"><span id="m3sum">96,395.65</span> <span style="font-size:11px;color:var(--muted)">ลูกค้าจ่าย</span></span></div>
+    <div class="totals-row" style="background:#fee2e2"><span class="lbl">คงเหลือในส่วนของลูกค้า</span><span class="val" style="color:#9f1239"><b><span id="m3remain">773,604.35</span></b> <span style="font-size:11px;color:var(--muted)">รับจริง หัก ภาษีแล้ว</span></span></div>
+
+    <!-- 4. ส่วนของบริษัทฯ -->
+    <div class="sec-bar blue">4. ค่าใช้จ่ายส่วนของบริษัทฯ</div>
+    <div class="row"><span class="ix">4.1</span><span>ภาษีธุรกิจเฉพาะ 3% ของราคาขายขึ้นจริงโอน ฯ (พิ้งที่ <b id="i41base">5,404,550</b> บาท)</span><span></span><span></span><span class="amt"><span id="m41">162,136.50</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.2</span><span>ภาษีเงินได้นิติบุคคล 1% ของราคาขายขึ้นจริงโอน ฯ</span><span></span><span></span><span class="amt"><span id="m42">54,045.50</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.3</span><span>ค่าธรรมเนียมในการโอนกรรมสิทธิ์ 0.01% ของราคาประเมิน</span><span></span><span style="font-size:10.5px;color:#9f1239">ราคาประเมินกรรมสิทธิ์ใน <b id="i43base">3,536,088</b> บาท</span><span class="amt"><span id="m43">353</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.4</span><span>ภาษีท้องถิ่น 0.3%</span><span></span><span></span><span class="amt"><span id="m44">16,214</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.5</span><span>ค่าธรรมเนียมมอบ+พยาน</span><span></span><span></span><span class="amt"><span id="m45">50</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.6</span><span>ค่าเจ้าหน้าที่</span><span></span><span></span><span class="amt"><span id="m46">1,000</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.7</span><span>ค่าปลอดโอนผังที่ดิน+ถ่ายเอกสาร</span><span></span><span></span><span class="amt"><span id="m47">145</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.8</span><span>ค่ามิเตอร์ไฟ</span><span></span><span></span><span class="amt"><span id="m48">750</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">4.9</span><span>ค่ามิเตอร์น้ำ</span><span></span><span></span><span class="amt"><span id="m49">3,600</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">5.</span><span>ค่าส่วนกลางหนึ่งล่วงหน้า 1 ปี (1500×12)</span><span></span><span></span><span class="amt"><span id="m5">18,000</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="row"><span class="ix">5.1</span><span>ค่าปลอดโอนด จากธนาคาร ครั้งละ 1,070</span><span></span><span></span><span class="amt"><span id="m51">1070</span> <span class="who proj">(โครงการจ่าย)</span></span></div>
+    <div class="totals-row" style="background:var(--lightblue)"><span class="lbl">รวมค่าใช้จ่ายของบริษัทฯ</span><span class="val"><span id="m4sum">257,364</span></span></div>
+
+    <!-- รายการรับเงิน -->
+    <div class="sec-bar blue" style="margin-top:18px">รายการรับเงินเข้าบริษัทฯ วันโอนฯ &nbsp;&nbsp;<b id="rTotal">฿4,700,000</b></div>
+    <div class="row"><span class="ix">1.co</span><span>สั่งจ่ายธ.ไทยพาณิชย์ (คำปลอด)</span><span style="font-size:11px;color:var(--muted)">จำนวน ฿</span><span></span><span class="amt"><span id="r1">3,120,000.00</span> บาท</span></div>
+    <div class="row"><span class="ix">2</span><span>โอนเข้า บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด</span><span style="font-size:11px;color:var(--muted)">จำนวน ฿</span><span></span><span class="amt"><span id="r2">1,580,000.00</span> บาท</span></div>
+    <div class="totals-row"><span class="lbl">รวมยอดอนุมัติจริง</span><span class="val"><span id="rSum">4,700,000.00</span> บาท</span></div>
+
+    <div style="margin-top:14px;font-size:11.5px;color:var(--muted)">
+      <b>แยกเช็คได้ดังรายการต่อไปนี้:</b><br>
+      2.1) คาบ้าน เข้าบริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด ธ.ไทยพาณิชย์ &nbsp;&nbsp; จำนวน <b>1,580,000</b> บาท
+      <span style="margin-left:14px;color:var(--green);font-weight:700">อันไม่หักค่าใช้จ่าย</span>
+    </div>
+
+    <div class="doc-foot">
+      <div class="sig">
+        <div class="line"></div>
+        <div class="lbl">ลูกค้า / ผู้โอน</div>
+        <div class="sub">วันที่ .............................</div>
+      </div>
+      <div class="sig">
+        <div class="line"></div>
+        <div class="lbl">โครงการ — Two Build Development</div>
+        <div class="sub">วันที่ .............................</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>เดโม่ ใบชี้แจงเงินวันโอน · One Vela</footer>
+</div>
+
+<script src="_tools/demo-auth.js"></script>
+<script>
+  DemoAuth.init();
+  if(!DemoAuth.can('manage.transfer') && !DemoAuth.can('view.transfer')){
+    location.replace('login-demo.html?deny=1&next='+encodeURIComponent(location.pathname));
+  }
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  function plotCode(plot, type){
+    return (TYPE_PREFIX[type]||'?') + String(plot||'').replace(/^0+/,'');
+  }
+  function thaiDate(d){
+    if(!d) return '-';
+    const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dt=new Date(d);
+    if(isNaN(dt.getTime())) return '-';
+    return dt.getDate()+' '+months[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2);
+  }
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  // Mock plots — สมมติ (ของจริงดึงจาก getSalesData + transfer Sheet)
+  const MOCK_PLOTS = [
+    {plot:'9',type:'ULTRA',houseNo:'89/9',cName:'นางสาวมณฑา เอี่ยมส่วนมณฑา', phone:'',
+     deed:'247064', landNo:'2043', area:'73.30',
+     transferDate:'2026-05-07', bank:'SCB - กู้คนเดียว', loanTotal:4824259,
+     loanApproved:4700000, insuranceLife:106661, insuranceFire:17598,
+     contractPrice:4000000, paidBefore:170000,
+     assetPrice:5404550, evalPrice:3536088}
+  ];
+
+  const sel = document.getElementById('plotSel');
+  sel.innerHTML = MOCK_PLOTS.map(p =>
+    `<option value="${p.plot}">${plotCode(p.plot, p.type)} — ${esc(p.cName)}</option>`
+  ).join('');
+
+  const params = new URLSearchParams(location.search);
+  const wantPlot = params.get('plot');
+  if(wantPlot && MOCK_PLOTS.find(p=>p.plot===wantPlot)) sel.value = wantPlot;
+
+  function loadPlot(){
+    const p = MOCK_PLOTS.find(x => x.plot === sel.value) || MOCK_PLOTS[0];
+    document.getElementById('iType').textContent = 'TYPE ' + (TYPE_PREFIX[p.type]||'?');
+    document.getElementById('iHouseNo').textContent = p.houseNo;
+    document.getElementById('iCName').textContent = p.cName;
+    document.getElementById('iTransferDate').textContent = thaiDate(p.transferDate);
+    document.getElementById('iPhone').textContent = p.phone || '-';
+    document.getElementById('iBank').textContent = p.bank;
+    document.getElementById('iArea').textContent = p.area + ' ตารางวา';
+    document.getElementById('iLandNo').textContent = p.landNo;
+    document.getElementById('iDeed').textContent = p.deed;
+    document.getElementById('iAssetPrice').textContent = fmt(p.assetPrice);
+
+    // section 1
+    document.getElementById('iLoanTotal').textContent = fmt(p.loanTotal);
+    document.getElementById('m11').textContent = fmt(p.loanApproved);
+    document.getElementById('m13').textContent = fmt(p.insuranceLife);
+    document.getElementById('m14').textContent = fmt(p.insuranceFire);
+    document.getElementById('mNet').textContent = fmt(p.loanTotal);
+
+    // section 2
+    document.getElementById('m21').textContent = fmt(p.contractPrice);
+    document.getElementById('m22').textContent = fmt(p.paidBefore);
+    document.getElementById('m2Net').textContent = fmt(p.contractPrice - p.paidBefore);
+
+    // section 4 — base prices
+    document.getElementById('i41base').textContent = fmt(p.assetPrice);
+    document.getElementById('i43base').textContent = fmt(p.evalPrice);
+  }
+  function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+
+  loadPlot();
+</script>
+</body>
+</html>
