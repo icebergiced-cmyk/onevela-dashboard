@@ -169,7 +169,30 @@
       return false;
     }
     if(cb) cb(u);
+    // Refresh permissions เบื้องหลัง — ถ้า role permissions เปลี่ยน (เช่น admin ใหม่ได้ view.foreman)
+    // จะ update localStorage โดยไม่ต้อง logout/login
+    refreshPermissions();
     return true;
+  }
+
+  // ดึง permissions ล่าสุดจาก backend แล้ว update localStorage
+  // ถ้า permissions แตกต่างจากของเดิม → reload page อัตโนมัติ
+  async function refreshPermissions(){
+    const sess = getSession();
+    if(!sess) return;
+    try {
+      const r = await api('authVerify', {});
+      if(r && r.ok && r.user){
+        const oldPerms = JSON.stringify((sess.user.permissions||[]).sort());
+        const newPerms = JSON.stringify((r.user.permissions||[]).sort());
+        if(oldPerms !== newPerms){
+          sess.user = r.user;
+          setSession(sess);
+          // ถ้า permissions เปลี่ยน → reload เพื่อ re-render UI
+          location.reload();
+        }
+      }
+    } catch(e){}
   }
 
   // Auth bar HTML — injected by pages
