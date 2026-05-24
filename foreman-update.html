@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>👷 อัปเดตงานหน้าไซต์ — One Vela</title>
+<title>👷 อัปเดตงาน — One Vela</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#3d3d3d">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -543,7 +543,7 @@
     });
   }
 
-  // ── LOGIN — ใช้ foremanInit (รวม login + plots + milestones ใน call เดียว) ──
+  // ── LOGIN — ลอง foremanInit ก่อน (เร็ว) ถ้าไม่มีให้ fall back ใช้ของเก่า ──
   async function doLogin(){
     const fid = $('foremanSel').value;
     const pin = $('pinInp').value;
@@ -553,7 +553,23 @@
     $('loginBtn').textContent = '⏳ กำลังเข้าระบบ...';
     $('loginErr').style.display = 'none';
     try {
-      const r = await api('foremanInit', {foreman:fid, pin:pin});
+      // ลอง endpoint ใหม่ก่อน (รวม login + plots + milestones)
+      let r = await api('foremanInit', {foreman:fid, pin:pin});
+
+      // ถ้า Apps Script ยังเก่า → fall back ใช้ของเดิม (login + plots แยก call)
+      if(!r.ok && /ไม่รู้จัก action|unknown action/i.test(r.error||'')){
+        const loginRes = await api('foremanLogin', {foreman:fid, pin:pin});
+        if(!loginRes.ok){ showLoginErr(loginRes.error||'PIN ไม่ถูกต้อง'); return; }
+        const plotsRes = await api('getPlotsByForeman', {foreman:fid});
+        r = {
+          ok: true,
+          foreman: fid,
+          name: loginRes.name,
+          plots: plotsRes.ok ? plotsRes.plots : [],
+          milestones: {}  // จะไป fetch ทีหลังเมื่อกดเข้าแปลง
+        };
+      }
+
       if(!r.ok){ showLoginErr(r.error||'PIN ไม่ถูกต้อง'); return; }
       currentForeman = fid;
       plotsCache = r.plots || [];
