@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รายละเอียดแปลง · One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{
+    --ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--bg:#eef1f4;--line:#e2e6ea;--muted:#7d8794;
+    --grey:#94a3b8;--amber:#d97706;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--soft:#f7f8fa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:1140px;margin:0 auto}
+  .topbar{
+    background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .topbar .logo img{height:38px;width:auto;display:block}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;
+    padding:9px 14px;cursor:pointer;background:var(--gold);color:#fff;text-decoration:none}
+  .topbar a.ghost,.topbar button.ghost{background:rgba(255,255,255,.15)}
+  .topbar a:hover,.topbar button:hover{filter:brightness(1.08)}
+
+  .state{text-align:center;padding:50px 20px;color:var(--muted);font-size:15px}
+  .state .sp{font-size:30px;margin-bottom:10px}
+
+  .hero{background:#fff;border-radius:14px;padding:20px 22px;margin-bottom:14px;
+    box-shadow:0 1px 6px rgba(0,0,0,.06);border-left:6px solid var(--grey)}
+  .hero.s-จอง{border-left-color:var(--amber)}
+  .hero.s-สัญญา,.hero.s-ขายดาวน์{border-left-color:var(--blue)}
+  .hero.s-โอนแล้ว{border-left-color:var(--green)}
+  .hero h1{font-size:24px;font-weight:800;color:var(--charcoal);margin-bottom:4px}
+  .hero .pst{display:inline-block;font-size:12px;font-weight:700;padding:3px 11px;border-radius:20px;
+    background:#eef1f4;color:var(--muted);margin-left:6px;vertical-align:middle}
+  .hero.s-จอง .pst{background:#fef3e2;color:var(--amber)}
+  .hero.s-สัญญา .pst,.hero.s-ขายดาวน์ .pst{background:#e8eefc;color:var(--blue)}
+  .hero.s-โอนแล้ว .pst{background:#e6f4ea;color:var(--green)}
+  .hero .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 18px;
+    margin-top:12px;font-size:13px}
+  .hero .meta .lbl{color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.5px;margin-bottom:1px}
+  .hero .meta .val{color:var(--ink);font-weight:600}
+  .hero .meta .val b{color:var(--gold);font-weight:800}
+  .customer{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);
+    display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline;font-size:13.5px}
+  .customer .nm{font-weight:800;color:var(--charcoal)}
+  .customer .ph{color:var(--muted)}
+
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+  .actions a{font-family:inherit;font-size:13px;font-weight:700;text-decoration:none;
+    background:#efeae1;color:var(--charcoal);border:1px solid #ddd5c6;
+    border-radius:9px;padding:9px 14px;display:inline-flex;align-items:center;gap:6px}
+  .actions a:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+  h2.sec{font-size:15px;font-weight:800;color:var(--charcoal);margin:22px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:8px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+
+  .docTbl{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px}
+  td.r,th.r{text-align:right}
+  td.c,th.c{text-align:center}
+  .docNo{font-weight:800;color:var(--charcoal)}
+  .empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
+  .lnk{display:inline-block;background:var(--gold);color:#fff;text-decoration:none;
+    font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:14px}
+  .lnk:hover{filter:brightness(1.1)}
+  .lnk.muted{background:#eef1f4;color:var(--muted)}
+  .downBox{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .downBox .tile{background:#f7f8fa;border:1px solid var(--line);border-radius:10px;padding:12px}
+  .downBox .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+  .downBox .num{font-size:19px;font-weight:800;color:var(--charcoal);margin-top:3px}
+  .downBox .num.green{color:var(--green)}
+  .downBox .num.gold{color:var(--gold)}
+  .downList{grid-column:1/-1;display:grid;gap:7px;margin-top:3px}
+  .downList .row{display:grid;grid-template-columns:80px 1fr 120px 90px;gap:8px;align-items:center;
+    padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:9px;font-size:12.5px}
+  .downList .row.paid{border-color:#bbf7d0;background:#f0fdf4}
+  .downList .row.over{border-color:#fecaca;background:#fef2f2}
+  .downList .amt{text-align:right;font-weight:800}
+  .downList .st{text-align:center;font-weight:800;border-radius:999px;padding:2px 8px;background:#eef1f4;color:var(--muted)}
+  .downList .paid .st{background:#dcfce7;color:var(--green)}
+  .downList .over .st{background:#fee2e2;color:var(--red)}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+  .home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;
+    text-decoration:none;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.28)}
+  .home-fab:hover{background:#b08d57}
+
+  /* ── Construction Tracker (Round 2 — read-only) ── */
+  .trk{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .trk-hd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .trk-pct{font-size:30px;font-weight:800;color:var(--gold);line-height:1}
+  .trk-pct small{font-size:13px;color:var(--muted);margin-left:4px;font-weight:600}
+  .trk-cur{flex:1;min-width:200px}
+  .trk-cur .lbl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+  .trk-cur .nm{font-size:15px;font-weight:700;color:var(--charcoal);margin-top:2px}
+  .trk-cur .cat{font-size:12px;color:var(--muted);margin-top:1px}
+  .trk-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;
+    font-size:12.5px;margin-top:4px}
+  .trk-meta .lbl{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .trk-meta .val{color:var(--ink);font-weight:600}
+  .trk-bar{height:10px;background:#eef1f4;border-radius:6px;overflow:hidden;margin:10px 0 14px}
+  .trk-bar>div{height:100%;background:linear-gradient(90deg,#b08d57,#d4b274);transition:width .4s}
+  .trk-sub{font-size:12.5px;font-weight:700;color:var(--muted);margin:14px 0 8px;
+    text-transform:uppercase;letter-spacing:.7px}
+
+  /* timeline */
+  .trk-tl{list-style:none;padding:0;margin:0;border-left:2px solid var(--line);padding-left:14px}
+  .trk-tl li{position:relative;padding:6px 0 6px 4px;font-size:13px;line-height:1.4}
+  .trk-tl li::before{content:'';position:absolute;left:-21px;top:11px;width:10px;height:10px;
+    border-radius:50%;background:#fff;border:2px solid var(--line)}
+  .trk-tl li.done::before{background:var(--green);border-color:var(--green)}
+  .trk-tl li.curr::before{background:var(--gold);border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(176,141,87,.25)}
+  .trk-tl li.done{color:var(--muted)}
+  .trk-tl li.done .nm{text-decoration:line-through}
+  .trk-tl li.curr{font-weight:700;color:var(--charcoal)}
+  .trk-tl .nm{display:inline-block}
+  .trk-tl .cat{font-size:11px;color:var(--muted);margin-left:6px;font-weight:500}
+  .trk-tl .wt{font-size:11px;color:var(--gold);margin-left:6px;font-weight:700}
+
+  /* updates list */
+  .trk-up{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .trk-up li{background:var(--soft);border-radius:8px;padding:9px 12px;font-size:12.5px;
+    border-left:3px solid var(--line)}
+  .trk-up li.issue{border-left-color:var(--red);background:#fef2f2}
+  .trk-up .ut{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .trk-up .dt{font-weight:700;color:var(--charcoal)}
+  .trk-up .who{color:var(--muted);font-size:11.5px}
+  .trk-up .nt{margin-top:3px;color:var(--ink)}
+  .trk-up .iss{margin-top:4px;font-size:11.5px;color:var(--red);font-weight:600}
+
+  /* photos grid */
+  .trk-ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+  .trk-ph a{display:block;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--soft)}
+  .trk-ph img{width:100%;height:100%;object-fit:cover;display:block}
+
+  .trk-empty{text-align:center;padding:20px;color:var(--muted);font-size:13px}
+  body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),
+    url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}
+  @media print{
+    .topbar,.actions,.home-fab{display:none!important}
+    body{background:#fff!important;padding:0}
+    .docTbl,.hero{box-shadow:none;border:1px solid var(--line)}
+  }
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo"><img src="assets/brand/logo-horizontal.png" alt="One Vela"
+      onerror="this.style.display='none'"></div>
+    <div class="ttl">รายละเอียดแปลง<small>PLOT DETAIL · ONE VELA</small></div>
+    <a href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank" class="ghost">📊 Sheet งานขาย</a>
+    <a href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank" class="ghost">📁 Drive Data</a>
+    <a href="sales-dashboard.html" class="ghost">← แดชบอร์ดงานขาย</a>
+    <button onclick="load()">↻ รีเฟรช</button>
+  </div>
+
+  <div id="state" class="state"><div class="sp">⏳</div>กำลังโหลดข้อมูล...</div>
+  <div id="content" style="display:none">
+
+    <div id="hero" class="hero"></div>
+
+    <div class="actions" id="actions"></div>
+
+    <h2 class="sec">💵 ผ่อนดาวน์ <span class="ct" id="ctDown">กำลังโหลด</span></h2>
+    <div class="docTbl downBox" id="downSummary"></div>
+
+    <h2 class="sec">📄 ใบเสนอราคา <span class="ct" id="ctQuote">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันที่</th><th>ลูกค้า</th>
+          <th class="r">ราคาสุทธิ</th><th class="r">เงินดาวน์</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbQuote"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">📋 ใบจอง <span class="ct" id="ctBook">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันจอง</th><th>ลูกค้า</th>
+          <th class="r">เงินจอง</th><th>สถานะ</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbBook"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">📑 สัญญาจะซื้อจะขาย <span class="ct" id="ctCont">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันที่ทำสัญญา</th><th>ลูกค้า</th>
+          <th class="r">ราคารวม</th><th class="r">งวดดาวน์</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbCont"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">🧾 ใบเสร็จรับเงิน <span class="ct" id="ctPay">0 ฉบับ</span></h2>
+    <div class="docTbl">
+      <table>
+        <thead><tr>
+          <th>เลขที่</th><th>วันที่</th><th>ประเภท</th>
+          <th class="r">ยอดรับ (บาท)</th><th>วิธีจ่าย</th><th class="c">ไฟล์</th>
+        </tr></thead>
+        <tbody id="tbPay"></tbody>
+      </table>
+    </div>
+
+    <h2 class="sec">🏗️ งานก่อสร้างรายแปลง <span class="ct" id="ctTrk">กำลังโหลด</span></h2>
+    <div class="trk" id="tracker"></div>
+
+  </div>
+  <footer>รายละเอียดแปลง · One Vela — Two Build Development</footer>
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script src="assets/onevela-workbench.js"></script>
+<script>
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  const $=id=>document.getElementById(id);
+  const fmt=n=>Number(n||0).toLocaleString('th-TH');
+  const dt=v=>v?String(v).slice(0,10):'-';
+  const plotKey=new URLSearchParams(location.search).get('plot');
+
+  // ── รหัสบ้านตามไทป์: A=ULTRA, B=MINUTES, C=SECOND, D=MOMENT ──
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  function resolveType(tc){
+    if(!tc) return '';
+    const s=String(tc).toUpperCase();
+    if(s.indexOf('ULTRA')>=0) return 'ULTRA';
+    if(s.indexOf('MINUTE')>=0) return 'MINUTES';
+    if(s.indexOf('SECOND')>=0) return 'SECOND';
+    if(s.indexOf('MOMENT')>=0) return 'MOMENT';
+    return s;
+  }
+  function plotCode(plot, typeCode){
+    const t=resolveType(typeCode);
+    const prefix=TYPE_PREFIX[t] || '?';
+    return prefix + String(plot||'').replace(/^0+/, '');
+  }
+
+  async function load(){
+    if(!plotKey){
+      $('state').innerHTML='<div class="sp">⚠️</div>ไม่ได้ระบุเลขแปลง — เปิดผ่าน ?plot=N';
+      return;
+    }
+    $('state').style.display=''; $('content').style.display='none';
+    $('state').innerHTML='<div class="sp">⏳</div>กำลังโหลดข้อมูลแปลง '+plotKey+'...';
+    try{
+      const res=await fetch(API_URL+'?action=getSalesData');
+      const data=await res.json();
+      if(!data || !data.ok) throw new Error('bad data');
+      render(data);
+      loadTracker();
+      $('state').style.display='none'; $('content').style.display='';
+    }catch(e){
+      $('state').innerHTML='<div class="sp">⚠️</div>โหลดข้อมูลไม่สำเร็จ<br><br>'+
+        '<button onclick="load()" style="padding:8px 16px;border:none;border-radius:8px;'+
+        'background:#b08d57;color:#fff;font-weight:700;cursor:pointer">ลองใหม่</button>';
+    }
+  }
+
+  function match(rows, fields){
+    if(!rows) return [];
+    return rows.filter(r => fields.some(f => String(r[f]||'').trim() === String(plotKey).trim()));
+  }
+
+  function render(data){
+    const plot=(data.plots||[]).find(p=>String(p.plot).trim()===String(plotKey).trim());
+    if(!plot){
+      $('state').style.display='';
+      $('content').style.display='none';
+      $('state').innerHTML='<div class="sp">❓</div>ไม่พบแปลงเลข <b>'+plotKey+'</b> ในฐานข้อมูล';
+      return;
+    }
+    const status=(plot.status||'ว่าง').trim();
+    const code = plotCode(plot.plot, plot.typeCode);
+    $('hero').className='hero s-'+status;
+    $('hero').innerHTML=
+      '<h1>🏠 '+code+' <span class="pst">'+status+'</span></h1>'+
+      '<div class="meta">'+
+        cell('เลขแปลง', plot.plot)+
+        cell('บ้านเลขที่', plot.houseNo)+
+        cell('TYPE', plot.typeCode)+
+        cell('โฉนดเลขที่', plot.deed)+
+        cell('เนื้อที่', plot.area ? plot.area+' ตร.ว.' : '-')+
+        cell('ราคาสุทธิ', '<b>'+fmt(plot.priceNet)+'</b> บาท')+
+      '</div>'+
+      (plot.cName ? '<div class="customer">'+
+        '<span class="nm">👤 '+plot.cName+'</span>'+
+        (plot.cPhone?'<span class="ph">📞 '+plot.cPhone+'</span>':'')+
+        '</div>' : '');
+
+    const enc=encodeURIComponent(plot.plot);
+    $('actions').innerHTML=
+      '<a href="sales-quotation.html?plot='+enc+'">📄 ใบเสนอราคา</a>'+
+      '<a href="sales-booking.html?plot='+enc+'">📋 ใบจอง</a>'+
+      '<a href="sales-contract.html?plot='+enc+'">📑 สัญญา</a>'+
+      '<a href="sales-receipt.html?plot='+enc+'">🧾 ใบเสร็จ</a>'+
+      '<a href="payment-form.html?plot='+enc+'" style="background:#fef3c7;border-color:#fcd34d;color:#92400e">💵 กรอกฟอร์มผ่อนดาวน์</a>'+
+      '<a href="fee.html?plot='+enc+'" style="background:#fce7f3;border-color:#f9a8d4;color:#9d174d">🏘️ ค่าส่วนกลาง</a>'+
+      '<a href="fee-invoice.html?plot='+enc+'" style="background:#fce7f3;border-color:#f9a8d4;color:#9d174d">📄 ออกใบแจ้งหนี้</a>'+
+      '<a href="transfer-money.html?plot='+enc+'" style="background:#fde2e8;border-color:#f9b4c0;color:#9f1239">📄 ใบชี้แจงเงิน</a>'+
+      '<a href="transfer-cheque.html?plot='+enc+'" style="background:#f3e8ff;border-color:#d8b4fe;color:#6b21a8">🏦 แยกเช็ค</a>'+
+      '<a href="construction-detail.html?plot='+enc+'" style="background:#fff8e6;border-color:#f5d8a0;color:#7a5a2e">🏗️ แดชบอร์ดก่อสร้าง</a>'+
+      '<a href="index.html?plot='+enc+'" style="background:#e0e7ff;border-color:#c7d2fe;color:#1e3a8a">💰 ต้นทุน</a>'+
+      '<a href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank" style="background:#eef2ff;border-color:#c7d2fe;color:#3730a3">📊 Sheet</a>'+
+      '<a id="plotFolderLink" href="#" target="_blank" style="background:#e6f4ea;border-color:#b6dbc1;color:#15803d">📁 โฟลเดอร์แปลงนี้ ↗</a>';
+
+    // ดึง folder link ตรงๆ ของแปลงนี้ (ผ่าน Auth API)
+    if(window.Auth && Auth.isLoggedIn && Auth.isLoggedIn()){
+      Auth.api('getPlotFolderUrls', {plot: plot.plot}).then(r => {
+        if(r.ok && r.mainUrl){
+          const el = document.getElementById('plotFolderLink');
+          if(el) el.href = r.mainUrl;
+        }
+      }).catch(()=>{});
+    }
+
+    const quotes=match(data.quotations, ['plot']);
+    const books=match(data.bookings, ['plot']);
+    const conts=match(data.contracts, ['plot','plotNo']);
+    const pays=match(data.payments, ['plot']);
+    const insts=match(data.installments, ['plot']);
+    renderDownSummary(insts, [], conts[0]);
+    loadPaymentSummary(plot.plot, insts, conts[0]);
+
+    $('ctQuote').textContent=quotes.length+' ฉบับ';
+    $('ctBook').textContent=books.length+' ฉบับ';
+    $('ctCont').textContent=conts.length+' ฉบับ';
+    $('ctPay').textContent=pays.length+' ฉบับ';
+
+    $('tbQuote').innerHTML=quotes.length?quotes.sort(byDate('createdAt')).map(q=>
+      '<tr><td class="docNo">'+(q.docNo||'-')+'</td>'+
+      '<td>'+dt(q.createdAt)+'</td>'+
+      '<td>'+(q.cName||'-')+'</td>'+
+      '<td class="r">'+fmt(q.priceNet)+'</td>'+
+      '<td class="r">'+fmt(q.downPmt)+'</td>'+
+      '<td class="c">'+fileLink(q.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีใบเสนอราคาของแปลงนี้');
+
+    $('tbBook').innerHTML=books.length?books.sort(byDate('bookDate')).map(b=>
+      '<tr><td class="docNo">'+(b.bookingNo||b.docNo||'-')+'</td>'+
+      '<td>'+dt(b.bookDate)+'</td>'+
+      '<td>'+(b.cName||'-')+'</td>'+
+      '<td class="r">'+fmt(b.bookAmount)+'</td>'+
+      '<td>'+(b.status||'-')+'</td>'+
+      '<td class="c">'+fileLink(b.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีใบจองของแปลงนี้');
+
+    $('tbCont').innerHTML=conts.length?conts.sort(byDate('contractDate')).map(c=>
+      '<tr><td class="docNo">'+(c.contractNo||c.docNo||'-')+'</td>'+
+      '<td>'+dt(c.contractDate)+'</td>'+
+      '<td>'+(c.cName||'-')+'</td>'+
+      '<td class="r">'+fmt(c.priceNet||c.priceTotal)+'</td>'+
+      '<td class="r">'+(c.months?c.months+' งวด':'-')+'</td>'+
+      '<td class="c">'+fileLink(c.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีสัญญาของแปลงนี้');
+
+    $('tbPay').innerHTML=pays.length?pays.sort(byDate('payDate')).map(p=>
+      '<tr><td class="docNo">'+(p.receiptNo||p.docNo||'-')+'</td>'+
+      '<td>'+dt(p.payDate)+'</td>'+
+      '<td>'+(p.payType||p.category||'-')+'</td>'+
+      '<td class="r">'+fmt(p.amount)+'</td>'+
+      '<td>'+(p.method||'-')+'</td>'+
+      '<td class="c">'+fileLink(p.fileUrl)+'</td></tr>'
+    ).join(''):empty(6,'ยังไม่มีใบเสร็จของแปลงนี้');
+  }
+
+  async function loadPaymentSummary(plotNo, insts, contract){
+    if(!window.Auth || !Auth.isLoggedIn || !Auth.isLoggedIn()) return;
+    try{
+      const r=await Auth.api('getPayments');
+      if(r && r.ok){
+        const rows=(r.payments||[]).filter(p=>String(p.plot||'').trim()===String(plotNo).trim());
+        renderDownSummary(insts, rows, contract);
+      }
+    }catch(e){}
+  }
+
+  function renderDownSummary(insts, payRows, contract){
+    const rows=(insts&&insts.length?insts:generateInstallments(contract)).map(inst=>{
+      const paid=payRows.find(p=>String(p.installmentNo)===String(inst.installmentNo));
+      return Object.assign({}, inst, {
+        paid: !!paid || String(inst.paid||'').match(/^(1|true|yes)$/i),
+        paidDate: paid ? paid.paidDate : inst.paidDate,
+        method: paid ? paid.method : inst.method,
+        slipUrl: paid ? paid.slipUrl : inst.slipUrl
+      });
+    });
+    const total=rows.reduce((a,r)=>a+(Number(r.amount)||0),0);
+    const paidSum=rows.filter(r=>r.paid).reduce((a,r)=>a+(Number(r.amount)||0),0);
+    const over=rows.filter(r=>!r.paid && r.dueDate && new Date(r.dueDate)<new Date()).length;
+    $('ctDown').textContent=rows.length ? rows.filter(r=>r.paid).length+'/'+rows.length+' งวด' : 'ยังไม่มีงวด';
+    let html='';
+    html+='<div class="tile"><div class="lbl">ยอดดาวน์รวม</div><div class="num gold">'+fmt(total)+'</div></div>';
+    html+='<div class="tile"><div class="lbl">รับเข้าแล้ว</div><div class="num green">'+fmt(paidSum)+'</div></div>';
+    html+='<div class="tile"><div class="lbl">คงเหลือ</div><div class="num">'+fmt(Math.max(total-paidSum,0))+'</div></div>';
+    html+='<div class="tile"><div class="lbl">เลยกำหนด</div><div class="num">'+over+'</div></div>';
+    if(rows.length){
+      html+='<div class="downList">';
+      rows.forEach(r=>{
+        const isOver=!r.paid && r.dueDate && new Date(r.dueDate)<new Date();
+        html+='<div class="row '+(r.paid?'paid':(isOver?'over':''))+'">'+
+          '<div>งวด '+(r.installmentNo||'-')+'</div>'+
+          '<div>'+dt(r.dueDate)+(r.method?' · '+escapeHtml(r.method):'')+'</div>'+
+          '<div class="amt">'+fmt(r.amount)+' บาท</div>'+
+          '<div class="st">'+(r.paid?'จ่ายแล้ว':(isOver?'ค้าง':'รอจ่าย'))+'</div>'+
+        '</div>';
+      });
+      html+='</div>';
+    }else{
+      html+='<div class="empty" style="grid-column:1/-1">ยังไม่มีตารางผ่อนดาวน์ของแปลงนี้</div>';
+    }
+    $('downSummary').innerHTML=html;
+  }
+
+  function generateInstallments(contract){
+    if(!contract) return [];
+    const months=Number(contract.months)||0;
+    const total=Number(contract.downPmt||contract.downTotal||0);
+    if(!months || !total) return [];
+    const amt=Math.round(total/months);
+    const start=new Date(contract.contractDate||new Date());
+    const rows=[];
+    for(let i=0;i<months;i++){
+      const due=new Date(start);
+      due.setMonth(due.getMonth()+i+1);
+      rows.push({plot:plotKey, installmentNo:i+1, dueDate:due.toISOString().slice(0,10), amount:amt});
+    }
+    return rows;
+  }
+
+  async function loadTracker(){
+    try{
+      const res=await fetch(API_URL+'?action=getTrackerData&plot='+encodeURIComponent(plotKey));
+      const r=await res.json();
+      if(!r || !r.ok) throw new Error('tracker failed');
+      renderTracker(r);
+    }catch(e){
+      $('ctTrk').textContent='โหลดไม่ได้';
+      $('tracker').innerHTML='<div class="trk-empty">ยังโหลดข้อมูลงานก่อสร้างไม่ได้</div>';
+    }
+  }
+
+  function renderTracker(t){
+    const ms = t.milestones || [];
+    const updates = t.updates || [];
+    const photos = t.photos || [];
+    const cons = t.construction;
+    const completed = new Set((t.completedIds||[]).map(String));
+    const curId = cons && cons.current_milestone_id ? String(cons.current_milestone_id).trim() : '';
+
+    // ถ้ายังไม่มีทั้ง construction row และ updates เลย — แสดง empty state
+    if(!cons && updates.length===0){
+      $('ctTrk').textContent='ยังไม่เริ่ม';
+      const note = ms.length
+        ? 'ไทป์บ้าน <b>'+(t.houseType||t.houseTypeRaw||'-')+'</b> · พบ '+ms.length+' milestone — แต่ยังไม่มีรายการอัปเดต'
+        : 'ยังไม่มีข้อมูลก่อสร้างของแปลงนี้';
+      $('tracker').innerHTML='<div class="trk-empty">🚧 ยังไม่ได้เริ่มงานก่อสร้าง<br><span style="font-size:12px">'+note+'</span></div>';
+      return;
+    }
+
+    const pct = cons && cons.progress_percent != null
+      ? Math.round(Number(cons.progress_percent)||0)
+      : 0;
+    const cur = t.currentMilestone;
+    const status = (cons && cons.status) ? cons.status : '-';
+    $('ctTrk').textContent = pct+'% · '+status;
+
+    let html='';
+
+    // ── หัว: % + milestone ปัจจุบัน + meta ──
+    html += '<div class="trk-hd">';
+    html += '<div class="trk-pct">'+pct+'<small>%</small></div>';
+    html += '<div class="trk-cur">';
+    html += '<div class="lbl">MILESTONE ปัจจุบัน</div>';
+    if(cur){
+      html += '<div class="nm">'+(cur.milestone_order||'')+'. '+(cur.milestone_name||'-')+'</div>';
+      html += '<div class="cat">'+(cur.milestone_category||'')+
+              (cur.expected_days?' · คาด '+cur.expected_days+' วัน':'')+'</div>';
+    } else {
+      html += '<div class="nm" style="color:var(--muted)">ยังไม่ระบุ</div>';
+    }
+    html += '</div></div>';
+
+    // progress bar
+    html += '<div class="trk-bar"><div style="width:'+pct+'%"></div></div>';
+
+    // meta row
+    html += '<div class="trk-meta">';
+    html += metaCell('สถานะ', status);
+    html += metaCell('ไทป์บ้าน', t.houseType || t.houseTypeRaw || '-');
+    html += metaCell('วันเริ่ม', dt(cons && cons.actual_start_date));
+    html += metaCell('คาดเสร็จ', dt(cons && cons.estimated_completion_date));
+    html += metaCell('อัปเดตล่าสุด', dt(cons && cons.last_update_at));
+    html += metaCell('ระยะเวลารวม', durationText(cons));
+    html += '</div>';
+
+    // ── Timeline milestones ──
+    if(ms.length){
+      html += '<div class="trk-sub">📋 รายการงาน ('+ms.length+' รายการ)</div>';
+      html += '<ul class="trk-tl">';
+      ms.forEach(function(m){
+        const id = String(m.template_id||'').trim();
+        const isDone = completed.has(id);
+        const isCurr = id === curId;
+        const cls = isDone ? 'done' : (isCurr ? 'curr' : '');
+        html += '<li class="'+cls+'">'+
+          '<span class="nm">'+(m.milestone_order||'')+'. '+(m.milestone_name||'-')+'</span>'+
+          '<span class="cat">'+(m.milestone_category||'')+'</span>'+
+          (m.weight_percent?'<span class="wt">'+m.weight_percent+'%</span>':'')+
+        '</li>';
+      });
+      html += '</ul>';
+    }
+
+    // ── Updates ล่าสุด (5 รายการแรก) ──
+    if(updates.length){
+      html += '<div class="trk-sub">📝 บันทึกล่าสุด ('+updates.length+' ครั้ง)</div>';
+      html += '<ul class="trk-up">';
+      updates.slice(0,5).forEach(function(u){
+        const hasIssue = String(u.has_issue||'').match(/^(1|true|yes|มี)$/i);
+        html += '<li class="'+(hasIssue?'issue':'')+'">';
+        html += '<div class="ut"><span class="dt">'+dt(u.created_at)+'</span>'+
+                '<span class="who">'+(u.foreman_id||'')+'</span></div>';
+        if(u.text_note) html += '<div class="nt">'+escapeHtml(u.text_note)+'</div>';
+        if(hasIssue && u.issue_description){
+          html += '<div class="iss">⚠️ '+escapeHtml(u.issue_description)+
+                  (u.issue_severity?' ('+u.issue_severity+')':'')+'</div>';
+        }
+        html += '</li>';
+      });
+      html += '</ul>';
+    }
+
+    // ── Photos grid (12 รูปแรก) ──
+    if(photos.length){
+      html += '<div class="trk-sub">📸 ภาพหน้างาน ('+photos.length+' รูป)</div>';
+      html += '<div class="trk-ph">';
+      photos.slice(0,12).forEach(function(ph){
+        const url = ph.drive_url || '';
+        const thumb = ph.thumbnail_url || url;
+        if(!url) return;
+        html += '<a href="'+url+'" target="_blank" title="'+(ph.taken_at||'')+'">'+
+                (thumb ? '<img src="'+thumb+'" alt="" loading="lazy">' : '🖼️')+
+                '</a>';
+      });
+      html += '</div>';
+    }
+
+    $('tracker').innerHTML = html;
+  }
+
+  function metaCell(lbl, val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+  function durationText(cons){
+    if(!cons || !cons.actual_start_date) return '-';
+    const start=new Date(cons.actual_start_date);
+    const end=new Date(cons.last_update_at || new Date());
+    if(isNaN(start.getTime()) || isNaN(end.getTime())) return '-';
+    const days=Math.max(0, Math.ceil((end-start)/(1000*60*60*24)));
+    return days.toLocaleString('th-TH')+' วัน';
+  }
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function cell(lbl, val){
+    return '<div><div class="lbl">'+lbl+'</div><div class="val">'+(val||'-')+'</div></div>';
+  }
+  function empty(cols, msg){
+    return '<tr><td colspan="'+cols+'" class="empty">'+msg+'</td></tr>';
+  }
+  function fileLink(url){
+    return url ? '<a class="lnk" href="'+url+'" target="_blank">เปิดไฟล์ ↗</a>'
+               : '<span class="lnk muted">ไม่มีไฟล์</span>';
+  }
+  function byDate(key){
+    return (a,b)=>String(b[key]||'').localeCompare(String(a[key]||''));
+  }
+
+  load();
+</script>
+</body>
+</html>

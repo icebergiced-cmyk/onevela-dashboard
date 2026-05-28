@@ -83,6 +83,12 @@ function doGet(e){
     if (action === 'saveInvoice')        return json(saveInvoice(p.token, parseData(p.data)));
     if (action === 'listInvoicesForPlot')return json(listInvoicesForPlot(p.token, p.plot));
     if (action === 'getNextInvoiceNo')   return json({ok:true, no:getNextInvoiceNo()});
+    // ===== Finance Workspace (Round 9) =====
+    if (action === 'getFinanceFolders')   return json(getFinanceFolders(p.token));
+    if (action === 'getFinanceRecords')   return json(getFinanceRecords(p.token));
+    if (action === 'deleteFinanceRecord') return json(deleteFinanceRecord(p.token, p.recordId));
+    if (action === 'listFinanceDocuments')return json(listFinanceDocuments(p.token, p.category, p.recordId, p.documentId));
+    if (action === 'getFinanceAnalysisResult') return json(getFinanceAnalysisResult(p.token, p.requestId));
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -125,6 +131,9 @@ function doPost(e){
       case 'userSave':     return json(userSave(body.token, body.data));
       case 'uploadDocToPlot':return json(uploadDocToPlot(body.token, body.data));
       case 'saveInvoice':  return json(saveInvoice(body.token, body.data));
+      case 'uploadFinanceDocument': return json(uploadFinanceDocument(body.token, body.data));
+      case 'saveFinanceRecord':     return json(saveFinanceRecord(body.token, body.data));
+      case 'analyzeFinanceDocument':return json(analyzeFinanceDocument(body.token, body.data));
       default: return json({ok:false, error:'ไม่รู้จัก action: '+body.action});
     }
   } catch(err){ return json({ok:false, error:String(err)}); }
@@ -1363,7 +1372,7 @@ function deleteWalkinV2(token, walkinId){
 // ===== Payments / Fees / Transfers (Round 5)
 // ============================================================
 const PAYMENT_KEYS = ['payment_id','plot','installmentNo','dueDate','paid','paidDate',
-  'amount','method','slipUrl','note','createdAt'];
+  'amount','method','receiver','slipUrl','note','createdAt'];
 const FEE_KEYS = ['fee_id','plot','date','months','amount','method','period','slipUrl','note','createdAt'];
 const TRANSFER_KEYS = ['plot','transferDate','bank','loanAmount','docsReady','docsTotal','status',
   'cName','deed','landNo','contractPrice','assetPrice','evalPrice','note','updatedAt'];
@@ -1381,10 +1390,24 @@ function ensureTab_(name, keys, labels){
   return sh;
 }
 
+function ensureColumns_(sh, keys, labels){
+  if(!sh || !keys || !keys.length) return;
+  const lastCol = Math.max(sh.getLastColumn(), 1);
+  const headers = sh.getRange(1,1,1,lastCol).getValues()[0].map(String);
+  keys.forEach(function(k, idx){
+    if(headers.indexOf(k) >= 0) return;
+    const col = sh.getLastColumn() + 1;
+    sh.getRange(1,col).setValue(k);
+    sh.getRange(2,col).setValue((labels && labels[idx]) || k);
+    headers.push(k);
+  });
+}
+
 function getPayments(token){
   const a = requireAuth_(token, 'view.payments');
   if(!a.ok) return a;
-  ensureTab_('down_installments', PAYMENT_KEYS);
+  const sh = ensureTab_('down_installments', PAYMENT_KEYS);
+  ensureColumns_(sh, PAYMENT_KEYS);
   return {ok:true, payments: readTab('down_installments')};
 }
 function savePayment(token, data){
@@ -1392,6 +1415,7 @@ function savePayment(token, data){
   if(!a.ok) return a;
   if(!data || !data.plot) return {ok:false, error:'ต้องระบุ plot'};
   const sh = ensureTab_('down_installments', PAYMENT_KEYS);
+  ensureColumns_(sh, PAYMENT_KEYS);
   const vals = sh.getDataRange().getValues();
   const keys = vals[0];
   const now = new Date().toISOString();
@@ -1415,7 +1439,7 @@ function savePayment(token, data){
       if(String(vals[i][keys.indexOf('plot')]) === String(data.plot) &&
          String(vals[i][keys.indexOf('installmentNo')]) === String(data.installmentNo)){
         // update
-        ['paid','paidDate','amount','method','note','dueDate'].forEach(k => {
+        ['paid','paidDate','amount','method','receiver','note','dueDate'].forEach(k => {
           const col = keys.indexOf(k);
           if(col >= 0 && data[k] !== undefined) sh.getRange(i+1, col+1).setValue(data[k]);
         });
@@ -1880,6 +1904,408 @@ function renderInvoiceHTML_(d){
       '<div class="sig"><div class="line"></div><div class="lbl">ลูกค้า / ผู้ชำระ</div></div>' +
       '<div class="sig"><div class="line"></div><div class="lbl">เจ้าหน้าที่โครงการ</div></div>' +
     '</div></body></html>';
+}
+
+// ============================================================
+// ===== Round 9 — Finance Workspace / AI Document Desk
+// ============================================================
+const FINANCE_SUBFOLDERS = {
+  cashbook: 'Cash Book Slips',
+  payables: 'เจ้าหนี้และใบวางบิล',
+  contractor: 'ผู้รับเหมา',
+  payroll: 'สลิปเงินเดือน',
+  ai: 'AI Workspace'
+};
+
+const FINANCE_RECORD_KEYS = [
+  'record_id','route','record_type','date','time','project','category','amount','status',
+  'vendor','payer_name','payee_name','bank','reference_no','memo','note','document_url',
+  'folder_url','file_name','ai_text','ai_summary','due_date','payment_method','team_name',
+  'employee_name','extras_json','created_at','updated_at','created_by'
+];
+
+const FINANCE_DOCUMENT_KEYS = [
+  'document_id','category','record_id','subfolder','file_name','mime_type','file_url','folder_url',
+  'file_id','size_bytes','note','meta_json','created_at','created_by'
+];
+
+function ensureFinanceRecordsTab_(){
+  return ensureTab_('finance_records', FINANCE_RECORD_KEYS, [
+    'รหัสรายการ','route','ประเภทย่อย','วันที่','เวลา','โครงการ','หมวด','ยอดเงิน','สถานะ',
+    'คู่ค้า','ผู้โอน','ผู้รับ','ธนาคาร','เลขอ้างอิง','memo','หมายเหตุ','ลิงก์ไฟล์',
+    'ลิงก์โฟลเดอร์','ชื่อไฟล์','ข้อความ OCR','สรุป AI','กำหนดชำระ','วิธีชำระ','ทีมช่าง',
+    'พนักงาน','extras JSON','สร้างเมื่อ','อัปเดตเมื่อ','สร้างโดย'
+  ]);
+}
+
+function ensureFinanceDocumentsTab_(){
+  return ensureTab_('finance_documents', FINANCE_DOCUMENT_KEYS, [
+    'รหัสไฟล์','หมวด','รหัสรายการ','subfolder','ชื่อไฟล์','mime type','ลิงก์ไฟล์','ลิงก์โฟลเดอร์',
+    'Drive File ID','ขนาดไบต์','หมายเหตุ','meta JSON','สร้างเมื่อ','สร้างโดย'
+  ]);
+}
+
+function getOrCreateFinanceRoot_(){
+  const root = DriveApp.getFolderById(FILES_FOLDER_ID);
+  return getOrCreateFolder(root, 'Finance Workspace');
+}
+
+function getOrCreateFinanceCategoryFolder_(category, subfolder){
+  const key = FINANCE_SUBFOLDERS[category] ? category : 'ai';
+  const base = getOrCreateFolder(getOrCreateFinanceRoot_(), FINANCE_SUBFOLDERS[key]);
+  return subfolder ? getOrCreateFolder(base, subfolder) : base;
+}
+
+function getFinanceFolders(token){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  try {
+    const root = getOrCreateFinanceRoot_();
+    const folders = {root:{name:'Finance Workspace', url:root.getUrl()}};
+    Object.keys(FINANCE_SUBFOLDERS).forEach(function(key){
+      const folder = getOrCreateFinanceCategoryFolder_(key);
+      folders[key] = {name: FINANCE_SUBFOLDERS[key], url: folder.getUrl()};
+    });
+    return {ok:true, folders:folders};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function saveFinanceRecord(token, data){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  if(!data || !data.record_id) return {ok:false, error:'ต้องมี record_id'};
+  try {
+    const sh = ensureFinanceRecordsTab_();
+    const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+    const vals = sh.getDataRange().getValues();
+    const row = {};
+    FINANCE_RECORD_KEYS.forEach(function(k){
+      row[k] = data[k] !== undefined && data[k] !== null ? data[k] : '';
+    });
+    row.updated_at = new Date().toISOString();
+    row.created_by = row.created_by || a.user.username;
+    if(!row.created_at) row.created_at = row.updated_at;
+    if(row.extras_json && typeof row.extras_json !== 'string'){
+      row.extras_json = JSON.stringify(row.extras_json);
+    }
+    let found = -1;
+    for(let i=1; i<vals.length; i++){
+      if(String(vals[i][0]).trim() === String(row.record_id).trim()){ found = i+1; break; }
+    }
+    const arr = keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; });
+    if(found > 0){
+      sh.getRange(found, 1, 1, arr.length).setValues([arr]);
+      return {ok:true, action:'updated', record:row};
+    }
+    sh.appendRow(arr);
+    return {ok:true, action:'added', record:row};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function getFinanceRecords(token){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  try {
+    ensureFinanceRecordsTab_();
+    const rows = readTab('finance_records').map(function(r){
+      if(r.extras_json && typeof r.extras_json === 'string'){
+        try { r.extras = JSON.parse(r.extras_json); } catch(_err){}
+      }
+      return r;
+    });
+    rows.sort(function(a,b){
+      return String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || ''));
+    });
+    return {ok:true, records:rows};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function deleteFinanceRecord(token, recordId){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  if(!recordId) return {ok:false, error:'ต้องระบุ recordId'};
+  try {
+    const sh = ensureFinanceRecordsTab_();
+    const vals = sh.getDataRange().getValues();
+    for(let i=1; i<vals.length; i++){
+      if(String(vals[i][0]).trim() === String(recordId).trim()){
+        sh.deleteRow(i+1);
+        return {ok:true, deleted:recordId};
+      }
+    }
+    return {ok:false, error:'ไม่พบ recordId'};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function uploadFinanceDocument(token, data){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  if(!data || !data.category || !data.base64 || !data.fileName){
+    return {ok:false, error:'ต้องมี category + base64 + fileName'};
+  }
+  try {
+    ensureFinanceDocumentsTab_();
+    const folder = getOrCreateFinanceCategoryFolder_(data.category, data.subfolder || '');
+    const bytes = Utilities.base64Decode(data.base64);
+    const mimeType = data.mimeType || 'application/octet-stream';
+    const file = folder.createFile(Utilities.newBlob(bytes, mimeType, data.fileName));
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    const row = {
+      document_id: data.documentId || ('fdoc_' + Date.now()),
+      category: data.category,
+      record_id: data.recordId || '',
+      subfolder: data.subfolder || '',
+      file_name: data.fileName,
+      mime_type: mimeType,
+      file_url: file.getUrl(),
+      folder_url: folder.getUrl(),
+      file_id: file.getId(),
+      size_bytes: bytes.length,
+      note: data.note || '',
+      meta_json: data.meta ? JSON.stringify(data.meta) : '',
+      created_at: new Date().toISOString(),
+      created_by: a.user.username
+    };
+    const sh = sheet('finance_documents');
+    const keys = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+    sh.appendRow(keys.map(function(k){ return row[k] !== undefined ? row[k] : ''; }));
+
+    return {
+      ok:true,
+      document: row,
+      fileUrl: row.file_url,
+      folderUrl: row.folder_url
+    };
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function listFinanceDocuments(token, category, recordId, documentId){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  try {
+    ensureFinanceDocumentsTab_();
+    let rows = readTab('finance_documents');
+    if(category) rows = rows.filter(function(r){ return String(r.category||'') === String(category); });
+    if(recordId) rows = rows.filter(function(r){ return String(r.record_id||'') === String(recordId); });
+    if(documentId) rows = rows.filter(function(r){ return String(r.document_id||'') === String(documentId); });
+    rows.sort(function(a,b){
+      return String(b.created_at||'').localeCompare(String(a.created_at||''));
+    });
+    return {ok:true, documents:rows};
+  } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function setFinanceAnalysisCache_(requestId, payload){
+  if(!requestId) return;
+  CacheService.getScriptCache().put('fin_ai_' + requestId, JSON.stringify(payload || {}), 1800);
+}
+
+function getFinanceAnalysisCache_(requestId){
+  if(!requestId) return null;
+  const raw = CacheService.getScriptCache().get('fin_ai_' + requestId);
+  if(!raw) return null;
+  try { return JSON.parse(raw); } catch(e){ return {ok:false, error:String(e)}; }
+}
+
+function getFinanceAnalysisResult(token, requestId){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  if(!requestId) return {ok:false, error:'ต้องระบุ requestId'};
+  const cached = getFinanceAnalysisCache_(requestId);
+  if(!cached) return {ok:true, ready:false};
+  return {ok:true, ready:true, result:cached};
+}
+
+function analyzeFinanceDocument(token, data){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  const requestId = data && data.requestId ? String(data.requestId) : '';
+  if(!requestId) return {ok:false, error:'ต้องมี requestId'};
+  if(!data || !data.kind || !data.fileName || !data.base64){
+    setFinanceAnalysisCache_(requestId, {ok:false, error:'ข้อมูลไฟล์ไม่ครบ'});
+    return {ok:false, error:'ข้อมูลไฟล์ไม่ครบ'};
+  }
+  setFinanceAnalysisCache_(requestId, {ok:true, pending:true});
+  try {
+    const result = analyzeFinanceDocumentWithOpenAI_(data);
+    setFinanceAnalysisCache_(requestId, result);
+    return {ok:true, queued:true, requestId:requestId};
+  } catch(e){
+    const fail = {ok:false, error:String(e)};
+    setFinanceAnalysisCache_(requestId, fail);
+    return {ok:true, queued:true, requestId:requestId};
+  }
+}
+
+function getSecret_(key){
+  return PropertiesService.getScriptProperties().getProperty(key) || '';
+}
+
+function buildFinanceAnalysisPrompt_(kind, fileName, fallbackText){
+  const base = [
+    'You extract accounting data from Thai bank slips and vendor documents.',
+    'Return only data that is visible or strongly supported by the file.',
+    'If uncertain, return empty strings or 0 and add a warning.',
+    'Do not hallucinate bank names, people names, dates, reference numbers, or amounts.',
+    'When text is Thai, preserve Thai wording in note/purpose when possible.'
+  ];
+  if(fallbackText){
+    base.push('Supplemental OCR text is provided below. Use it only if it matches the visual document.');
+    base.push('Supplemental OCR text: ' + String(fallbackText).slice(0, 4000));
+  }
+  if(kind === 'slip'){
+    base.push('Target document: Thai transfer/payment slip.');
+    base.push('Extract transaction date, time, bank, payer, payee, amount, reference, and transfer purpose/note.');
+    base.push('Infer vendor_name from payee when reasonable. Infer category_hint briefly, such as ค่าผู้รับเหมา, ค่าวัสดุก่อสร้าง, ค่าธรรมเนียมโอน, ภาษีและอากร, ค่าแรง/เงินเดือน, อื่นๆ.');
+  } else {
+    base.push('Target document: AP/vendor document such as PR, PO, delivery note, billing note, or receipt.');
+    base.push('Extract vendor, PO number, bill/invoice number, receipt or delivery note number, amount, due date if visible, payment method if visible, and a concise summary of goods/services.');
+    base.push('Set comparison_status based on evidence only, such as รอกรอกเลขเอกสาร, รอตรวจราคา/จำนวน, ตรวจแล้ว.');
+  }
+  base.push('Filename: ' + fileName);
+  return base.join('\n');
+}
+
+function financeSlipSchema_(){
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      raw_text: {type:'string'},
+      parsed: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          date: {type:'string'},
+          time: {type:'string'},
+          amount: {type:'number'},
+          bank: {type:'string'},
+          payerName: {type:'string'},
+          payeeName: {type:'string'},
+          memo: {type:'string'},
+          vendor: {type:'string'},
+          ref: {type:'string'},
+          category: {type:'string'},
+          summary: {type:'string'},
+          confidence: {type:'number'},
+          warnings: {type:'array', items:{type:'string'}}
+        },
+        required: ['date','time','amount','bank','payerName','payeeName','memo','vendor','ref','category','summary','confidence','warnings']
+      }
+    },
+    required: ['raw_text','parsed']
+  };
+}
+
+function financePayableSchema_(){
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      raw_text: {type:'string'},
+      parsed: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          amount: {type:'number'},
+          vendor: {type:'string'},
+          poNo: {type:'string'},
+          billNo: {type:'string'},
+          receiptNo: {type:'string'},
+          dueDate: {type:'string'},
+          paymentMethod: {type:'string'},
+          memo: {type:'string'},
+          note: {type:'string'},
+          comparisonStatus: {type:'string'},
+          summary: {type:'string'},
+          warnings: {type:'array', items:{type:'string'}}
+        },
+        required: ['amount','vendor','poNo','billNo','receiptNo','dueDate','paymentMethod','memo','note','comparisonStatus','summary','warnings']
+      }
+    },
+    required: ['raw_text','parsed']
+  };
+}
+
+function extractOpenAIOutputText_(data){
+  if(data && data.output_text) return data.output_text;
+  const out = data && data.output ? data.output : [];
+  for(var i=0; i<out.length; i++){
+    const item = out[i];
+    if(item && item.type === 'message' && item.content && item.content.length){
+      for(var j=0; j<item.content.length; j++){
+        const c = item.content[j];
+        if(c && (c.type === 'output_text' || c.type === 'text') && c.text) return c.text;
+      }
+    }
+  }
+  return '';
+}
+
+function analyzeFinanceDocumentWithOpenAI_(data){
+  const apiKey = getSecret_('OPENAI_API_KEY');
+  if(!apiKey) throw new Error('ยังไม่ได้ตั้ง Script Property: OPENAI_API_KEY');
+  const model = getSecret_('FINANCE_AI_MODEL') || 'gpt-4.1-mini';
+  const kind = String(data.kind || 'slip');
+  const mimeType = String(data.mimeType || 'application/octet-stream');
+  const fileName = String(data.fileName || 'document');
+  const base64 = String(data.base64 || '');
+  const prompt = buildFinanceAnalysisPrompt_(kind, fileName, data.fallbackText || '');
+  const content = [];
+  if(/^application\/pdf$/i.test(mimeType) || /\.pdf$/i.test(fileName)){
+    content.push({
+      type: 'input_file',
+      filename: fileName,
+      file_data: 'data:' + mimeType + ';base64,' + base64
+    });
+  } else {
+    content.push({
+      type: 'input_image',
+      image_url: 'data:' + mimeType + ';base64,' + base64,
+      detail: 'high'
+    });
+  }
+  content.push({type:'input_text', text:prompt});
+  const payload = {
+    model: model,
+    input: [{role:'user', content:content}],
+    text: {
+      format: {
+        type: 'json_schema',
+        name: kind === 'slip' ? 'finance_slip_extraction' : 'finance_payable_extraction',
+        strict: true,
+        schema: kind === 'slip' ? financeSlipSchema_() : financePayableSchema_()
+      }
+    },
+    max_output_tokens: 1200
+  };
+  const res = UrlFetchApp.fetch('https://api.openai.com/v1/responses', {
+    method: 'post',
+    contentType: 'application/json',
+    muteHttpExceptions: true,
+    headers: {Authorization:'Bearer ' + apiKey},
+    payload: JSON.stringify(payload)
+  });
+  const code = res.getResponseCode();
+  const body = res.getContentText();
+  let json = {};
+  try { json = JSON.parse(body); } catch(e){ throw new Error('AI response parse failed: ' + body); }
+  if(code >= 300){
+    throw new Error('OpenAI ' + code + ': ' + ((json.error && json.error.message) || body));
+  }
+  const outputText = extractOpenAIOutputText_(json);
+  if(!outputText) throw new Error('AI ไม่ส่งผลลัพธ์กลับมา');
+  let parsed;
+  try { parsed = JSON.parse(outputText); } catch(e){ throw new Error('AI output ไม่ใช่ JSON ที่อ่านได้'); }
+  return {
+    ok: true,
+    provider: 'openai',
+    model: model,
+    kind: kind,
+    raw_text: parsed.raw_text || '',
+    parsed: parsed.parsed || parsed
+  };
 }
 
 // ============================================================

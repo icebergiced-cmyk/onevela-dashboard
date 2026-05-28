@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>📄 ใบแจ้งหนี้ค่าส่วนกลาง — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-d:#8d6d3f;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706;--pink:#9d174d}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:980px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;text-decoration:none}
+
+  .picker{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .picker label{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;display:block}
+  .picker .row{display:flex;gap:10px;align-items:flex-end}
+  .picker input,.picker select{font-family:inherit;font-size:15px;padding:10px 12px;border:2px solid var(--line);border-radius:9px;background:#fff;flex:1;max-width:300px}
+  .picker button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 16px;border:none;border-radius:9px;background:var(--gold);color:#fff;cursor:pointer}
+
+  .plot-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06);display:none}
+  .plot-card.on{display:block}
+  .plot-card .top{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .plot-card .pid{font-size:22px;font-weight:800;color:var(--gold)}
+  .typ-badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:10px}
+  .typ-ULTRA{background:#fef3e2;color:#9a3412}.typ-MINUTES{background:#e0f2fe;color:#075985}
+  .typ-SECOND{background:#dbeafe;color:#1e40af}.typ-MOMENT{background:#f3e8ff;color:#6b21a8}
+  .plot-card .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;font-size:13px;margin-top:8px}
+  .plot-card .lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.4px}
+  .plot-card .val{color:var(--ink);font-weight:700}.plot-card .val.gold{color:var(--gold)}
+
+  .form-section{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06);display:none}
+  .form-section.on{display:block}
+  .form-section h3{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .form-grid .fld{display:flex;flex-direction:column;gap:5px}
+  .form-grid .fld.full{grid-column:1/-1}
+  .form-grid .lbl{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{font-family:inherit;font-size:15px;padding:10px 12px;border:2px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+
+  .total-box{background:#fce7f3;border:2px solid #f9a8d4;color:var(--pink);border-radius:10px;padding:14px 18px;
+    margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
+  .total-box .lbl{font-size:13px}
+  .total-box .num{font-size:22px}
+
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .btn{font-family:inherit;font-size:15px;font-weight:700;padding:11px 22px;border:none;border-radius:10px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1.5px solid var(--line)!important;color:var(--muted)}
+  .btn-save{background:var(--pink);color:#fff;box-shadow:0 4px 14px rgba(157,23,77,.3)}
+  .btn-save.green{background:var(--green);box-shadow:0 4px 14px rgba(22,163,74,.3)}
+
+  .history{margin-top:14px;display:none}
+  .history.on{display:block}
+  .history h3{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:10px}
+  .hist-row{background:var(--soft);border-radius:9px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;font-size:13px}
+  .hist-row .nm{flex:1;font-weight:700}
+  .hist-row .dt{color:var(--muted);font-size:11.5px}
+  .hist-row .amt{font-weight:800;color:var(--pink)}
+  .hist-row a{font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--charcoal);text-decoration:none}
+
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);padding:10px 14px;border-radius:9px;font-size:13px;margin-bottom:14px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.on{display:block}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ttl">📄 ใบแจ้งหนี้ค่าส่วนกลาง<small>FEE INVOICE · ONE VELA</small></div>
+    <a href="home.html">← หน้าแรก</a>
+    <a href="fee.html">🏘️ ค่าส่วนกลาง</a>
+    <a id="folderLink" href="#" target="_blank" style="display:none">📁 โฟลเดอร์ ↗</a>
+  </div>
+
+  <div class="picker">
+    <label>เลือกแปลงเพื่อออกใบแจ้งหนี้</label>
+    <div class="row">
+      <input type="text" id="plotInp" placeholder="พิมพ์เลขแปลง เช่น 140">
+      <button onclick="loadPlot()">📥 ดึงข้อมูล</button>
+    </div>
+  </div>
+
+  <div id="errBox"></div>
+
+  <div class="plot-card" id="plotCard">
+    <div class="top">
+      <div class="pid" id="pid">—</div>
+      <span class="typ-badge" id="typeBadge">—</span>
+      <span style="font-size:13px;color:var(--muted)">บ้านเลขที่ <b id="houseNo" style="color:var(--charcoal)">—</b></span>
+    </div>
+    <div class="info-grid">
+      <div><div class="lbl">ลูกค้า</div><div class="val gold" id="cName">—</div></div>
+      <div><div class="lbl">เบอร์</div><div class="val" id="cPhone">—</div></div>
+      <div><div class="lbl">ที่อยู่</div><div class="val" id="cAddr">—</div></div>
+      <div><div class="lbl">วันโอน</div><div class="val" id="transferDate">—</div></div>
+    </div>
+  </div>
+
+  <div class="form-section" id="formSection">
+    <h3>+ ออกใบแจ้งหนี้ใหม่</h3>
+    <div class="form-grid">
+      <div class="fld">
+        <span class="lbl">ช่วงตั้งแต่ (เดือน)</span>
+        <input type="month" id="inPeriodFrom">
+      </div>
+      <div class="fld">
+        <span class="lbl">จำนวนเดือน</span>
+        <select id="inMonths" onchange="calculateTotal()">
+          <option value="1">1 เดือน</option>
+          <option value="3">3 เดือน</option>
+          <option value="6">6 เดือน</option>
+          <option value="12" selected>12 เดือน (1 ปี)</option>
+          <option value="24">24 เดือน (2 ปี)</option>
+        </select>
+      </div>
+      <div class="fld">
+        <span class="lbl">อัตรา/เดือน (บาท)</span>
+        <input type="number" id="inRate" oninput="calculateTotal()">
+      </div>
+      <div class="fld">
+        <span class="lbl">วันครบกำหนดชำระ</span>
+        <input type="date" id="inDueDate">
+      </div>
+      <div class="fld full">
+        <span class="lbl">หมายเหตุ (ปรากฏในใบ)</span>
+        <textarea id="inNote" placeholder="(ไม่จำเป็น)"></textarea>
+      </div>
+    </div>
+
+    <div class="total-box">
+      <div class="lbl">รวมทั้งสิ้น</div>
+      <div class="num"><span id="totalDisplay">0</span> บาท</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="resetForm()">ล้าง</button>
+      <button class="btn btn-save" id="btnSave" onclick="doSave()">📄 ออกใบแจ้งหนี้ + อัป Drive</button>
+    </div>
+  </div>
+
+  <div class="history" id="historyBox">
+    <h3>📂 ใบแจ้งหนี้ของแปลงนี้</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <footer>ใบแจ้งหนี้ค่าส่วนกลาง · One Vela — Two Build Development</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  Auth.require('manage.fees');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  let CURRENT_PLOT = null;
+  let FEE_RATE = 1500;
+
+  function resolveType(tc){if(!tc)return'';const s=String(tc).toUpperCase();if(s.indexOf('ULTRA')>=0)return'ULTRA';if(s.indexOf('MINUTE')>=0)return'MINUTES';if(s.indexOf('SECOND')>=0)return'SECOND';if(s.indexOf('MOMENT')>=0)return'MOMENT';return s}
+  function plotCode(p,t){return (TYPE_PREFIX[t]||'?')+String(p||'').replace(/^0+/,'')}
+  function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+  function thaiDate(d){if(!d)return'-';const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2)}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  const params = new URLSearchParams(location.search);
+  if(params.get('plot')){
+    document.getElementById('plotInp').value = params.get('plot');
+    setTimeout(loadPlot, 200);
+  }
+
+  async function loadPlot(){
+    const plot = document.getElementById('plotInp').value.trim().replace(/^0+/,'');
+    if(!plot){ alert('กรุณาใส่เลขแปลง'); return; }
+    document.getElementById('errBox').innerHTML = '';
+    try {
+      const [salesRes, rateRes, folderRes, invoicesRes] = await Promise.all([
+        Auth.api('getSalesData'),
+        Auth.api('getFeeRate'),
+        Auth.api('getPlotFolderUrls', {plot: plot}),
+        Auth.api('listInvoicesForPlot', {plot: plot})
+      ]);
+      if(!salesRes.ok) throw new Error('โหลดข้อมูลขายไม่ได้');
+
+      const plotMeta = (salesRes.plots||[]).find(p => String(p.plot).trim() === plot);
+      if(!plotMeta){
+        document.getElementById('errBox').innerHTML = '<div class="err">⚠️ ไม่พบแปลง '+esc(plot)+'</div>';
+        document.getElementById('plotCard').classList.remove('on');
+        document.getElementById('formSection').classList.remove('on');
+        document.getElementById('historyBox').classList.remove('on');
+        return;
+      }
+      CURRENT_PLOT = plotMeta;
+      FEE_RATE = (rateRes.ok ? rateRes.rate : 1500);
+
+      renderPlotCard();
+      renderForm();
+      renderHistory(invoicesRes.ok ? invoicesRes.invoices : []);
+
+      if(folderRes.ok){
+        document.getElementById('folderLink').href = folderRes.subs.fee.url;
+        document.getElementById('folderLink').style.display = '';
+      }
+    } catch(e){
+      document.getElementById('errBox').innerHTML = '<div class="err">⚠️ '+esc(e.message)+'</div>';
+    }
+  }
+
+  function renderPlotCard(){
+    const p = CURRENT_PLOT;
+    const type = resolveType(p.typeCode);
+    document.getElementById('pid').textContent = plotCode(p.plot, type);
+    document.getElementById('typeBadge').className = 'typ-badge typ-'+type;
+    document.getElementById('typeBadge').textContent = type;
+    document.getElementById('houseNo').textContent = p.houseNo || '-';
+    document.getElementById('cName').textContent = p.cName || '-';
+    document.getElementById('cPhone').textContent = p.cPhone || '-';
+    document.getElementById('cAddr').textContent = p.cAddr || (p.houseNo? p.houseNo+' โครงการวันเวลา อมตะ-ชลบุรี':'-');
+    document.getElementById('transferDate').textContent = thaiDate(p.dateTransfer);
+    document.getElementById('plotCard').classList.add('on');
+  }
+
+  function renderForm(){
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth()+1, 1);
+    document.getElementById('inPeriodFrom').value = nextMonth.toISOString().slice(0,7);
+    document.getElementById('inMonths').value = '12';
+    document.getElementById('inRate').value = FEE_RATE;
+    // due 15 วันถัดไป
+    const due = new Date(); due.setDate(due.getDate() + 15);
+    document.getElementById('inDueDate').value = due.toISOString().slice(0,10);
+    document.getElementById('inNote').value = '';
+    calculateTotal();
+    document.getElementById('formSection').classList.add('on');
+  }
+
+  function calculateTotal(){
+    const months = Number(document.getElementById('inMonths').value)||0;
+    const rate = Number(document.getElementById('inRate').value)||0;
+    document.getElementById('totalDisplay').textContent = fmt(months * rate);
+  }
+
+  function renderHistory(invoices){
+    if(!invoices.length){
+      document.getElementById('historyBox').classList.remove('on');
+      return;
+    }
+    document.getElementById('historyBox').classList.add('on');
+    document.getElementById('historyList').innerHTML = invoices.map(inv => {
+      const status = String(inv.status||'unpaid').toLowerCase();
+      const statusBadge = status === 'paid'
+        ? '<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">✓ ชำระแล้ว</span>'
+        : '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">⏳ ยังไม่ชำระ</span>';
+      return `<div class="hist-row">
+        <div class="nm">${esc(inv.invoice_no)} ${statusBadge}<br>
+          <small style="color:var(--muted);font-weight:500">${esc(inv.periodFrom)} → ${esc(inv.periodTo)} (${inv.months} เดือน)</small>
+        </div>
+        <div class="amt">${fmt(inv.total)} บาท</div>
+        <div>${inv.pdfUrl?'<a href="'+esc(inv.pdfUrl)+'" target="_blank">📄 เปิด</a>':''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function resetForm(){ if(CURRENT_PLOT) renderForm(); }
+
+  async function doSave(){
+    if(!CURRENT_PLOT){ alert('กรุณาเลือกแปลงก่อน'); return; }
+    const periodFrom = document.getElementById('inPeriodFrom').value;
+    const months = Number(document.getElementById('inMonths').value)||0;
+    const rate = Number(document.getElementById('inRate').value)||0;
+    const dueDate = document.getElementById('inDueDate').value;
+    const note = document.getElementById('inNote').value.trim();
+
+    if(!periodFrom){ alert('กรุณาเลือกเดือนเริ่ม'); return; }
+    if(months <= 0 || rate <= 0){ alert('จำนวนเดือน/อัตราต้องมากกว่า 0'); return; }
+
+    // คำนวณ periodTo
+    const fd = new Date(periodFrom + '-01');
+    const toDate = new Date(fd.getFullYear(), fd.getMonth() + months - 1, 1);
+    const periodTo = toDate.toISOString().slice(0,7);
+    const total = months * rate;
+
+    const data = {
+      plot: String(CURRENT_PLOT.plot).trim(),
+      cName: CURRENT_PLOT.cName || '',
+      cAddr: document.getElementById('cAddr').textContent.trim(),
+      periodFrom: periodFrom,
+      periodTo: periodTo,
+      months: months,
+      rate: rate,
+      total: total,
+      dueDate: dueDate,
+      note: note,
+      status: 'unpaid'
+    };
+
+    document.getElementById('btnSave').disabled = true;
+    document.getElementById('btnSave').textContent = '⏳ กำลังออกใบ...';
+    try {
+      const r = await Auth.api('saveInvoice', {data: JSON.stringify(data)});
+      if(!r.ok){ alert(r.error); return; }
+      showToast('✅ ออกใบแจ้งหนี้ '+r.invoice_no+' สำเร็จ — '+fmt(total)+' บาท');
+      // เปิดไฟล์ PDF ที่ออก
+      if(r.pdfUrl) window.open(r.pdfUrl, '_blank');
+      await loadPlot();
+    } catch(e){
+      alert('ออกใบไม่สำเร็จ: '+e.message);
+    } finally {
+      document.getElementById('btnSave').disabled = false;
+      document.getElementById('btnSave').textContent = '📄 ออกใบแจ้งหนี้ + อัป Drive';
+    }
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
+  }
+</script>
+</body>
+</html>

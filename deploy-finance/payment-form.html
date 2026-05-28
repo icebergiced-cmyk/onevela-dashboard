@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>💵 บันทึกผ่อนดาวน์ — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-d:#8d6d3f;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:920px;margin:0 auto}
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;text-decoration:none}
+  .topbar a.gold{background:var(--gold)}
+
+  .picker{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)}
+  .picker label{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;display:block}
+  .picker .row{display:flex;gap:10px;align-items:flex-end}
+  .picker input,.picker select{font-family:inherit;font-size:15px;padding:10px 12px;border:2px solid var(--line);border-radius:9px;background:#fff;flex:1;max-width:300px}
+  .picker button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 16px;border:none;border-radius:9px;background:var(--gold);color:#fff;cursor:pointer}
+
+  .plot-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+    margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06);display:none}
+  .plot-card.on{display:block}
+  .plot-card .top{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .plot-card .pid{font-size:22px;font-weight:800;color:var(--gold)}
+  .plot-card .typ-badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:10px}
+  .typ-ULTRA{background:#fef3e2;color:#9a3412}.typ-MINUTES{background:#e0f2fe;color:#075985}
+  .typ-SECOND{background:#dbeafe;color:#1e40af}.typ-MOMENT{background:#f3e8ff;color:#6b21a8}
+  .plot-card .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 14px;
+    font-size:13px;margin-top:8px}
+  .plot-card .info-grid .lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.4px}
+  .plot-card .info-grid .val{color:var(--ink);font-weight:700}
+  .plot-card .info-grid .val.gold{color:var(--gold)}
+  .plot-card .folder-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+    background:#e0e7ff;border:1px solid #c7d2fe;color:#1e3a8a;padding:8px 14px;
+    border-radius:9px;font-weight:700;font-size:13px;text-decoration:none}
+  .plot-card .folder-link:hover{background:#1e3a8a;color:#fff}
+
+  .form-section{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06);display:none}
+  .form-section.on{display:block}
+  .form-section h3{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:12px;
+    padding-bottom:8px;border-bottom:2px solid var(--line)}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .form-grid .fld{display:flex;flex-direction:column;gap:5px}
+  .form-grid .fld.full{grid-column:1/-1}
+  .form-grid .lbl{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .form-grid input,.form-grid select{font-family:inherit;font-size:15px;padding:10px 12px;
+    border:2px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+  .form-grid input:focus,.form-grid select:focus{outline:none;border-color:var(--gold)}
+  .form-grid input[readonly]{background:var(--soft);color:var(--muted)}
+
+  .slip-area{background:var(--soft);border:2px dashed var(--line);border-radius:10px;
+    padding:16px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;position:relative}
+  .slip-area:hover{border-color:var(--gold);background:#fff8e6;color:var(--gold-d)}
+  .slip-area input[type=file]{display:none}
+  .slip-area.has-file{background:#f0fdf4;border-color:var(--green);color:var(--green);font-weight:700}
+  .slip-area .preview{max-width:200px;max-height:160px;margin-top:8px;display:block;margin-left:auto;margin-right:auto;border-radius:8px}
+
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .btn{font-family:inherit;font-size:15px;font-weight:700;padding:11px 22px;
+    border:none;border-radius:10px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1.5px solid var(--line)!important;color:var(--muted)}
+  .btn-save{background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.3)}
+
+  .history{margin-top:14px;display:none}
+  .history.on{display:block}
+  .history h3{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:10px}
+  .hist-row{background:var(--soft);border-radius:9px;padding:10px 14px;margin-bottom:6px;
+    display:flex;align-items:center;gap:12px;font-size:13px}
+  .hist-row .ix{width:28px;height:28px;background:var(--green);color:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+  .hist-row .info{flex:1}
+  .hist-row .nm{font-weight:700;color:var(--charcoal)}
+  .hist-row .meta{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .hist-row .amt{font-weight:800;color:var(--charcoal)}
+  .hist-row .actions a{font-family:inherit;font-size:11.5px;font-weight:700;
+    padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;
+    color:var(--charcoal);text-decoration:none}
+
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);padding:10px 14px;
+    border-radius:9px;font-size:13px;margin-bottom:14px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);
+    color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;z-index:200;display:none;
+    box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.on{display:block}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ttl">💵 บันทึกผ่อนดาวน์<small>DOWN PAYMENT · ONE VELA</small></div>
+    <a href="home.html">← หน้าแรก</a>
+    <a href="payment.html">📋 รายการรวม</a>
+    <a class="gold" href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank">📊 Sheet ↗</a>
+    <a href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank">📁 Data Drive</a>
+    <a id="folderLink" class="gold" href="#" target="_blank" style="display:none">📁 โฟลเดอร์แปลงนี้ ↗</a>
+  </div>
+
+  <div class="picker">
+    <label>เลือกแปลง</label>
+    <div class="row">
+      <input type="text" id="plotInp" placeholder="พิมพ์เลขแปลง เช่น 140" onkeydown="if(event.key==='Enter')loadPlot()">
+      <button onclick="loadPlot()">📥 ดึงข้อมูล</button>
+    </div>
+  </div>
+
+  <div id="errBox"></div>
+
+  <div class="plot-card" id="plotCard">
+    <div class="top">
+      <div class="pid" id="pid">—</div>
+      <span class="typ-badge" id="typeBadge">—</span>
+      <span style="font-size:13px;color:var(--muted)">บ้านเลขที่ <b id="houseNo" style="color:var(--charcoal)">—</b></span>
+    </div>
+    <div class="info-grid">
+      <div><div class="lbl">ลูกค้า</div><div class="val gold" id="cName">—</div></div>
+      <div><div class="lbl">เบอร์</div><div class="val" id="cPhone">—</div></div>
+      <div><div class="lbl">วันสัญญา</div><div class="val" id="contractDate">—</div></div>
+      <div><div class="lbl">ยอดดาวน์รวม</div><div class="val gold" id="totalDown">—</div></div>
+      <div><div class="lbl">จำนวนงวด</div><div class="val" id="months">—</div></div>
+      <div><div class="lbl">เซลส์</div><div class="val" id="agent">—</div></div>
+    </div>
+    <a id="folderLink2" class="folder-link" href="#" target="_blank">📁 เปิดโฟลเดอร์ผ่อนดาวน์ของแปลงนี้ ↗</a>
+  </div>
+
+  <div class="form-section" id="formSection">
+    <h3>+ บันทึกการชำระ</h3>
+    <div class="form-grid">
+      <div class="fld">
+        <span class="lbl">งวดที่</span>
+        <input type="number" id="inInstallment" min="1" placeholder="1">
+      </div>
+      <div class="fld">
+        <span class="lbl">วันที่ครบกำหนด (งวด)</span>
+        <input type="date" id="inDueDate">
+      </div>
+      <div class="fld">
+        <span class="lbl">วันที่ชำระจริง</span>
+        <input type="date" id="inPaidDate">
+      </div>
+      <div class="fld">
+        <span class="lbl">ยอดเงิน (บาท)</span>
+        <input type="number" id="inAmount" placeholder="0">
+      </div>
+      <div class="fld">
+        <span class="lbl">วิธีชำระ</span>
+        <select id="inMethod">
+          <option>โอนผ่านธนาคาร</option>
+          <option>เงินสด</option>
+          <option>เช็ค</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="fld">
+        <span class="lbl">ผู้รับเงิน</span>
+        <input type="text" id="inReceiver" placeholder="ชื่อพนักงาน">
+      </div>
+      <div class="fld full">
+        <span class="lbl">หมายเหตุ</span>
+        <input type="text" id="inNote" placeholder="(ไม่จำเป็น)">
+      </div>
+      <div class="fld full">
+        <span class="lbl">📎 แนบสลิป (จะอัปขึ้น Drive โฟลเดอร์แปลงนี้)</span>
+        <label class="slip-area" id="slipArea">
+          <span id="slipText">📷 คลิกเพื่อเลือก/ถ่ายรูปสลิป</span>
+          <input type="file" accept="image/*" capture="environment" id="slipFile" onchange="onSlipPick(event)">
+          <img id="slipPreview" class="preview" style="display:none">
+        </label>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="resetForm()">ล้างฟอร์ม</button>
+      <button class="btn btn-save" id="btnSave" onclick="doSave()">💾 บันทึก + อัปสลิป</button>
+    </div>
+  </div>
+
+  <div class="history" id="historyBox">
+    <h3>📊 ประวัติการชำระของแปลงนี้</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <footer>บันทึกผ่อนดาวน์ · One Vela — Two Build Development</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/auth-client.js"></script>
+<script src="assets/onevela-workbench.js"></script>
+<script>
+  Auth.require('view.payments');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  let CURRENT_PLOT = null;
+  let CURRENT_CONTRACT = null;
+  let PAYMENTS = [];
+  let pendingSlipBase64 = null;
+  let pendingSlipFileName = null;
+
+  function resolveType(tc){if(!tc)return'';const s=String(tc).toUpperCase();if(s.indexOf('ULTRA')>=0)return'ULTRA';if(s.indexOf('MINUTE')>=0)return'MINUTES';if(s.indexOf('SECOND')>=0)return'SECOND';if(s.indexOf('MOMENT')>=0)return'MOMENT';return s}
+  function plotCode(p,t){return (TYPE_PREFIX[t]||'?')+String(p||'').replace(/^0+/,'')}
+  function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+  function thaiDate(d){if(!d)return'-';const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2)}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  // รับ ?plot= ตอนเปิด
+  const params = new URLSearchParams(location.search);
+  if(params.get('plot')){
+    document.getElementById('plotInp').value = params.get('plot');
+    setTimeout(loadPlot, 200);
+  }
+
+  async function loadPlot(){
+    const plot = document.getElementById('plotInp').value.trim().replace(/^0+/,'');
+    if(!plot){ alert('กรุณาใส่เลขแปลง'); return; }
+    document.getElementById('errBox').innerHTML = '';
+    try {
+      const [salesRes, payRes, folderRes] = await Promise.all([
+        Auth.api('getSalesData'),
+        Auth.api('getPayments'),
+        Auth.api('getPlotFolderUrls', {plot: plot})
+      ]);
+      if(!salesRes.ok) throw new Error('โหลดข้อมูลขายไม่ได้');
+
+      const plotMeta = (salesRes.plots||[]).find(p => String(p.plot).trim() === plot);
+      if(!plotMeta){
+        document.getElementById('errBox').innerHTML = '<div class="err">⚠️ ไม่พบแปลง '+esc(plot)+' ในฐานข้อมูล</div>';
+        document.getElementById('plotCard').classList.remove('on');
+        document.getElementById('formSection').classList.remove('on');
+        return;
+      }
+      const contract = (salesRes.contracts||[]).find(c => String(c.plot||c.plotNo).trim() === plot);
+      if(!contract){
+        document.getElementById('errBox').innerHTML = '<div class="err">⚠️ แปลง '+esc(plot)+
+          ' ยังไม่มีสัญญา — ทำสัญญาก่อน <a href="sales-contract.html?plot='+encodeURIComponent(plot)+
+          '" style="color:var(--gold);font-weight:700">ที่นี่</a></div>';
+        document.getElementById('plotCard').classList.remove('on');
+        document.getElementById('formSection').classList.remove('on');
+        return;
+      }
+      CURRENT_PLOT = plotMeta;
+      CURRENT_CONTRACT = contract;
+      PAYMENTS = ((payRes.ok ? payRes.payments : []) || []).filter(p => String(p.plot).trim() === plot);
+
+      renderPlotCard();
+      renderForm();
+      renderHistory();
+
+      // Folder link
+      if(folderRes.ok){
+        const link1 = document.getElementById('folderLink');
+        const link2 = document.getElementById('folderLink2');
+        link1.href = folderRes.subs.payment.url;
+        link1.style.display = '';
+        link2.href = folderRes.subs.payment.url;
+      }
+    } catch(e){
+      document.getElementById('errBox').innerHTML = '<div class="err">⚠️ '+esc(e.message)+'</div>';
+    }
+  }
+
+  function renderPlotCard(){
+    const p = CURRENT_PLOT, c = CURRENT_CONTRACT;
+    const type = resolveType(p.typeCode);
+    document.getElementById('pid').textContent = plotCode(p.plot, type);
+    document.getElementById('typeBadge').className = 'typ-badge typ-'+type;
+    document.getElementById('typeBadge').textContent = type;
+    document.getElementById('houseNo').textContent = p.houseNo || '-';
+    document.getElementById('cName').textContent = p.cName || c.cName || '-';
+    document.getElementById('cPhone').textContent = p.cPhone || c.cPhone || '-';
+    document.getElementById('contractDate').textContent = thaiDate(c.contractDate);
+    document.getElementById('totalDown').textContent = fmt(c.downPmt || c.downTotal || 0) + ' บาท';
+    document.getElementById('months').textContent = (c.months || '-') + ' งวด';
+    document.getElementById('agent').textContent = c.salesAgent || c.agent || '-';
+    document.getElementById('plotCard').classList.add('on');
+  }
+
+  function renderForm(){
+    const c = CURRENT_CONTRACT;
+    const months = Number(c.months) || 1;
+    const totalDown = Number(c.downPmt || c.downTotal || 0);
+    const monthAmount = months > 0 ? Math.round(totalDown / months) : 0;
+
+    // หางวดถัดไปที่ยังไม่ได้จ่าย
+    const paidNos = new Set(PAYMENTS.filter(p =>
+      String(p.paid)==='1'||String(p.paid).toLowerCase()==='true').map(p => Number(p.installmentNo)));
+    let nextNo = 1;
+    for(let i = 1; i <= months; i++){ if(!paidNos.has(i)){ nextNo = i; break; } }
+
+    // คำนวณ dueDate (วันสัญญา + เดือนที่)
+    let dueDate = '';
+    if(c.contractDate){
+      const start = new Date(c.contractDate);
+      start.setMonth(start.getMonth() + nextNo);
+      dueDate = start.toISOString().slice(0,10);
+    }
+
+    document.getElementById('inInstallment').value = nextNo;
+    document.getElementById('inDueDate').value = dueDate;
+    document.getElementById('inPaidDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('inAmount').value = monthAmount;
+    document.getElementById('inMethod').value = 'โอนผ่านธนาคาร';
+    document.getElementById('inReceiver').value = Auth.getUser().username;
+    document.getElementById('inNote').value = '';
+    document.getElementById('formSection').classList.add('on');
+
+    // reset slip
+    pendingSlipBase64 = null;
+    document.getElementById('slipText').textContent = '📷 คลิกเพื่อเลือก/ถ่ายรูปสลิป';
+    document.getElementById('slipPreview').style.display = 'none';
+    document.getElementById('slipArea').classList.remove('has-file');
+  }
+
+  function renderHistory(){
+    if(PAYMENTS.length === 0){
+      document.getElementById('historyBox').classList.remove('on');
+      return;
+    }
+    document.getElementById('historyBox').classList.add('on');
+    const sorted = [...PAYMENTS].sort((a,b) => Number(a.installmentNo) - Number(b.installmentNo));
+    document.getElementById('historyList').innerHTML = sorted.map(p => {
+      const isPaid = String(p.paid)==='1'||String(p.paid).toLowerCase()==='true';
+      return `<div class="hist-row">
+        <div class="ix">${isPaid?'✓':p.installmentNo}</div>
+        <div class="info">
+          <div class="nm">งวดที่ ${esc(p.installmentNo)} · ${thaiDate(p.dueDate)}</div>
+          <div class="meta">${isPaid ? '✓ ชำระแล้ว '+thaiDate(p.paidDate)+' · '+esc(p.method||'-') : '⏳ ยังไม่ชำระ'} ${p.note?'· '+esc(p.note):''}</div>
+        </div>
+        <div class="amt">${fmt(p.amount)} บาท</div>
+        <div class="actions">${p.slipUrl?'<a href="'+esc(p.slipUrl)+'" target="_blank">📎 สลิป</a>':''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function onSlipPick(e){
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const max=1200;
+        const r=Math.min(max/img.width,max/img.height,1);
+        const w=Math.round(img.width*r),h=Math.round(img.height*r);
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        const dataUrl=cv.toDataURL('image/jpeg',0.85);
+        pendingSlipBase64=dataUrl.split(',')[1];
+        pendingSlipFileName=file.name||('slip-'+Date.now()+'.jpg');
+        document.getElementById('slipPreview').src=dataUrl;
+        document.getElementById('slipPreview').style.display='block';
+        document.getElementById('slipText').textContent='✓ ใส่สลิปแล้ว — คลิกเพื่อเปลี่ยน';
+        document.getElementById('slipArea').classList.add('has-file');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetForm(){
+    pendingSlipBase64 = null;
+    if(CURRENT_PLOT) renderForm();
+  }
+
+  async function doSave(){
+    if(!CURRENT_PLOT){ alert('กรุณาเลือกแปลงก่อน'); return; }
+    const data = {
+      plot: String(CURRENT_PLOT.plot).trim(),
+      installmentNo: Number(document.getElementById('inInstallment').value)||1,
+      dueDate: document.getElementById('inDueDate').value,
+      paidDate: document.getElementById('inPaidDate').value,
+      paid: 1,
+      amount: Number(document.getElementById('inAmount').value)||0,
+      method: document.getElementById('inMethod').value,
+      receiver: document.getElementById('inReceiver').value.trim(),
+      note: document.getElementById('inNote').value.trim()
+    };
+    if(!data.paidDate){ alert('กรุณาใส่วันที่ชำระ'); return; }
+    if(data.amount <= 0){ alert('กรุณาใส่ยอด'); return; }
+    if(pendingSlipBase64){
+      data.slipBase64 = pendingSlipBase64;
+      data.slipFileName = pendingSlipFileName;
+    }
+    document.getElementById('btnSave').disabled = true;
+    document.getElementById('btnSave').textContent = '⏳ กำลังบันทึก...';
+    try {
+      await Auth.apiPost('savePayment', data);
+      showToast('✅ บันทึกงวด '+data.installmentNo+' สำเร็จ — '+fmt(data.amount)+' บาท');
+      pendingSlipBase64 = null;
+      // reload
+      await loadPlot();
+    } catch(e){
+      alert('บันทึกไม่สำเร็จ: '+e.message);
+    } finally {
+      document.getElementById('btnSave').disabled = false;
+      document.getElementById('btnSave').textContent = '💾 บันทึก + อัปสลิป';
+    }
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3500);
+  }
+</script>
+</body>
+</html>

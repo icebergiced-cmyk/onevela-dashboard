@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fee Desk — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{
+    --ink:#193121;--charcoal:#234330;--gold:#9f7a3f;--gold-d:#7a5f32;--bg:#f6fbf5;--line:#dbe8dc;
+    --muted:#6f8274;--soft:#fbfdf9;--green:#239355;--red:#c2413a;--amber:#b7791f;--blue:#266d9b;
+    --shadow:0 18px 42px rgba(63,112,70,.11)
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:
+    radial-gradient(circle at top right,rgba(233,244,236,.92),transparent 28%),
+    linear-gradient(180deg,#f6fbf5 0%,#eef6ef 100%);padding:18px;line-height:1.5;font-size:15px}
+  a{text-decoration:none;color:inherit}
+  .serif{font-family:'Cormorant Garamond',serif}
+  .wrap{max-width:1160px;margin:0 auto}
+  .hero{background:linear-gradient(135deg,#244131 0%,#1f3528 100%);color:#fff;border-radius:28px;padding:24px;
+    margin-bottom:16px;box-shadow:var(--shadow)}
+  .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .hero-copy small{display:block;font-size:11px;letter-spacing:2px;color:#bfe8c6;font-weight:800;text-transform:uppercase}
+  .hero-copy h1{font-size:40px;line-height:.95;margin:8px 0 10px}
+  .hero-copy p{max-width:740px;font-size:14px;color:#dbe9dd}
+  .hero-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .hero-actions a,.hero-actions button{font-family:inherit;font-size:13px;font-weight:800;border:none;
+    border-radius:999px;padding:10px 14px;cursor:pointer;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.12)}
+  .hero-actions a.gold{background:var(--gold);border-color:var(--gold)}
+  .hub-links{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+  .hub-link{border-radius:16px;padding:14px 15px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+  .hub-link:hover{background:rgba(255,255,255,.13)}
+  .hub-link b{display:block;font-size:13px}
+  .hub-link span{display:block;font-size:11px;color:#d6e7d9;margin-top:3px}
+  .panel{background:rgba(255,255,255,.72);border:1px solid rgba(219,232,220,.95);border-radius:22px;padding:18px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+  .stat-card{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--line);border-left:4px solid var(--gold)}
+  .stat-card.good{border-left-color:var(--green)}.stat-card.warn{border-left-color:var(--amber)}
+  .stat-card .lbl{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+  .stat-card .num{font-size:22px;font-weight:800;color:var(--charcoal);line-height:1.1}
+  .stat-card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+  h2.sec{font-size:18px;font-weight:800;color:var(--charcoal);margin:20px 0 12px;border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:10px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:700;background:#eef6ef;padding:2px 9px;border-radius:20px}
+  .tbl-box{background:#fff;border-radius:18px;padding:6px;box-shadow:var(--shadow);border:1px solid var(--line);overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
+  th{color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.3px;padding:11px 12px;text-align:left;border-bottom:2px solid var(--line);text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line)} tr:hover td{background:#fafbfc;cursor:pointer}
+  td.r{text-align:right}
+  .pid{font-weight:800;color:var(--charcoal);font-size:14px}
+  .typ-badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:10px;letter-spacing:.4px}
+  .typ-ULTRA{background:#fef3e2;color:#9a3412}.typ-MINUTES{background:#e0f2fe;color:#075985}
+  .typ-SECOND{background:#dbeafe;color:#1e40af}.typ-MOMENT{background:#f3e8ff;color:#6b21a8}
+  .progress{display:inline-block;width:80px;height:6px;background:#eef1f4;border-radius:3px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--green),#4ade80)}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:720px;box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden;margin:20px 0}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+  .info-box{background:var(--soft);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 14px;font-size:12.5px}
+  .info-box .lbl{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.4px} .info-box .val{font-weight:700}
+  .info-box .val.gold{color:var(--gold)}
+  .pay-row{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;font-size:13px}
+  .pay-row .ix{width:28px;height:28px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
+  .pay-row .info{flex:1} .pay-row .nm{font-weight:700;color:var(--charcoal)}
+  .pay-row .meta{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .pay-row .amt{font-weight:800;color:var(--green)}
+  .pay-row .actions a{font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--charcoal);text-decoration:none}
+
+  .form-box{background:#fff;border:2px dashed var(--gold);border-radius:12px;padding:14px 16px;margin-top:14px}
+  .form-box .ttl{font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:10px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .form-grid .fld{display:flex;flex-direction:column;gap:4px}
+  .form-grid .fld.full{grid-column:1/-1}
+  .form-grid .lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+  .form-grid input,.form-grid select{font-family:inherit;font-size:14px;padding:9px 11px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .slip-area{background:var(--soft);border:2px dashed var(--line);border-radius:9px;padding:14px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer}
+  .slip-area:hover{border-color:var(--gold)} .slip-area input[type=file]{display:none}
+  .slip-area.has-file{background:#f0fdf4;border-color:var(--green);color:var(--green);font-weight:700}
+  .slip-area .preview{max-width:180px;max-height:140px;margin-top:8px;display:block;margin-left:auto;margin-right:auto;border-radius:8px}
+  .form-actions{margin-top:10px;display:flex;gap:8px;justify-content:flex-end}
+  .form-actions button{font-family:inherit;font-size:14px;font-weight:700;padding:9px 16px;border:none;border-radius:8px;cursor:pointer}
+  .btn-save{background:var(--green);color:#fff} .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--muted)}
+  .drive-link{background:#e0e7ff;border:1px solid #c7d2fe;color:#1e3a8a;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:14px}
+  .loader{text-align:center;padding:30px;color:var(--muted)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .toast.on{display:block}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+  @media(max-width:920px){.hub-links{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){
+    body{padding:12px}
+    .hero{padding:18px}
+    .hero-copy h1{font-size:32px}
+    .hero-top{display:block}
+    .hero-actions{margin-top:14px}
+    .hub-links{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+<div class="wrap">
+  <section class="hero">
+    <div class="hero-top">
+      <div class="hero-copy">
+        <small>Finance Service Desk</small>
+        <h1 class="serif">Common Fee Control</h1>
+        <p>ดูยอดค่าส่วนกลางต่อแปลง บันทึกรับเงิน เปิดใบแจ้งหนี้ และเชื่อมงานต่อเนื่องจากทีมโอนให้ทุกโมดูลใน One Vela ใช้มาตรฐานเดียวกัน</p>
+      </div>
+      <div class="hero-actions">
+        <a href="home.html">กลับ Portal</a>
+        <a href="finance-accounting.html">ไป Finance</a>
+        <a class="gold" href="fee-invoice.html">ออกใบแจ้งหนี้</a>
+        <a class="gold" href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank">Data Base ↗</a>
+        <button onclick="loadAll()">รีเฟรช</button>
+      </div>
+    </div>
+    <div class="hub-links">
+      <a class="hub-link" href="transfer.html"><b>Transfer Desk</b><span>ตรวจแปลงที่โอนแล้วและส่งต่อเข้าค่าส่วนกลาง</span></a>
+      <a class="hub-link" href="fee-invoice.html"><b>Invoice</b><span>ออกใบแจ้งหนี้จากข้อมูลแปลงและงวดที่เก็บ</span></a>
+      <a class="hub-link" href="payment.html"><b>Payments</b><span>เช็กประวัติรับเงินงวดดาวน์และสลิป</span></a>
+      <a class="hub-link" href="sales-dashboard.html"><b>Sales Dashboard</b><span>ตรวจสถานะแปลงก่อนและหลังโอน</span></a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="stats">
+      <div class="stat-card good"><div class="lbl">💰 เก็บได้แล้ว</div><div class="num" id="cTotal">—</div><div class="sub">รวมทุกแปลง</div></div>
+      <div class="stat-card"><div class="lbl">🏠 แปลงที่จ่าย</div><div class="num" id="cPaid">—</div><div class="sub">แปลง</div></div>
+      <div class="stat-card warn"><div class="lbl">⏳ รอชำระ</div><div class="num" id="cWait">—</div><div class="sub">โอนแล้วยังไม่จ่าย</div></div>
+      <div class="stat-card"><div class="lbl">💵 อัตรา/เดือน</div>
+        <div class="num" style="color:var(--gold)">฿<span id="feeRateDisplay">1,500</span></div>
+        <div class="sub">
+          <a href="javascript:void(0)" onclick="editRate()" style="color:var(--gold);font-weight:700">✏️ แก้ไข</a>
+        </div></div>
+    </div>
+
+    <h2 class="sec">📋 รายการแปลง <span class="ct" id="plotCount">—</span></h2>
+    <div id="listBox"><div class="loader">⏳ กำลังโหลด...</div></div>
+  </section>
+
+  <footer>Common fee dashboard · One Vela</footer>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd"><div class="ttl" id="mTtl">🏘️ ค่าส่วนกลาง</div><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-bd" id="mBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  Auth.require('view.fees');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  const TYPE_PREFIX={ULTRA:'A',MINUTES:'B',SECOND:'C',MOMENT:'D'};
+  let FEE_PER_MONTH = 1500;  // จะอ่านจาก backend
+  let SALES = {plots:[]};
+  let FEES = [];
+  let currentPlot = null;
+  let pendingSlipBase64 = null;
+  let pendingSlipFileName = null;
+
+  function plotCode(plot,type){return (TYPE_PREFIX[type]||'?')+String(plot||'').replace(/^0+/,'')}
+  function resolveType(tc){if(!tc)return'';const s=String(tc).toUpperCase();if(s.indexOf('ULTRA')>=0)return'ULTRA';if(s.indexOf('MINUTE')>=0)return'MINUTES';if(s.indexOf('SECOND')>=0)return'SECOND';if(s.indexOf('MOMENT')>=0)return'MOMENT';return s}
+  function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+  function thaiDate(d){if(!d)return'-';const m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];const dt=new Date(d);if(isNaN(dt.getTime()))return'-';return dt.getDate()+' '+m[dt.getMonth()]+' '+(dt.getFullYear()+543).toString().slice(-2)}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+  function buildPlots(){
+    // เอาเฉพาะแปลงที่ status='โอนแล้ว' จาก metadata
+    return (SALES.plots||[]).filter(p => p.status === 'โอนแล้ว' || p.status === 'สัญญา' || p.status === 'ขายดาวน์')
+      .map(p => {
+        const fees = FEES.filter(f => String(f.plot).trim() === String(p.plot).trim());
+        const sum = fees.reduce((a,f) => a+(Number(f.amount)||0), 0);
+        const months = fees.reduce((a,f) => a+(Number(f.months)||0), 0);
+        return {
+          plot: String(p.plot).trim(),
+          type: resolveType(p.typeCode),
+          cName: p.cName || '-',
+          transferDate: p.dateTransfer || p.transferDate || '',
+          paidSum: sum,
+          monthsCovered: months,
+          payments: fees,
+          isTransferred: p.status === 'โอนแล้ว'
+        };
+      });
+  }
+
+  async function loadAll(){
+    document.getElementById('listBox').innerHTML = '<div class="loader">⏳ กำลังโหลด...</div>';
+    try {
+      const [salesRes, feesRes, rateRes] = await Promise.all([
+        Auth.api('getSalesData'),
+        Auth.api('getFees'),
+        Auth.api('getFeeRate')
+      ]);
+      if(!salesRes.ok) throw new Error('โหลดข้อมูลขายไม่สำเร็จ');
+      SALES = salesRes;
+      FEES = (feesRes.ok ? feesRes.fees : []) || [];
+      FEE_PER_MONTH = (rateRes.ok ? rateRes.rate : 1500);
+      document.getElementById('feeRateDisplay').textContent = fmt(FEE_PER_MONTH);
+      renderAll();
+    } catch(e){
+      document.getElementById('listBox').innerHTML = '<div class="loader" style="color:var(--red)">⚠️ '+esc(e.message)+'</div>';
+    }
+  }
+
+  async function editRate(){
+    if(!Auth.can('manage.fees')){ alert('ไม่มีสิทธิ์แก้อัตรา'); return; }
+    const newRate = prompt('อัตราค่าส่วนกลางใหม่ (บาท/เดือน):', FEE_PER_MONTH);
+    if(!newRate || isNaN(Number(newRate))) return;
+    try {
+      const r = await Auth.api('setFeeRate', {rate: Number(newRate)});
+      if(!r.ok){ alert(r.error); return; }
+      FEE_PER_MONTH = Number(newRate);
+      document.getElementById('feeRateDisplay').textContent = fmt(FEE_PER_MONTH);
+      showToast('✅ อัปเดตอัตราเป็น '+fmt(FEE_PER_MONTH)+' บาท/เดือน');
+    } catch(e){ alert('ไม่สำเร็จ: '+e.message); }
+  }
+
+  function renderAll(){
+    const plots = buildPlots();
+    let total=0, paidCount=0, waitCount=0;
+    plots.forEach(p => {
+      total += p.paidSum;
+      if(p.paidSum > 0) paidCount++;
+      else if(p.isTransferred) waitCount++;
+    });
+    document.getElementById('cTotal').textContent = fmt(total);
+    document.getElementById('cPaid').textContent = paidCount;
+    document.getElementById('cWait').textContent = waitCount;
+    document.getElementById('plotCount').textContent = plots.length+' แปลง';
+
+    if(plots.length === 0){
+      document.getElementById('listBox').innerHTML = '<div class="loader">ยังไม่มีแปลงที่โอน/ทำสัญญา</div>';
+      return;
+    }
+    const html = `<div class="tbl-box"><table>
+      <thead><tr><th>แปลง</th><th>ไทป์</th><th>ลูกค้า</th><th>วันโอน</th>
+      <th class="r">เก็บแล้ว</th><th>เดือน</th><th>คืบหน้า</th></tr></thead><tbody>` +
+      plots.map(p => {
+        const pct = Math.min(100, Math.round(p.monthsCovered/24*100));
+        return `<tr onclick="openDetail('${esc(p.plot)}')">
+          <td><span class="pid">${plotCode(p.plot,p.type)}</span></td>
+          <td><span class="typ-badge typ-${p.type}">${p.type}</span></td>
+          <td>${esc(p.cName)}</td>
+          <td>${thaiDate(p.transferDate)}</td>
+          <td class="r"><b>${fmt(p.paidSum)}</b></td>
+          <td>${p.monthsCovered}/24</td>
+          <td><span class="progress"><div style="width:${pct}%"></div></span>
+            <small style="margin-left:4px;color:var(--muted)">${pct}%</small></td>
+        </tr>`;
+      }).join('') + '</tbody></table></div>';
+    document.getElementById('listBox').innerHTML = html;
+  }
+
+  function openDetail(plot){
+    currentPlot = plot;
+    const p = buildPlots().find(x => x.plot === plot);
+    if(!p) return;
+    const code = plotCode(p.plot, p.type);
+    document.getElementById('mTtl').innerHTML = '🏘️ ค่าส่วนกลาง — '+code+' · '+esc(p.cName);
+
+    const driveFolder = 'https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
+    let html = '';
+    html += '<div class="info-box">';
+    html += '<div><div class="lbl">รหัสบ้าน</div><div class="val gold">'+code+'</div></div>';
+    html += '<div><div class="lbl">ลูกค้า</div><div class="val">'+esc(p.cName)+'</div></div>';
+    html += '<div><div class="lbl">วันโอน</div><div class="val">'+thaiDate(p.transferDate)+'</div></div>';
+    html += '<div><div class="lbl">เก็บแล้ว</div><div class="val gold">'+fmt(p.paidSum)+' บาท</div></div>';
+    html += '<div><div class="lbl">ครอบคลุม</div><div class="val">'+p.monthsCovered+' เดือน</div></div>';
+    html += '</div>';
+    html += '<a id="folderLinkPlot" href="#" target="_blank" class="drive-link">📁 เปิดโฟลเดอร์ค่าส่วนกลางของแปลงนี้ (Drive) ↗</a>';
+    // ขอ folder link ตรงๆ async
+    Auth.api('getPlotFolderUrls', {plot: plot}).then(r => {
+      if(r.ok && r.subs && r.subs.fee){
+        const el = document.getElementById('folderLinkPlot');
+        if(el) el.href = r.subs.fee.url;
+      }
+    });
+
+    if(p.payments.length){
+      html += '<h3 style="font-size:13px;font-weight:800;color:var(--charcoal);margin:10px 0 8px">📊 ประวัติ</h3>';
+      p.payments.forEach(pay => {
+        html += '<div class="pay-row">';
+        html += '<div class="ix">✓</div>';
+        html += '<div class="info"><div class="nm">'+thaiDate(pay.date)+' · '+pay.months+' เดือน</div>';
+        html += '<div class="meta">'+esc(pay.method||'-')+' · '+esc(pay.period||'-')+'</div></div>';
+        html += '<div class="amt">'+fmt(pay.amount)+' บาท</div>';
+        html += '<div class="actions">';
+        if(pay.slipUrl) html += '<a href="'+esc(pay.slipUrl)+'" target="_blank">📎 ดู</a>';
+        html += '</div></div>';
+      });
+    }
+
+    if(p.isTransferred && Auth.can('manage.fees')){
+      const today = new Date().toISOString().slice(0,10);
+      html += `<div class="form-box">
+        <div class="ttl">+ บันทึกการรับเงิน</div>
+        <div class="form-grid">
+          <div class="fld"><span class="lbl">วันที่</span><input type="date" id="payDate" value="${today}"></div>
+          <div class="fld"><span class="lbl">จำนวนเดือน</span>
+            <select id="payMonths" onchange="updateAmount()">
+              <option value="12">12 เดือน · 18,000</option>
+              <option value="24" selected>24 เดือน · 36,000</option>
+              <option value="36">36 เดือน · 54,000</option>
+              <option value="6">6 เดือน · 9,000</option>
+              <option value="1">1 เดือน · 1,500</option>
+            </select></div>
+          <div class="fld"><span class="lbl">ยอด</span><input type="number" id="payAmount" value="36000"></div>
+          <div class="fld"><span class="lbl">วิธีจ่าย</span>
+            <select id="payMethod"><option>โอนผ่านธนาคาร</option><option>เงินสด</option><option>เก็บล่วงหน้าตอนโอน</option></select></div>
+          <div class="fld full"><span class="lbl">หมายเหตุ</span><input type="text" id="payNote"></div>
+          <div class="fld full"><span class="lbl">📎 แนบสลิป</span>
+            <label class="slip-area" id="slipArea">
+              <span id="slipText">📷 คลิกเพื่อเลือกสลิป</span>
+              <input type="file" accept="image/*" onchange="onSlipPick(event)">
+              <img id="slipPreview" class="preview" style="display:none">
+            </label></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="closeModal()">ปิด</button>
+          <button class="btn-save" id="btnPay" onclick="confirmFee()">💾 บันทึก</button>
+        </div></div>`;
+    } else if(!p.isTransferred){
+      html += '<div style="background:var(--soft);padding:14px;border-radius:9px;color:var(--muted);text-align:center;font-size:13px">⚠️ ยังไม่โอนกรรมสิทธิ์ — บันทึกได้หลังโอนแล้ว</div>';
+    }
+
+    document.getElementById('mBody').innerHTML = html;
+    document.getElementById('modal').classList.add('on');
+    pendingSlipBase64 = null;
+  }
+
+  function closeModal(){ document.getElementById('modal').classList.remove('on'); currentPlot=null; pendingSlipBase64=null; }
+
+  function updateAmount(){
+    const m = Number(document.getElementById('payMonths').value);
+    document.getElementById('payAmount').value = m * FEE_PER_MONTH;
+  }
+
+  function onSlipPick(e){
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const max=1000; const r=Math.min(max/img.width,max/img.height,1);
+        const w=Math.round(img.width*r),h=Math.round(img.height*r);
+        const cv=document.createElement('canvas'); cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        const dataUrl=cv.toDataURL('image/jpeg',0.82);
+        pendingSlipBase64=dataUrl.split(',')[1];
+        pendingSlipFileName=file.name||'fee.jpg';
+        document.getElementById('slipPreview').src=dataUrl;
+        document.getElementById('slipPreview').style.display='block';
+        document.getElementById('slipText').textContent='✓ ใส่สลิปแล้ว';
+        document.getElementById('slipArea').classList.add('has-file');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function confirmFee(){
+    const date = document.getElementById('payDate').value;
+    const months = Number(document.getElementById('payMonths').value);
+    const amount = Number(document.getElementById('payAmount').value);
+    if(!date || amount<=0){ alert('กรุณาใส่ข้อมูลให้ครบ'); return; }
+    const start=new Date(date), end=new Date(date); end.setMonth(end.getMonth()+months);
+    const period=start.toISOString().slice(0,7)+' ถึง '+end.toISOString().slice(0,7);
+    const data = {
+      plot: currentPlot, date, months, amount, period,
+      method: document.getElementById('payMethod').value,
+      note: document.getElementById('payNote').value.trim()
+    };
+    if(pendingSlipBase64){ data.slipBase64=pendingSlipBase64; data.slipFileName=pendingSlipFileName; }
+    document.getElementById('btnPay').disabled = true;
+    document.getElementById('btnPay').textContent = '⏳';
+    try {
+      await Auth.apiPost('saveFee', data);
+      pendingSlipBase64=null;
+      showToast('✅ บันทึกค่าส่วนกลาง '+fmt(amount)+' บาท');
+      closeModal();
+      await loadAll();
+    } catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+    finally {
+      document.getElementById('btnPay').disabled = false;
+      document.getElementById('btnPay').textContent = '💾 บันทึก';
+    }
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3000);
+  }
+
+  loadAll();
+</script>
+<script src="assets/onevela-workbench.js"></script>
+</body>
+</html>

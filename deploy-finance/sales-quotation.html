@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบเสนอราคา — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{
+    --ink:#1e293b; --muted:#64748b; --line:#d9dee5;
+    --brand:#3d3d3d; --accent:#b08d57; --bg:#eef1f4;
+    --good:#16a34a; --bad:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto}
+
+  .toolbar{
+    background:var(--brand);color:#fff;border-radius:14px;padding:14px 18px;
+    margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  }
+  .toolbar .ttl{font-weight:800;font-size:16px;margin-right:auto}
+  .toolbar .ttl small{display:block;font-size:11px;opacity:.7;font-weight:500;letter-spacing:2px}
+  .toolbar button{font-family:inherit;font-size:13.5px;font-weight:700;border:none;
+    border-radius:9px;padding:9px 13px;cursor:pointer;transition:.15s}
+  .toolbar a{font-family:inherit;font-size:13.5px;font-weight:700;border:none;border-radius:9px;
+    padding:9px 13px;cursor:pointer;transition:.15s;text-decoration:none;display:inline-block}
+  .b-print{background:#fff;color:var(--brand)}
+  .b-line{background:#06c755;color:#fff}
+  .b-save{background:var(--accent);color:#fff}
+  .b-log{background:rgba(255,255,255,.18);color:#fff}
+  .b-reset{background:rgba(255,255,255,.1);color:#fff}
+  .toolbar button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+
+  .card{background:#fff;border-radius:13px;padding:15px 16px 8px;margin-bottom:12px;
+        box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .card h2{font-size:14px;font-weight:800;color:var(--brand);margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px}
+  .grid.g3{grid-template-columns:1fr 1fr 1fr}
+  .grid .full{grid-column:1/-1}
+  .f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
+  .f input,.f textarea{width:100%;padding:8px 10px;border:1.5px solid var(--line);
+    border-radius:9px;font-family:inherit;font-size:14px;color:var(--ink)}
+  .f input:focus,.f textarea:focus{outline:none;border-color:var(--accent)}
+  .f input.num{text-align:right}
+  .f textarea{resize:vertical;min-height:120px}
+  .hint{font-size:11.5px;color:var(--muted);margin:-2px 0 10px}
+  .lookup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f3efe6;
+    border:1px solid var(--accent);border-radius:9px;padding:8px 12px;margin-bottom:11px;
+    font-size:12.5px;color:var(--muted)}
+  .lk-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;
+    font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .lk-btn:hover{filter:brightness(1.07)}
+  .drow{display:grid;grid-template-columns:1fr 130px;gap:8px;margin-bottom:7px}
+  details.pay-box{background:#fff;border-radius:13px;padding:0;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden}
+  details.pay-box summary{list-style:none;cursor:pointer;padding:14px 16px;font-size:14px;font-weight:800;color:var(--brand)}
+  details.pay-box summary::-webkit-details-marker{display:none}
+  details.pay-box summary::after{content:"กดเพื่อดู/แก้ไข";float:right;font-size:12px;color:var(--accent)}
+  details.pay-box[open] summary{border-bottom:1px solid var(--line)}
+  details.pay-box[open] summary::after{content:"ยุบ"}
+  details.pay-box .pay-inner{padding:14px 16px 8px}
+
+  /* ===== document ===== */
+  .doc{background:#fff;border-radius:4px;box-shadow:0 3px 16px rgba(0,0,0,.13);
+       padding:38px 40px;margin-bottom:14px;font-size:12.5px;color:#222}
+  .lh{display:flex;align-items:flex-start;gap:18px;justify-content:flex-start;text-align:left;
+      margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
+  .lh-logo img{height:108px;width:auto;display:block}
+  .lh-logo .fb{line-height:1.15}
+  .lh-logo .fb .m{font-size:28px;font-weight:800;letter-spacing:3px;color:var(--brand)}
+  .lh-logo .fb .s{font-size:10px;letter-spacing:3px;color:var(--muted)}
+  .lh-txt{flex:1;text-align:right;padding-top:6px}
+  .lh-txt .t1{font-size:20px;font-weight:800;color:var(--brand)}
+  .lh-txt .t2{font-size:11px;color:#444;margin-top:4px;line-height:1.6}
+  .lh-txt .t3{font-size:11px;font-weight:700;color:#444}
+
+  /* กล่องบัญชีโอนเงิน */
+  .bank-box{margin-top:14px;border:1.5px solid var(--accent);border-radius:8px;
+    padding:9px 14px;background:#faf6ef;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .bank-box .bb-lbl{font-weight:800;color:var(--brand);font-size:12.5px;letter-spacing:.3px}
+  .bank-box .bb-lbl small{display:block;font-weight:400;font-size:10px;color:#888;letter-spacing:0}
+  .bank-box .bb-bank{font-size:12.5px;color:#333}
+  .bank-box .bb-bank b{font-size:14px;color:var(--brand);letter-spacing:.5px}
+  .bank-box .bb-acc{font-size:11.5px;color:#555;width:100%;margin-top:2px}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  .t-cust td{border:1px solid #555;padding:5px 8px;font-size:12px}
+  .t-cust .lbl{background:#f1f3f5;font-weight:600;width:165px}
+  .t-cust .lbl small{font-weight:400;color:#666}
+
+  .t-prop{margin-top:8px}
+  .t-prop th,.t-prop td{border:1px solid #555;padding:5px 7px;font-size:11.5px;vertical-align:top}
+  .t-prop th{background:#f1f3f5;font-weight:700;text-align:center;line-height:1.3}
+  .t-prop th small{font-weight:400;color:#666;font-size:10px}
+  .t-prop td.c{text-align:center}
+  .t-prop td.r{text-align:right}
+  .t-prop tr.sum td{background:#faf6ef;font-weight:700}
+  .t-prop tr.net td{background:var(--brand);color:#fff;font-weight:800;font-size:13px}
+  .t-prop .deslbl{font-style:normal}
+
+  .sec-h{font-weight:800;color:var(--brand);font-size:13px;margin:16px 0 6px;
+         border-bottom:1.5px solid var(--accent);padding-bottom:3px;text-decoration:underline}
+  .pay-line{display:flex;align-items:baseline;gap:6px;margin:3px 0;font-size:12.5px}
+  .pay-line .pk{color:#333}
+  .pay-line .pk small{color:#888}
+  .pay-line .dots{flex:1;border-bottom:1px dotted #999;margin:0 4px;transform:translateY(-3px)}
+  .pay-line .pv{font-weight:700;min-width:96px;text-align:right}
+  .pay-line .pu{color:#555;min-width:48px}
+
+  .promo-h{text-align:center;font-weight:800;color:var(--accent);font-size:13px;margin:14px 0 6px}
+  .promo-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px 14px;font-size:11.5px}
+  .promo-grid div::before{content:"✓ ";color:var(--good);font-weight:800}
+  .docnote{font-size:10.5px;color:#666;margin-top:8px;line-height:1.6}
+
+  .signs{display:flex;justify-content:space-around;gap:30px;margin-top:34px;text-align:center}
+  .signs .s{flex:1}
+  .signs .sl{border-bottom:1px dotted #888;padding-top:30px;margin-bottom:4px}
+  .signs .sc{font-size:11.5px;color:#444}
+  .signs .sd{font-size:11px;color:#888;margin-top:8px}
+  .doctail{text-align:center;font-size:10.5px;color:#888;margin-top:14px;font-style:italic}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:6px 0 22px}
+
+  @media(max-width:600px){
+    .grid,.grid.g3{grid-template-columns:1fr}
+    .doc{padding:22px 16px}
+    .promo-grid{grid-template-columns:1fr}
+    .lh{flex-direction:column;gap:8px}
+  }
+  @media print{
+    body{background:#fff;padding:0}
+    .toolbar,.card,.hint,footer,.no-print{display:none !important}
+    .doc{box-shadow:none;border-radius:0;padding:0;margin:0}
+    .t-prop tr.net td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4;margin:14mm 12mm}
+  }
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<style>.home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;text-decoration:none;font-family:Sarabun,sans-serif;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;box-shadow:0 3px 12px rgba(0,0,0,.28)}.home-fab:hover{background:#b08d57}body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}.b-print,.b-line,.b-save,.b-log,.b-reset,.btn-print,.btn-line,.btn-reset{background:#efeae1!important;color:#3d3d3d!important;border:1px solid #ddd5c6!important;box-shadow:none!important}.b-print:hover,.b-line:hover,.b-save:hover,.b-log:hover,.b-reset:hover,.btn-print:hover,.btn-line:hover,.btn-reset:hover{background:#b08d57!important;color:#fff!important;border-color:#b08d57!important}@media print{.home-fab{display:none!important}body{background:#fff!important}}</style>
+<div class="wrap">
+
+  <div class="toolbar no-print">
+    <div class="ttl">ใบเสนอราคา<small>QUOTATION</small></div>
+    <button class="b-print" onclick="printAndSave()">🖨️ พิมพ์ / บันทึก / อัปโหลด</button>
+    <button class="b-log" onclick="saveToFolder()">💾 เก็บเข้าโฟลเดอร์</button>
+    <a class="b-log" href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank">📁 Data Drive</a>
+    <a class="b-log" href="https://docs.google.com/spreadsheets/d/1o97B1TPuhn6huCdVEFpUjCPr6bCINSO2bOTF3S-Ztng/edit?gid=12642587#gid=12642587" target="_blank">📊 Sheet ราคา</a>
+    <button class="b-log" onclick="openPlotData()">📁 Data แปลงนี้</button>
+    <button class="b-line" onclick="shareLine()">📲 แชร์ LINE</button>
+    <button class="b-save" onclick="saveLog()">💾 บันทึก Log</button>
+    <button class="b-log" onclick="exportLog()">📊 ส่งออก Log</button>
+    <button class="b-reset" onclick="resetForm()">↺ ล้าง</button>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <div class="card">
+    <h2>📄 ข้อมูลเอกสาร / ลูกค้า</h2>
+    <div class="grid g3">
+      <div class="f"><label>เลขที่ใบเสนอราคา</label><input id="docNo" type="text"></div>
+      <div class="f"><label>วันที่</label><input id="docDate" type="date"></div>
+      <div class="f"><label>ผู้จัดทำ (Sales)</label><input id="preparer" type="text" placeholder="ชื่อพนักงานขาย"></div>
+      <div class="f"><label>ชื่อ-สกุล ลูกค้า</label><input id="cName" type="text" placeholder="คุณ..."></div>
+      <div class="f"><label>เบอร์โทรศัพท์</label><input id="cPhone" type="text" placeholder="08x-xxx-xxxx"></div>
+      <div class="f"><label>เอเจ้น / Agent</label><input id="agent" type="text" placeholder="พิมพ์ชื่อเอเจ้นเอง"></div>
+      <div class="f"><label>ผู้อนุมัติ</label><input id="approver" type="text" placeholder="ชื่อผู้อนุมัติ"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏠 ทรัพย์สิน &amp; ราคา</h2>
+    <div class="lookup">
+      <span>กรอก "หมายเลขแปลง" ด้านล่าง แล้วกด →</span>
+      <button type="button" class="lk-btn" onclick="fetchPlot()">🔍 ดึงราคา/ข้อมูลจากฐานข้อมูล</button>
+    </div>
+    <div class="grid g3">
+      <div class="f"><label>หมายเลขแปลง</label><input id="plotNo" type="text" placeholder="เช่น 140"></div>
+      <div class="f"><label>แบบบ้าน (Type)</label><input id="houseType" type="text" placeholder="เช่น Type C SECOND"></div>
+      <div class="f"><label>รายละเอียดบ้าน</label><input id="houseDesc" type="text" placeholder="เช่น บ้านแฝดชั้นเดียว"></div>
+      <div class="f"><label>ขนาดที่ดินฐาน (ตร.ว.)</label><input id="baseLandArea" class="num" type="number" min="0" step="0.1" placeholder="35.0"></div>
+      <div class="f"><label>พื้นที่ใช้สอย (ตร.ม.)</label><input id="houseArea" class="num" type="number" min="0" placeholder="109"></div>
+      <div class="f"><label>ราคาบ้าน+ที่ดินฐาน (บาท)</label><input id="basePrice" class="num" type="number" min="0" placeholder="2990000"></div>
+      <div class="f"><label>ที่ดินเพิ่ม (ตร.ว.)</label><input id="extraLandArea" class="num" type="number" min="0" step="0.1" placeholder="0.0"></div>
+      <div class="f"><label>มูลค่าที่ดินเพิ่ม (อัตโนมัติ)</label><input id="extraLandView" class="num" type="text" readonly style="background:#f1f5f9"></div>
+      <div class="f"><label>ค่าแปลงมุม / ติดสวน (บาท)</label><input id="cornerAmt" class="num" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="hint">ที่ดินเพิ่มคิด ตารางวาละ 30,000 บาท · รวมราคา = บ้าน+ที่ดินฐาน + ที่ดินเพิ่ม + แปลงมุม</div>
+  </div>
+
+  <div class="card">
+    <h2>💸 ส่วนลด</h2>
+    <div class="hint">ใส่คำอธิบาย + จำนวนเงิน (ถ้าเป็นของแถม/เทิร์นไม่หักเงิน ปล่อยช่องเงินว่าง)</div>
+    <div class="drow"><input class="f" id="disc1Desc" type="text" placeholder="รายการส่วนลด 1" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><input id="disc1Amt" class="num" type="number" min="0" placeholder="0" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px;text-align:right"></div>
+    <div class="drow"><input id="disc2Desc" type="text" placeholder="รายการส่วนลด 2" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><input id="disc2Amt" class="num" type="number" min="0" placeholder="0" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px;text-align:right"></div>
+    <div class="drow"><input id="disc3Desc" type="text" placeholder="ส่วนลดพิเศษ" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><input id="disc3Amt" class="num" type="number" min="0" placeholder="0" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px;text-align:right"></div>
+  </div>
+
+  <details class="pay-box">
+    <summary>💳 รายละเอียดการชำระเงิน</summary>
+    <div class="pay-inner">
+    <div class="grid g3">
+      <div class="f"><label>เงินจอง (บาท)</label><input id="payBook" class="num" type="number" min="0" placeholder="5000"></div>
+      <div class="f"><label>เงินทำสัญญา (บาท)</label><input id="payContract" class="num" type="number" min="0" placeholder="10000"></div>
+      <div class="f"><label>ผ่อนดาวน์/เดือน (บาท)</label><input id="payDownMonthly" class="num" type="number" min="0" placeholder="8000"></div>
+      <div class="f"><label>จำนวนงวด</label><input id="payInstallments" class="num" type="number" min="0" placeholder="12"></div>
+      <div class="f"><label>เริ่มผ่อนทุกวันที่</label><input id="payStartDay" class="num" type="number" min="1" max="31" placeholder="30"></div>
+      <div class="f"><label>ค่าส่วนกลาง/เดือน (บาท)</label><input id="commonFee" class="num" type="number" min="0" placeholder="950"></div>
+    </div>
+    </div>
+  </details>
+
+  <div class="card">
+    <h2>🎁 โปรโมชั่น (1 รายการ/บรรทัด)</h2>
+    <div class="f"><textarea id="promos"></textarea></div>
+  </div>
+
+  <!-- ===== DOCUMENT ===== -->
+  <div class="doc" id="doc">
+    <div class="lh">
+      <div class="lh-logo">
+        <img src="assets/brand/logo-vertical.png" alt="One Vela"
+             onerror="this.onerror=null;this.src='assets/brand/logo-icon.png'">
+      </div>
+      <div class="lh-txt">
+        <div class="t1">ใบเสนอราคา / Quotation</div>
+        <div class="t2" id="o_coName"></div>
+        <div class="t2" id="o_coAddr"></div>
+        <div class="t3" id="o_coPhone"></div>
+      </div>
+    </div>
+
+    <table class="t-cust">
+      <tr>
+        <td class="lbl">ชื่อ-สกุล <small>/ Customer Name</small></td>
+        <td id="o_cName">-</td>
+        <td class="lbl">เลขที่</td>
+        <td id="o_docNo" style="width:120px">-</td>
+      </tr>
+      <tr>
+        <td class="lbl">เบอร์โทรศัพท์ <small>/ Tel.</small></td>
+        <td id="o_cPhone">-</td>
+        <td class="lbl">Agent</td>
+        <td id="o_agent">-</td>
+      </tr>
+    </table>
+
+    <table class="t-prop">
+      <thead><tr>
+        <th style="width:70px">หมายเลขแปลง<small><br>Unit No.</small></th>
+        <th>แบบบ้าน / รายละเอียด</th>
+        <th style="width:78px">ขนาดที่ดิน<small><br>(ตร.ว.)</small></th>
+        <th style="width:78px">พื้นที่ใช้สอย<small><br>(ตร.ม.)</small></th>
+        <th style="width:118px">ราคา (บาท)</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="c" id="o_plotNo">-</td>
+          <td id="o_row1desc">-</td>
+          <td class="c" id="o_baseLand">-</td>
+          <td class="c" id="o_houseArea">-</td>
+          <td class="r" id="o_basePrice">0</td>
+        </tr>
+        <tr id="o_extraRow">
+          <td></td>
+          <td>ที่ดินเพิ่ม ตารางวาละ 30,000 บาท</td>
+          <td class="c" id="o_extraLand">-</td>
+          <td></td>
+          <td class="r" id="o_extraAmt">0</td>
+        </tr>
+        <tr id="o_cornerRow">
+          <td></td><td>แปลงมุม / ติดสวน</td><td></td><td></td>
+          <td class="r" id="o_cornerAmt">-</td>
+        </tr>
+        <tr class="sum"><td colspan="4" class="r">รวมราคา</td><td class="r" id="o_total">0</td></tr>
+        <tr id="o_d1" class="sub"><td colspan="4" class="r" id="o_d1desc"></td><td class="r" id="o_d1amt"></td></tr>
+        <tr id="o_d2" class="sub"><td colspan="4" class="r" id="o_d2desc"></td><td class="r" id="o_d2amt"></td></tr>
+        <tr id="o_d3" class="sub"><td colspan="4" class="r" id="o_d3desc"></td><td class="r" id="o_d3amt"></td></tr>
+        <tr class="net"><td colspan="4" class="r">ราคาสุทธิ</td><td class="r" id="o_net">0</td></tr>
+      </tbody>
+    </table>
+
+    <div class="bank-box">
+      <div class="bb-lbl">ช่องทางการชำระเงิน<small>Payment Channel</small></div>
+      <div class="bb-bank">ธนาคารไทยพาณิชย์ (SCB) &nbsp; เลขที่บัญชี <b>409-691797-6</b></div>
+      <div class="bb-acc">ชื่อบัญชี: บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด</div>
+    </div>
+
+    <div class="sec-h">รายละเอียดการชำระเงิน / Payment Details</div>
+    <div class="pay-line"><span class="pk">เงินจอง <small>/ Reservation</small></span><span class="dots"></span><span class="pv" id="o_payBook">0</span><span class="pu">บาท</span></div>
+    <div class="pay-line"><span class="pk">เงินทำสัญญา <small>/ Contract</small></span><span class="dots"></span><span class="pv" id="o_payContract">0</span><span class="pu">บาท</span></div>
+    <div class="pay-line"><span class="pk">ผ่อนดาวน์ <small>/ Down Payment</small></span><span class="dots"></span><span class="pv" id="o_payDown">0</span><span class="pu">บาท/เดือน</span></div>
+    <div class="pay-line"><span class="pk">จำนวนงวด <small>/ Installments</small></span><span class="dots"></span><span class="pv" id="o_payInst">0</span><span class="pu">งวด</span></div>
+    <div class="pay-line"><span class="pk">เริ่มผ่อนดาวน์ทุกวันที่</span><span class="dots"></span><span class="pv" id="o_payStart">-</span><span class="pu">ของเดือน</span></div>
+    <div class="pay-line"><span class="pk">ค่าใช้จ่ายส่วนกลาง <small id="o_feeType"></small></span><span class="dots"></span><span class="pv" id="o_commonFee">0</span><span class="pu">บาท/เดือน</span></div>
+
+    <div class="promo-h" id="o_promoHead">โปรโมชั่นพิเศษจากโครงการ</div>
+    <div class="promo-grid" id="o_promos"></div>
+
+    <div class="docnote">หมายเหตุ: อาจมีการเปลี่ยนแปลงแก้ไขข้อมูลได้โดยไม่ต้องแจ้งให้ทราบล่วงหน้า ลูกค้าเช็คโปรโมชั่นก่อนจองทุกครั้ง</div>
+
+    <div class="signs">
+      <div class="s"><div class="sl"></div><div class="sc">ผู้อนุมัติ</div>
+        <div class="sc" id="o_approver">(...........................)</div><div class="sd">วันที่ ............................</div></div>
+      <div class="s"><div class="sl"></div><div class="sc">ผู้จัดทำ</div>
+        <div class="sc" id="o_preparer">(...........................)</div><div class="sd">วันที่ ............................</div></div>
+    </div>
+    <div class="doctail">* ราคามีปรับเปลี่ยนตามเงื่อนไขโครงการ * &nbsp; * ใบเสนอนี้ราคามีระยะเวลา 30 วัน *</div>
+  </div>
+
+  <footer>ใบเสนอราคา v2.0 · One Vela — Two Build Development · บันทึก Log ในเครื่อง</footer>
+
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script src="assets/onevela-workbench.js"></script>
+<script>
+  // ===== ค่าคงที่ =====
+  const COMPANY = {
+    name   : 'บริษัท ทูบิลด์ ดีเวลลอปเม้นท์ จำกัด · TWO BUILD DEVELOPMENT CO.,LTD.',
+    address: 'สำนักงานขายโครงการ เลขที่ 89 หมู่ 1 ต.คลองตำหรุ อ.เมืองชลบุรี จ.ชลบุรี 20000',
+    phone  : 'โทรศัพท์ 092-787-4222',
+  };
+  const LAND_RATE = 30000;   // ที่ดินเพิ่ม ตารางวาละ (บาท)
+  const DRIVE_ROOT='https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk';
+  const PRICE_SHEET_GVIZ='https://docs.google.com/spreadsheets/d/1o97B1TPuhn6huCdVEFpUjCPr6bCINSO2bOTF3S-Ztng/gviz/tq?gid=12642587&headers=1';
+  const DEFAULT_PROMOS = [
+    'ฟรีค่าโอนกรรมสิทธิ์',
+    'ฟรีค่าส่วนกลางล่วงหน้า 1 ปี',
+    'ฟรีค่าประเมินบ้าน กรณียื่นสินเชื่อแบงค์',
+    'ฟรีมิเตอร์น้ำ มิเตอร์ไฟ',
+    'ฟรีแอร์ 12000 BTU / 3 ตัว',
+    'Voucher IKEA มูลค่า 300,000 บาท',
+    'ฟรีเดินท่อปลวก',
+    'ฟรีกาแฟ 4 แก้ว/เดือน 1 ปี',
+    'ฟรีผ้าม่านทั้งหลัง ตามมาตรฐานโครงการ',
+    'ฟรีถังสำรองน้ำ 500 ลิตร',
+  ];
+  const LS_LOG = 'onevela_qt_log';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  let PLOTS_CACHE = null;
+  function pick(row, names){
+    const keys=Object.keys(row);
+    for(const name of names){
+      const found=keys.find(k=>String(k).replace(/\s/g,'').toLowerCase().includes(name.toLowerCase()));
+      if(found && row[found] !== '') return row[found];
+    }
+    return '';
+  }
+  function cellValue(c){
+    if(!c) return '';
+    return c.v != null ? c.v : (c.f != null ? c.f : '');
+  }
+  function loadPriceSheet(){
+    return new Promise((resolve,reject)=>{
+      const cb='ovQuotePrice_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      const script=document.createElement('script');
+      const cleanup=()=>{ try{delete window[cb]}catch(e){window[cb]=undefined} script.remove(); clearTimeout(timer); };
+      const timer=setTimeout(()=>{ cleanup(); reject(new Error('price sheet timeout')); },12000);
+      window[cb]=payload=>{
+        cleanup();
+        try{
+          const table=payload && payload.table;
+          if(!table || !table.cols || !table.rows) throw new Error('price sheet empty');
+          const heads=table.cols.map(c=>String(c.label||c.id||'').trim());
+          const rows=table.rows.map(row=>{
+            const r={}; heads.forEach((h,i)=>r[h]=cellValue(row.c && row.c[i]));
+            return r;
+          });
+          resolve(rows.map(r=>({
+            plot: String(pick(r,['plot','แปลง','เลขแปลง'])||'').trim(),
+            typeCode: pick(r,['typecode','type','แบบ','ไทป์']),
+            typeShort: pick(r,['typeshort','รายละเอียด','ชื่อไทป์','แบบบ้าน']),
+            houseNo: pick(r,['houseno','บ้านเลขที่']),
+            deed: pick(r,['deed','โฉนด']),
+            area: pick(r,['area','เนื้อที่','ที่ดิน']),
+            areaAdd: pick(r,['areaadd','ที่ดินเพิ่ม']),
+            priceStart: pick(r,['pricestart','ราคาตั้งต้น','ราคาเริ่ม','ราคาขาย']),
+            priceNet: pick(r,['pricenet','ราคาสุทธิ','ราคาขายสุทธิ','รวมราคา']),
+            apprSCB: pick(r,['appr','ประเมิน'])
+          })).filter(r=>r.plot));
+        }catch(e){ reject(e); }
+      };
+      script.onerror=()=>{ cleanup(); reject(new Error('price sheet blocked')); };
+      script.src=PRICE_SHEET_GVIZ+'&tqx=responseHandler:'+cb+'&v='+Date.now();
+      document.head.appendChild(script);
+    });
+  }
+  function mergePriceRows(plots, priceRows){
+    const map=new Map((plots||[]).map(p=>[String(p.plot).trim(), p]));
+    (priceRows||[]).forEach(pr=>{
+      const key=String(pr.plot).trim();
+      const ex=map.get(key);
+      if(ex) Object.keys(pr).forEach(k=>{ if(pr[k] !== '') ex[k]=pr[k]; });
+      else map.set(key, {...pr, status:'ว่าง'});
+    });
+    return [...map.values()].sort((a,b)=>Number(a.plot)-Number(b.plot));
+  }
+  function oneDec(n){
+    const v=parseFloat(n);
+    return isFinite(v) ? v.toFixed(1) : '';
+  }
+  function loadHtml2Pdf(){
+    if(window.html2pdf) return Promise.resolve();
+    return new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      s.onload=resolve; s.onerror=reject; document.head.appendChild(s);
+    });
+  }
+  async function openPlotData(){
+    const plot = $('plotNo').value.trim();
+    if(!plot){ window.open(DRIVE_ROOT, '_blank'); return; }
+    if(window.Auth && Auth.isLoggedIn && Auth.isLoggedIn()){
+      try{
+        const r = await Auth.api('getPlotFolderUrls', {plot}, 12000);
+        if(r && r.ok && r.mainUrl){ window.open(r.mainUrl, '_blank'); return; }
+      }catch(e){}
+    }
+    window.open(DRIVE_ROOT, '_blank');
+  }
+  async function fetchPlot(){
+    const pno = $('plotNo').value.trim();
+    if(!pno){ alert('กรอกหมายเลขแปลงก่อน'); return; }
+    try{
+      // ดึงข้อมูลสดจากฐานข้อมูล + Sheet ราคาที่เปิดแชร์แล้ว
+      const [salesRes, priceRes] = await Promise.allSettled([
+        fetch(API_URL+'?action=getSalesData&v='+Date.now()).then(r=>r.json()),
+        loadPriceSheet()
+      ]);
+      if(salesRes.status !== 'fulfilled') throw new Error('โหลดฐานข้อมูลไม่สำเร็จ');
+      PLOTS_CACHE = (salesRes.value.plots || []);
+      if(priceRes.status === 'fulfilled') PLOTS_CACHE = mergePriceRows(PLOTS_CACHE, priceRes.value);
+      const p = PLOTS_CACHE.find(x=>String(x.plot)===pno);
+      if(!p){ alert('ไม่พบแปลง '+pno+' ในฐานข้อมูล'); return; }
+      const area=parseFloat(p.area)||0, aAdd=parseFloat(p.areaAdd)||0;
+      $('houseType').value    = p.typeCode || '';
+      $('houseDesc').value    = p.typeShort || '';
+      $('baseLandArea').value = (area-aAdd>0) ? oneDec(area-aAdd) : oneDec(p.area);
+      $('extraLandArea').value= aAdd ? oneDec(aAdd) : '';
+      $('basePrice').value    = p.priceStart || '';
+      render();
+      alert('✅ ดึงข้อมูลแปลง '+pno+' แล้ว\nแบบ '+(p.typeCode||'-')+
+        '\nราคาเริ่มต้น '+Number(p.priceStart||0).toLocaleString('th-TH')+' บาท'+
+        ' + ที่ดินเพิ่ม '+aAdd+' ตร.ว. (×30,000)'+
+        '\n⚠️ ค่าแปลงมุม/พิเศษ — กรอกเองในช่อง "ค่าแปลงมุม / ติดสวน"');
+    }catch(e){ alert('⚠️ ดึงข้อมูลไม่สำเร็จ — ตรวจอินเทอร์เน็ต หรือเปิดหน้านี้ผ่านเว็บ'); }
+  }
+
+  const $ = id => document.getElementById(id);
+  const numv = id => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const fmt = n => Number(n||0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmt0 = n => Math.round(n||0).toLocaleString('th-TH');
+  const dThai = iso => {
+    if (!iso) return '-';
+    const m=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const [y,mo,d]=iso.split('-').map(Number);
+    return d+' '+m[mo]+' '+(y+543);
+  };
+
+  $('o_coName').textContent  = COMPANY.name;
+  $('o_coAddr').textContent  = COMPANY.address;
+  $('o_coPhone').textContent = COMPANY.phone;
+
+  const FIELDS = ['docNo','docDate','preparer','approver','cName','cPhone','agent','plotNo',
+    'houseType','houseDesc','baseLandArea','houseArea','basePrice','extraLandArea',
+    'cornerAmt','disc1Desc','disc1Amt','disc2Desc','disc2Amt','disc3Desc','disc3Amt',
+    'payBook','payContract','payDownMonthly','payInstallments','payStartDay','commonFee','promos'];
+
+  function render(){
+    const basePrice = numv('basePrice');
+    const extraLandArea = numv('extraLandArea');
+    const extraAmt = extraLandArea * LAND_RATE;
+    const cornerAmt = numv('cornerAmt');
+    $('extraLandView').value = fmt(extraAmt);
+
+    const total = basePrice + extraAmt + cornerAmt;
+    const d1=numv('disc1Amt'), d2=numv('disc2Amt'), d3=numv('disc3Amt');
+    const net = Math.max(0, total - d1 - d2 - d3);
+
+    const baseLand = numv('baseLandArea');
+    const totalLand = baseLand + extraLandArea;
+
+    const set=(id,v)=>$(id).textContent=v;
+    set('o_cName', $('cName').value || '-');
+    set('o_cPhone', $('cPhone').value || '-');
+    set('o_agent', $('agent').value || '-');
+    set('o_docNo', $('docNo').value || '-');
+    set('o_plotNo', $('plotNo').value || '-');
+
+    const hd = $('houseDesc').value || '-';
+    const ht = $('houseType').value ? ' (' + $('houseType').value + ')' : '';
+    set('o_row1desc', hd + ht + (totalLand ? ' · เนื้อที่รวม ' + oneDec(totalLand) + ' ตร.ว.' : ''));
+    set('o_baseLand', baseLand ? oneDec(baseLand) : '-');
+    set('o_houseArea', numv('houseArea') || '-');
+    set('o_basePrice', fmt(basePrice));
+
+    $('o_extraRow').style.display = extraLandArea ? '' : 'none';
+    set('o_extraLand', extraLandArea ? oneDec(extraLandArea) : '-');
+    set('o_extraAmt', fmt(extraAmt));
+    $('o_cornerRow').style.display = cornerAmt ? '' : 'none';
+    set('o_cornerAmt', fmt(cornerAmt));
+    set('o_total', fmt(total));
+
+    const dRow=(rowId,descId,amtId,desc,amt)=>{
+      if(desc || amt){
+        $(rowId).style.display='';
+        $(descId).textContent = 'หัก ' + (desc||'ส่วนลด');
+        $(amtId).textContent  = amt ? '-'+fmt(amt) : '-';
+      } else { $(rowId).style.display='none'; }
+    };
+    dRow('o_d1','o_d1desc','o_d1amt',$('disc1Desc').value.trim(),d1);
+    dRow('o_d2','o_d2desc','o_d2amt',$('disc2Desc').value.trim(),d2);
+    dRow('o_d3','o_d3desc','o_d3amt',$('disc3Desc').value.trim(),d3);
+    set('o_net', fmt(net));
+
+    set('o_payBook', fmt(numv('payBook')));
+    set('o_payContract', fmt(numv('payContract')));
+    set('o_payDown', fmt(numv('payDownMonthly')));
+    set('o_payInst', numv('payInstallments') || '-');
+    set('o_payStart', $('payStartDay').value || '-');
+    set('o_commonFee', fmt(numv('commonFee')));
+    $('o_feeType').textContent = $('houseType').value ? '/ ' + $('houseType').value : '';
+
+    const promos = $('promos').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    $('o_promoHead').textContent = 'โปรโมชั่นพิเศษจากโครงการ' +
+      (promos.length ? ' ฟรี ' + promos.length + ' รายการ' : '');
+    $('o_promos').innerHTML = promos.map(p=>'<div>'+p+'</div>').join('');
+
+    const apv=$('approver').value, prp=$('preparer').value;
+    set('o_approver', apv ? '( '+apv+' )' : '(...........................)');
+    set('o_preparer', prp ? '( '+prp+' )' : '(...........................)');
+
+    return { total, net };
+  }
+
+  function saveLog(){
+    if(!$('docNo').value || !$('cName').value){
+      alert('กรุณากรอก เลขที่เอกสาร และ ชื่อลูกค้า ก่อนบันทึก'); return;
+    }
+    const r=render();
+    let log; try{ log=JSON.parse(localStorage.getItem(LS_LOG))||[]; }catch(e){ log=[]; }
+    log.push({docNo:$('docNo').value,date:$('docDate').value,customer:$('cName').value,
+      phone:$('cPhone').value,plot:$('plotNo').value,type:$('houseType').value,
+      total:r.total,net:r.net,preparer:$('preparer').value,
+      savedAt:new Date().toISOString().slice(0,16).replace('T',' ')});
+    localStorage.setItem(LS_LOG, JSON.stringify(log));
+    alert('บันทึกเข้า Log แล้ว ✅\n'+$('docNo').value+' · '+$('cName').value+
+          '\nรวมในเครื่องนี้: '+log.length+' รายการ');
+  }
+
+  function exportLog(){
+    let log; try{ log=JSON.parse(localStorage.getItem(LS_LOG))||[]; }catch(e){ log=[]; }
+    if(!log.length){ alert('ยังไม่มีรายการใน Log'); return; }
+    const head=['เลขที่','วันที่','ลูกค้า','เบอร์โทร','แปลง','แบบบ้าน','รวมราคา','ราคาสุทธิ','ผู้จัดทำ','บันทึกเมื่อ'];
+    const rows=log.map(e=>[e.docNo,e.date,e.customer,e.phone,e.plot,e.type,e.total,e.net,e.preparer,e.savedAt]);
+    const csv='﻿'+[head,...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download='QuotationLog_'+new Date().toISOString().slice(0,10)+'.csv';
+    a.click();
+  }
+
+  function printDoc(){
+    const o=document.title;
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const plot=clean($('plotNo').value)||'-', cust=clean($('cName').value)||'ลูกค้า';
+    document.title='ใบเสนอราคา_แปลง'+plot+'_'+cust;
+    window.print();
+    setTimeout(()=>{document.title=o;},800);
+  }
+
+  async function saveToFolder(){
+    if(!window.showDirectoryPicker){
+      alert('⚠️ การเก็บเข้าโฟลเดอร์อัตโนมัติใช้ได้เฉพาะ Chrome / Edge'); return;
+    }
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const name='ใบเสนอราคา_แปลง'+(clean($('plotNo').value)||'-')+'_'+(clean($('cName').value)||'ลูกค้า');
+    try{
+      if(!window._ovDir) window._ovDir=await window.showDirectoryPicker({mode:'readwrite'});
+      const styles=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+      const html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>'+name+'</title>'+
+        '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">'+
+        '<style>'+styles+'\nbody{background:#fff;padding:18px}</style></head><body>'+
+        document.getElementById('doc').outerHTML+'</body></html>';
+      const fh=await window._ovDir.getFileHandle(name+'.html',{create:true});
+      const w=await fh.createWritable(); await w.write(html); await w.close();
+      alert('✅ เก็บเข้าโฟลเดอร์แล้ว\n'+name+'.html');
+    }catch(e){
+      if(e&&e.name==='AbortError') return;
+      alert('เก็บไม่สำเร็จ — ฟีเจอร์นี้ใช้ได้บน Chrome/Edge เมื่อเปิดผ่านเว็บ (https)');
+    }
+  }
+
+  function shareLine(){
+    const r=render();
+    const txt=['📄 ใบเสนอราคา One Vela',
+      'เลขที่: '+($('docNo').value||'-'),
+      'ลูกค้า: '+($('cName').value||'-'),
+      'แปลง: '+($('plotNo').value||'-')+' · '+($('houseType').value||'-'),
+      'ราคาสุทธิ: '+fmt0(r.net)+' บาท'].join('\n');
+    if(navigator.share) navigator.share({title:'ใบเสนอราคา One Vela',text:txt}).catch(()=>{});
+    else window.open('https://line.me/R/msg/text/?'+encodeURIComponent(txt),'_blank');
+  }
+
+  function resetForm(){
+    if(!confirm('ล้างข้อมูลในฟอร์มทั้งหมด?')) return;
+    FIELDS.forEach(id=>$(id).value='');
+    initDefaults();
+    render();
+  }
+
+  async function initDefaults(){
+    const d=new Date();
+    $('docDate').value=d.toISOString().slice(0,10);
+    $('promos').value=DEFAULT_PROMOS.join('\n');
+    // ดึงเลขใบเสนอราคาจาก server (DDMMYY-N · counter รายวัน)
+    try{
+      const r=await fetch(API_URL+'?action=getNextQuoteNo');
+      const j=await r.json();
+      if(j && j.ok && j.no) $('docNo').value=j.no;
+      else throw 0;
+    }catch(e){
+      const dd=String(d.getDate()).padStart(2,'0');
+      const mm=String(d.getMonth()+1).padStart(2,'0');
+      const yy=String((d.getFullYear()+543)%100).padStart(2,'0');
+      $('docNo').value=dd+mm+yy+'-1';
+    }
+    render();
+  }
+
+  // ====== บันทึก + อัปโหลด PDF อัตโนมัติ ======
+  async function saveQuotationToServer(){
+    if(!$('docNo').value || !$('cName').value){
+      alert('กรุณากรอกเลขที่ใบเสนอราคา และชื่อลูกค้าก่อน'); return false;
+    }
+    const r=render();
+    const data={
+      docNo:    $('docNo').value,
+      plot:     $('plotNo').value,
+      cName:    $('cName').value,
+      cPhone:   $('cPhone').value,
+      priceNet: r.net,
+      downPmt:  numv('payDownMonthly'),
+      months:   numv('payInstallments'),
+      agent:    $('agent').value,
+      createdAt:new Date().toISOString(),
+    };
+    try{
+      // ใช้ GET แทน POST เพื่อเลี่ยง 302 redirect ที่ทำให้ body หาย
+      const url=API_URL+'?action=saveQuotation&data='+encodeURIComponent(JSON.stringify(data));
+      const r=await fetch(url);
+      const j=await r.json();
+      return j && j.ok;
+    }catch(e){ console.warn('saveQuotation failed', e); return false; }
+  }
+
+  function blobToBase64(blob){
+    return new Promise((res, rej)=>{
+      const fr=new FileReader();
+      fr.onload=()=>res(String(fr.result).split(',')[1]);
+      fr.onerror=rej;
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  // POST ผ่าน hidden form + iframe — เป็นวิธีเดียวที่ผ่าน Apps Script 302 redirect
+  // (fetch POST ถูก browser ลด POST→GET ตอน redirect ทำให้ body หาย)
+  function postViaForm(payload){
+    return new Promise(resolve=>{
+      let frame=document.getElementById('apiUploadFrame');
+      let form=document.getElementById('apiUploadForm');
+      let ta=document.getElementById('apiUploadPayload');
+      if(!frame){
+        frame=document.createElement('iframe');
+        frame.id='apiUploadFrame'; frame.name='apiUploadFrame';
+        frame.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+        document.body.appendChild(frame);
+        form=document.createElement('form');
+        form.id='apiUploadForm'; form.method='POST'; form.target='apiUploadFrame';
+        form.enctype='text/plain'; form.style.display='none';
+        ta=document.createElement('textarea');
+        ta.id='apiUploadPayload'; ta.name='d';
+        form.appendChild(ta);
+        document.body.appendChild(form);
+      }
+      form.action=API_URL;
+      ta.value=JSON.stringify(payload);
+      let done=false;
+      const finish=()=>{ if(!done){ done=true; frame.onload=null; resolve(); } };
+      frame.onload=finish;
+      setTimeout(finish, 20000); // safety timeout
+      form.submit();
+    });
+  }
+
+  async function uploadPdfToDrive(){
+    try{ await loadHtml2Pdf(); }catch(e){ console.warn('html2pdf not loaded'); return; }
+    const plot=String($('plotNo').value||'').trim() || 'ไม่ระบุแปลง';
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const fileName='ใบเสนอราคา_'+($('docNo').value||'')+'_แปลง'+(clean($('plotNo').value)||'-')+'_'+(clean($('cName').value)||'ลูกค้า')+'.pdf';
+    try{
+      const blob=await html2pdf().from($('doc'))
+        .set({margin:8, filename:fileName, image:{type:'jpeg',quality:0.94},
+              html2canvas:{scale:2,useCORS:true}, jsPDF:{format:'a4',orientation:'portrait'}})
+        .outputPdf('blob');
+      const fileBase64=await blobToBase64(blob);
+      await postViaForm({
+        action:'uploadFile',
+        plot: plot,
+        category:'ใบเสนอราคา',
+        tab:'quotations',
+        docNo:$('docNo').value,
+        fileName:fileName,
+        mimeType:'application/pdf',
+        fileBase64:fileBase64,
+      });
+    }catch(e){ console.warn('uploadPdf failed', e); }
+  }
+
+  async function printAndSave(){
+    const btn=document.querySelector('.b-print');
+    const orig=btn.textContent;
+    btn.textContent='⏳ กำลังบันทึก...'; btn.disabled=true;
+    try{
+      const ok=await saveQuotationToServer();
+      if(ok){
+        btn.textContent='⏳ อัปโหลด PDF...';
+        await uploadPdfToDrive();
+      }
+    } finally {
+      btn.textContent=orig; btn.disabled=false;
+    }
+    printDoc();
+  }
+
+  FIELDS.forEach(id=>$(id).addEventListener('input',render));
+  initDefaults();
+</script>
+</body>
+</html>

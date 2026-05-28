@@ -18,6 +18,7 @@
 | `LINE_MESSAGING_TOKEN` | ส่งข้อความแจ้งเตือนผ่าน LINE | LINE Developers Console → Messaging API channel |
 | `JWT_SECRET` | เซ็น session token (อายุ 30 วัน) | สุ่มเอง — string ยาว ≥32 ตัวอักษร |
 | `ANTHROPIC_API_KEY` | AI วิเคราะห์รูป (เผื่อใช้ทีหลัง) | console.anthropic.com |
+| `OPENAI_API_KEY` | AI อ่านสลิป / PDF / เอกสารการเงิน | platform.openai.com |
 
 ### กลุ่ม B — ค่าสาธารณะ (ใส่ในโค้ดฝั่งหน้าเว็บได้ — ไม่ลับ)
 
@@ -25,6 +26,7 @@
 |---|---|---|
 | `LINE_LIFF_ID` | เริ่มต้น LIFF SDK ในเบราว์เซอร์ | ฝังในหน้า HTML ได้ — ไม่ลับ |
 | `LINE_LOGIN_CHANNEL_ID` | ใช้ใน LINE login URL | ไม่ลับ (เปิดเผยได้) |
+| `FINANCE_AI_MODEL` | override รุ่นโมเดลสำหรับอ่านเอกสาร | เช่น `gpt-4.1-mini` |
 
 ---
 
