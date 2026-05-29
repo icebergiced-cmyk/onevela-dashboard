@@ -9,10 +9,10 @@ window.ONEVELA_APP_URLS = Object.assign({
 (function(){
   const PAGE = (location.pathname.split('/').pop() || '').toLowerCase();
   const DEFAULT_APP = {
-    portal: 'home.html',
-    operation: 'operation.html',
-    finance: 'finance-accounting.html',
-    erp: 'erp-demo.html'
+    portal: 'https://onevela-main-20260529.pages.dev/home.html',
+    operation: 'https://onevela-operation-20260529.pages.dev/operation.html',
+    finance: 'https://onevela-finance-ai-20260528.pages.dev/finance-accounting',
+    erp: 'https://onevela-operation-20260529.pages.dev/erp-demo.html'
   };
   function resolveAppUrls(){
     let stored = {};

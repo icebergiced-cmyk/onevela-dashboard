@@ -1,6 +1,6 @@
 # Public Split Status
 
-อัปเดตล่าสุด: 2026-05-28
+อัปเดตล่าสุด: 2026-05-29
 
 ## เป้าหมาย
 
@@ -43,6 +43,18 @@
   - site id: `3a661559-e197-4470-99e8-0ba7e4809e86`
   - current url: `https://onevela-cost.netlify.app`
 
+## Active Cloudflare Pages Mapping
+
+- Portal
+  - project: `onevela-main-20260529`
+  - current url: `https://onevela-main-20260529.pages.dev`
+- Finance
+  - project: `onevela-finance-ai-20260528`
+  - current url: `https://onevela-finance-ai-20260528.pages.dev`
+- Operation
+  - project: `onevela-operation-20260529`
+  - current url: `https://onevela-operation-20260529.pages.dev`
+
 ## Cross-Link Injection
 
 ใน publish bundles ได้ inject URL สำหรับ cross-links แล้วที่:
@@ -53,10 +65,10 @@
 
 ค่าที่ตั้งไว้ตอนนี้:
 
-- portal/home → `https://deluxe-panda-4b66fb.netlify.app`
-- finance → `https://effortless-eclair-c20651.netlify.app`
-- operation → `https://onevela-cost.netlify.app`
-- erp → `https://onevela-cost.netlify.app/erp-demo.html`
+- portal/home → `https://onevela-main-20260529.pages.dev/home.html`
+- finance → `https://onevela-finance-ai-20260528.pages.dev/finance-accounting`
+- operation → `https://onevela-operation-20260529.pages.dev/operation.html`
+- erp → `https://onevela-operation-20260529.pages.dev/erp-demo.html`
 
 ## Current Blocker
 
