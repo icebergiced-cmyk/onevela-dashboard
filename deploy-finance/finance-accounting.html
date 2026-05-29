@@ -591,9 +591,9 @@
                 <div class="drop">
                   <input type="file" name="slip" accept="image/*,.pdf">
                   <div class="preview" id="slipPreview"><img alt=""><span></span></div>
-                  <div><strong>รองรับรูปและ PDF</strong> ระบบจะอ่านวันที่ เวลา ธนาคาร ผู้โอน ผู้รับ ยอดเงิน และโน้ตจากไฟล์ก่อนให้คุณตรวจ</div>
+                  <div><strong>รองรับรูปและ PDF</strong> ระบบจะส่งไฟล์ไป OCR server เพื่ออ่านวันที่ เวลา ธนาคาร ผู้โอน ผู้รับ ยอดเงิน และโน้ตก่อนให้คุณตรวจ</div>
                   <div class="drop-actions">
-                    <button class="btn" type="button" id="analyzeSlipBtn">อ่านด้วย AI</button>
+                    <button class="btn" type="button" id="analyzeSlipBtn">อ่านด้วย OCR Server</button>
                     <span class="field-help" id="slipAnalyzeHint">ยังไม่ได้เริ่มอ่านไฟล์</span>
                   </div>
                 </div>
@@ -608,12 +608,13 @@
           <div class="panel-head"><h3>ผลอ่านสลิป + ลิงก์ Google Drive</h3></div>
           <div class="panel-body doc-review">
             <div class="warning-list" id="slipWarnings">
-              <div class="warning-item">เลือกไฟล์สลิปแล้วกด <b>อ่านด้วย AI</b> ก่อน ระบบจะดึงข้อความมาใส่ช่องต่างๆ ให้ตรวจสอบ</div>
+              <div class="warning-item">เลือกไฟล์สลิปแล้วกด <b>อ่านด้วย OCR Server</b> ก่อน ระบบจะดึงข้อความมาใส่ช่องต่างๆ ให้ตรวจสอบ</div>
             </div>
             <div class="doc-grid">
+              <div class="doc-box"><b>ระบบอ่านไฟล์</b><span id="slipReadSource">รอเชื่อม OCR server</span></div>
               <div class="doc-box"><b>หมวดที่ระบบแนะนำ</b><span id="slipCategorySuggestion">ยังไม่มี</span></div>
-              <div class="doc-box"><b>ความเชื่อมั่น</b><span id="slipConfidence">รอวิเคราะห์</span></div>
-              <div class="doc-box"><b>คำอธิบายสั้น</b><span id="slipAiSummary">ยังไม่มีสรุป</span></div>
+              <div class="doc-box"><b>ความครบของข้อมูล</b><span id="slipConfidence">รอวิเคราะห์</span></div>
+              <div class="doc-box"><b>สรุปจากระบบ</b><span id="slipAiSummary">ยังไม่มีสรุป</span></div>
               <div class="doc-box"><b>โฟลเดอร์จัดเก็บ</b><span id="slipFolderLabel">Finance Workspace / Cash Book Slips</span></div>
             </div>
             <div class="doc-grid" id="slipCheckGrid"></div>
@@ -631,7 +632,7 @@
       <div class="grid two">
         <div class="panel">
           <div class="panel-head">
-            <h3>AI ตรวจ PR / PO / ใบส่งของ / ใบวางบิล / ใบเสร็จ</h3>
+            <h3>OCR ตรวจ PR / PO / ใบส่งของ / ใบวางบิล / ใบเสร็จ</h3>
           </div>
           <div class="panel-body">
             <form id="payableDocForm" class="form-grid">
@@ -654,7 +655,7 @@
                 <div class="drop">
                   <input type="file" name="docFile" accept="image/*,.pdf">
                   <div class="drop-actions">
-                    <button class="btn" type="button" id="analyzePayableBtn">อ่านเอกสาร</button>
+                    <button class="btn" type="button" id="analyzePayableBtn">อ่านเอกสารด้วย OCR Server</button>
                     <span class="field-help" id="payableAnalyzeHint">รองรับใบ PR / PO / Invoice / Receipt</span>
                   </div>
                 </div>
@@ -764,7 +765,7 @@
           <div class="panel-head"><h3>Receipt / Voucher / ข้อเสนอระบบมืออาชีพ</h3></div>
           <div class="panel-body doc-review">
             <div class="assistant-panel">
-              <h3>AI Contractor Desk</h3>
+              <h3>Contractor Desk</h3>
               <div class="assistant-log" id="contractorAssistantLog">
                 <div class="item"><b>คำแนะนำเริ่มต้น</b>ถ้างานผ่านทั้งหมด ควรมี 1) ใบรับเงินผู้รับเหมา 2) รายชื่อช่างในทีม 3) หักประกันผลงาน/หัก ณ ที่จ่ายถ้ามี 4) ประวัติยอดสะสมตั้งแต่เริ่มงาน</div>
               </div>
@@ -903,15 +904,15 @@
           <div class="panel-body report-list">
             <div class="report-item"><div><b>ฐานข้อมูล</b><span class="sub">LocalStorage: <span id="storageSize"></span></span></div><span class="badge green">พร้อมใช้</span></div>
             <div class="report-item"><div><b>Google Drive</b><span class="sub" id="financeFolderSummary">จะสร้างใต้ One Vela Sales Files / Finance Workspace</span></div><span class="badge blue">Drive</span></div>
-            <div class="report-item"><div><b>AI Document Desk</b><span class="sub">OCR รูป, อ่านข้อความจาก PDF, วิเคราะห์ Excel ผู้รับเหมา, และสร้างสลิปเงินเดือน A4</span></div><span class="badge violet">AI</span></div>
+            <div class="report-item"><div><b>OCR & Document Desk</b><span class="sub">OCR รูป, อ่านข้อความจาก PDF, วิเคราะห์ Excel ผู้รับเหมา, และสร้างสลิปเงินเดือน A4</span></div><span class="badge violet">OCR</span></div>
             <div class="report-item"><div><b>ระบบตรวจสอบ</b><span class="sub">มี warning ก่อนบันทึก และให้ user แก้ไขข้อมูลที่อ่านได้ก่อน push เข้า cash book</span></div><span class="badge green">Review</span></div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-head"><h3>AI Copilot และข้อมูลทดสอบ</h3></div>
+          <div class="panel-head"><h3>Finance Assistant และข้อมูลทดสอบ</h3></div>
           <div class="panel-body doc-review">
             <div class="assistant-panel">
-              <h3>AI Copilot</h3>
+              <h3>Finance Assistant</h3>
               <div class="assistant-log" id="assistantLog"></div>
               <div class="assistant-actions" id="assistantActions">
                 <button class="btn" type="button" data-assistant-action="cashbook">สรุป Cash Book</button>
@@ -1069,7 +1070,7 @@ const FINANCE_FOLDER_LABELS = {
   payables:'เจ้าหนี้และใบวางบิล',
   contractor:'ผู้รับเหมา',
   payroll:'สลิปเงินเดือน',
-  ai:'AI Workspace'
+  ai:'Finance Workspace'
 };
 const PAYABLE_DOC_TYPES = {
   po:'PO',
@@ -1078,6 +1079,20 @@ const PAYABLE_DOC_TYPES = {
   bill:'ใบวางบิล',
   receipt:'ใบเสร็จรับเงิน'
 };
+const THAI_MONTH_MAP = {
+  'ม.ค.':'01', 'มกราคม':'01',
+  'ก.พ.':'02', 'กุมภาพันธ์':'02',
+  'มี.ค.':'03', 'มีนาคม':'03',
+  'เม.ย.':'04', 'เมษายน':'04',
+  'พ.ค.':'05', 'พฤษภาคม':'05',
+  'มิ.ย.':'06', 'มิถุนายน':'06',
+  'ก.ค.':'07', 'กรกฎาคม':'07',
+  'ส.ค.':'08', 'สิงหาคม':'08',
+  'ก.ย.':'09', 'กันยายน':'09',
+  'ต.ค.':'10', 'ตุลาคม':'10',
+  'พ.ย.':'11', 'พฤศจิกายน':'11',
+  'ธ.ค.':'12', 'ธันวาคม':'12'
+};
 const SAMPLE_EMPLOYEES = [
   {id:'EMP-001', name:'กัญญารัตน์ สายทอง', position:'แอดมินโครงการ', project:'One Vela', team:'Admin', bankName:'SCB', bankNo:'409-6-91797-6', baseSalary:22000, paidToDate:110000},
   {id:'EMP-002', name:'วิรัตน์ ช่วยชู', position:'เซลล์โครงการ', project:'วันเวลา', team:'Sales', bankName:'KBank', bankNo:'123-4-56789-0', baseSalary:18000, paidToDate:96000},
@@ -1085,7 +1100,7 @@ const SAMPLE_EMPLOYEES = [
   {id:'EMP-004', name:'สมคิด ศรีอร่าม', position:'วิศวกรสนาม', project:'Oxygen 3', team:'Site', bankName:'KTB', bankNo:'456-8-12345-6', baseSalary:32000, paidToDate:160000}
 ];
 const AI_DEFAULT_LOG = [
-  {title:'AI Finance Desk', body:'อัปโหลดสลิป/เอกสาร แล้วให้ระบบอ่านก่อน คุณแก้ข้อมูลได้ก่อนบันทึกทุกครั้ง'},
+  {title:'Finance OCR Desk', body:'อัปโหลดสลิป/เอกสาร แล้วให้ OCR server อ่านก่อน คุณแก้ข้อมูลได้ก่อนบันทึกทุกครั้ง'},
   {title:'Drive Policy', body:'ไฟล์ทั้งหมดจะถูกแยกเก็บใน Finance Workspace ใต้ One Vela Sales Files เพื่อให้กดดูจากหน้าเว็บได้ทันที'}
 ];
 let state = loadState();
@@ -1093,6 +1108,7 @@ let currentRoute = 'dashboard';
 let filters = {q:'', project:'', type:'', status:''};
 let activeEmployeeId = '';
 let financeApiReady = false;
+let financeOcrStatus = null;
 
 function today(){
   const d = new Date();
@@ -1492,34 +1508,67 @@ function normalizeDateParts(day, month, year){
   const d = String(day).padStart(2,'0');
   return `${y}-${m}-${d}`;
 }
+function normalizeOcrText(text){
+  return String(text || '')
+    .replace(/\u200b/g, ' ')
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+function findThaiMonthNumber(rawMonth){
+  const cleaned = String(rawMonth || '').trim();
+  return THAI_MONTH_MAP[cleaned] || THAI_MONTH_MAP[cleaned.replace(/\s+/g,'')] || '';
+}
 function extractDateTime(text){
-  const raw = String(text || '');
+  const raw = normalizeOcrText(text);
+  const thaiDateMatch = raw.match(/(\d{1,2})\s*(ม\.ค\.|มกราคม|ก\.พ\.|กุมภาพันธ์|มี\.ค\.|มีนาคม|เม\.ย\.|เมษายน|พ\.ค\.|พฤษภาคม|มิ\.ย\.|มิถุนายน|ก\.ค\.|กรกฎาคม|ส\.ค\.|สิงหาคม|ก\.ย\.|กันยายน|ต\.ค\.|ตุลาคม|พ\.ย\.|พฤศจิกายน|ธ\.ค\.|ธันวาคม)\s*(\d{2,4})/i);
   const dateMatch = raw.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-  const timeMatch = raw.match(/(\d{1,2}:\d{2})(?::\d{2})?/);
   return {
-    date: dateMatch ? normalizeDateParts(dateMatch[1], dateMatch[2], dateMatch[3]) : '',
-    time: timeMatch ? timeMatch[1] : ''
+    date: thaiDateMatch
+      ? normalizeDateParts(thaiDateMatch[1], findThaiMonthNumber(thaiDateMatch[2]), thaiDateMatch[3])
+      : dateMatch ? normalizeDateParts(dateMatch[1], dateMatch[2], dateMatch[3]) : '',
+    time: (raw.match(/(\d{1,2}:\d{2})(?::\d{2})?/) || [,''])[1] || ''
   };
 }
-function extractLargestAmount(text){
-  const matches = String(text || '').match(/\d[\d,]*(?:\.\d{1,2})?/g) || [];
-  const numbers = matches.map(m=>Number(m.replace(/,/g,''))).filter(n=>n > 0 && n < 1000000000);
+function extractLargestAmount(text, options = {}){
+  const raw = normalizeOcrText(text);
+  const labelPatterns = options.labelPatterns || [
+    /(?:จำนวนเงิน|ยอดเงิน|amount|amt)\s*[:：]?\s*([0-9][0-9,]*(?:\.\d{2})?)/i,
+    /(?:จำนวนเงิน|ยอดเงิน|amount|amt)\s*\n\s*([0-9][0-9,]*(?:\.\d{2})?)/i
+  ];
+  for(const pattern of labelPatterns){
+    const match = raw.match(pattern);
+    if(match && match[1]){
+      const labeled = Number(match[1].replace(/,/g,''));
+      if(labeled > 0) return labeled;
+    }
+  }
+  const decimalMatches = raw.match(/\d[\d,]*\.\d{2}/g) || [];
+  const decimalNumbers = decimalMatches
+    .map(m=>Number(m.replace(/,/g,'')))
+    .filter(n=>n > 0 && n < 100000000);
+  if(decimalNumbers.length) return Math.max.apply(null, decimalNumbers);
+  const matches = raw.match(/\d[\d,]*(?:\.\d{1,2})?/g) || [];
+  const numbers = matches
+    .map(m=>Number(m.replace(/,/g,'')))
+    .filter(n=>n > 0 && n < 100000000 && !String(Math.round(n)).match(/^(19|20|25)\d{2,}$/));
   return numbers.length ? Math.max.apply(null, numbers) : 0;
 }
 function detectBank(text){
-  const hay = String(text || '');
+  const hay = normalizeOcrText(text);
   for(const [label, pattern] of BANK_PATTERNS){
     if(new RegExp(pattern, 'i').test(hay)) return label;
   }
   return '';
 }
 function detectReference(text){
-  const raw = String(text || '');
+  const raw = normalizeOcrText(text);
   const refMatch = raw.match(/(?:ref(?:erence)?|เลขที่รายการ|รหัสอ้างอิง|transaction|txn)[^\n:]*[:#\s]+([A-Z0-9\-]{6,})/i);
   return refMatch ? refMatch[1] : '';
 }
 function extractNamedField(text, labels){
-  const lines = String(text || '').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const lines = normalizeOcrText(text).split(/\n/).map(line=>line.trim()).filter(Boolean);
   for(const line of lines){
     for(const label of labels){
       const rx = new RegExp(label + '\\s*[:：-]?\\s*(.+)$','i');
@@ -1530,23 +1579,82 @@ function extractNamedField(text, labels){
   return '';
 }
 function inferPurpose(text){
-  const lines = String(text || '').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const lines = normalizeOcrText(text).split(/\n/).map(line=>line.trim()).filter(Boolean);
   const preferred = lines.find(line=>/เพื่อ|ค่|งวด|วัสดุ|โอน|จ่าย|invoice|bill|po/i.test(line) && line.length > 6);
   return preferred || lines.slice(0, 6).find(line=>line.length > 8) || '';
 }
+function cleanPartyValue(value){
+  return String(value || '')
+    .replace(/^(จาก|ไปยัง|ผู้โอน|ผู้รับโอน|from|to)\s*/i, '')
+    .replace(/(?:เลขที่บัญชี|บัญชี|account).*/i, '')
+    .replace(/\b[xX]{1,4}(?:-[xX]{1,4})*\d{0,4}\b/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+function extractSlipParty(text, labels){
+  const lines = normalizeOcrText(text).split(/\n/).map(line=>line.trim()).filter(Boolean);
+  for(let i = 0; i < lines.length; i += 1){
+    const line = lines[i];
+    for(const label of labels){
+      const direct = line.match(new RegExp('^' + label + '\\s*[:：-]?\\s*(.+)$', 'i'));
+      if(direct && direct[1]) return cleanPartyValue(direct[1]);
+      if(new RegExp('^' + label + '$', 'i').test(line)){
+        for(let j = i + 1; j < Math.min(i + 4, lines.length); j += 1){
+          const candidate = cleanPartyValue(lines[j]);
+          if(candidate && !/^[xX0-9\-]{4,}$/.test(candidate) && candidate.length > 2) return candidate;
+        }
+      }
+    }
+  }
+  return '';
+}
+function extractSlipMemo(text){
+  const lines = normalizeOcrText(text).split(/\n/).map(line=>line.trim()).filter(Boolean);
+  for(let i = 0; i < lines.length; i += 1){
+    if(/บันทึกช่วยจำ|memo|note/i.test(lines[i])){
+      const sameLine = lines[i].replace(/.*(?:บันทึกช่วยจำ|memo|note)\s*[:：-]?\s*/i, '').trim();
+      if(sameLine) return sameLine;
+      for(let j = i + 1; j < Math.min(i + 3, lines.length); j += 1){
+        if(lines[j] && !/^(ผู้รับเงินสามารถ|scan|qr)/i.test(lines[j])) return lines[j];
+      }
+    }
+  }
+  return inferPurpose(text);
+}
+function estimateSlipConfidence(result, warnings){
+  let score = 30;
+  if(result.date) score += 12;
+  if(result.time) score += 8;
+  if(result.amount) score += 18;
+  if(result.bank) score += 10;
+  if(result.payerName) score += 10;
+  if(result.payeeName) score += 10;
+  if(result.memo) score += 8;
+  if(result.ref) score += 8;
+  return Math.max(35, Math.min(98, score - (warnings.length * 6)));
+}
 function parseSlipDetails(text, fileName){
-  const dateTime = extractDateTime(text);
-  const memo = inferPurpose(text) || String(fileName || '').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
+  const normalized = normalizeOcrText(text);
+  const dateTime = extractDateTime(normalized);
+  const memo = extractSlipMemo(normalized) || String(fileName || '').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
   const warnings = [];
-  const amount = extractLargestAmount(text);
-  const bank = detectBank(text) || detectBank(fileName);
-  const payerName = extractNamedField(text, ['ผู้โอน','จากบัญชี','from','sender']);
-  const payeeName = extractNamedField(text, ['ผู้รับโอน','ไปยัง','to','receiver']);
-  const ref = detectReference(text) || String(fileName || '').match(/[A-Z0-9]{8,}/)?.[0] || '';
+  const amount = extractLargestAmount(normalized, {
+    labelPatterns: [
+      /(?:จำนวนเงิน|ยอดเงิน)\s*[:：]?\s*([0-9][0-9,]*(?:\.\d{2})?)/i,
+      /(?:amount)\s*[:：]?\s*([0-9][0-9,]*(?:\.\d{2})?)/i
+    ]
+  });
+  const bank = detectBank(normalized) || detectBank(fileName);
+  const payerName = extractSlipParty(normalized, ['ผู้โอน', 'จากบัญชี', 'จาก', 'from', 'sender']);
+  const payeeName = extractSlipParty(normalized, ['ผู้รับโอน', 'ไปยัง', 'ไปยังบัญชี', 'to', 'receiver']);
+  const ref = detectReference(normalized) || String(fileName || '').match(/[A-Z0-9]{8,}/)?.[0] || '';
   if(!dateTime.date) warnings.push('ยังจับวันที่จากสลิปไม่ได้');
   if(!amount) warnings.push('ยังจับยอดเงินไม่ได้ชัดเจน');
   if(!bank) warnings.push('ยังไม่แน่ใจธนาคาร');
-  return {
+  if(!payerName) warnings.push('ยังจับชื่อผู้โอนไม่ชัด');
+  if(!payeeName) warnings.push('ยังจับชื่อผู้รับโอนไม่ชัด');
+  if(!memo) warnings.push('ยังไม่พบโน้ตหรือวัตถุประสงค์การโอน');
+  const result = {
     date: dateTime.date,
     time: dateTime.time,
     amount: amount || '',
@@ -1554,23 +1662,32 @@ function parseSlipDetails(text, fileName){
     payerName,
     payeeName,
     memo,
-    vendor: payeeName || '',
+    vendor: memo || payeeName || '',
     ref,
     category: inferCategory(memo),
     summary: `${bank || 'ไม่ทราบธนาคาร'} · ${amount ? thb(amount) : 'ไม่ทราบยอด'} · ${memo || 'ยังไม่สรุปวัตถุประสงค์'}`,
-    confidence: Math.max(35, 96 - warnings.length * 18),
     warnings
   };
+  result.confidence = estimateSlipConfidence(result, warnings);
+  return result;
+}
+function extractDueDate(text){
+  const normalized = normalizeOcrText(text);
+  const labeled = normalized.match(/(?:กำหนดชำระ|due\s*date)\s*[:：]?\s*([^\n]+)/i);
+  if(labeled && labeled[1]){
+    return extractDateTime(labeled[1]).date;
+  }
+  return extractDateTime(normalized).date;
 }
 function parsePayableDetails(text, fileName, docType){
-  const amount = extractLargestAmount(text);
-  const docNo = detectReference(text) || String(fileName || '').replace(/\.[^.]+$/,'');
-  const vendor = extractNamedField(text, ['vendor','supplier','ผู้ขาย','ร้านค้า','บริษัท']) || '';
-  const poNo = (text.match(/\bPO[-\s:]*([A-Z0-9\-\/]+)/i) || [,''])[1];
-  const billNo = (text.match(/\b(?:INV|BILL)[-\s:]*([A-Z0-9\-\/]+)/i) || [,''])[1] || docNo;
-  const receiptNo = (text.match(/\b(?:RC|RECEIPT|DN)[-\s:]*([A-Z0-9\-\/]+)/i) || [,''])[1];
-  const dateTime = extractDateTime(text);
-  const memo = inferPurpose(text) || (PAYABLE_DOC_TYPES[docType] + ' ' + docNo);
+  const normalized = normalizeOcrText(text);
+  const amount = extractLargestAmount(normalized);
+  const docNo = detectReference(normalized) || String(fileName || '').replace(/\.[^.]+$/,'');
+  const vendor = extractNamedField(normalized, ['vendor','supplier','ผู้ขาย','ร้านค้า','บริษัท']) || '';
+  const poNo = (normalized.match(/\bPO[-\s:]*([A-Z0-9\-\/]+)/i) || [,''])[1];
+  const billNo = (normalized.match(/\b(?:INV|BILL|ใบวางบิล)[-\s:]*([A-Z0-9\-\/]+)/i) || [,''])[1] || docNo;
+  const receiptNo = (normalized.match(/\b(?:RC|RECEIPT|DN|ใบเสร็จ|ใบส่งของ)[-\s:]*([A-Z0-9\-\/]+)/i) || [,''])[1];
+  const memo = inferPurpose(normalized) || (PAYABLE_DOC_TYPES[docType] + ' ' + docNo);
   const warnings = [];
   if(!amount) warnings.push('ยังจับยอดเงินจากเอกสารไม่ได้');
   if(!vendor) warnings.push('ยังจับชื่อ vendor ไม่ชัด');
@@ -1580,8 +1697,8 @@ function parsePayableDetails(text, fileName, docType){
     poNo,
     billNo,
     receiptNo,
-    dueDate: dateTime.date,
-    paymentMethod: /เครดิต|credit/i.test(text) ? 'เครดิต' : /เช็ค/i.test(text) ? 'เช็ค' : 'โอน',
+    dueDate: extractDueDate(normalized),
+    paymentMethod: /เครดิต|credit/i.test(normalized) ? 'เครดิต' : /เช็ค/i.test(normalized) ? 'เช็ค' : 'โอน',
     memo,
     note: `อ่านจาก ${PAYABLE_DOC_TYPES[docType] || docType} แล้ว ให้ตรวจเช็คจำนวนรับของ ราคาเทียบ PO และเอกสารค้างแนบ`,
     comparisonStatus: poNo && billNo ? 'รอตรวจเทียบ PO' : 'รอกรอกเอกสารอ้างอิง',
@@ -1664,6 +1781,13 @@ async function requestFinanceAnalysis(kind, file){
     await wait(1000);
   }
   throw new Error('analysis timeout');
+}
+async function checkFinanceOcrStatus(force = false){
+  if(!window.Auth || IS_DEMO_VIEW) return null;
+  if(financeOcrStatus && !force) return financeOcrStatus;
+  const status = await Auth.api('getFinanceOcrStatus', {});
+  financeOcrStatus = status && status.ok ? status : null;
+  return financeOcrStatus;
 }
 async function findLatestFinanceDocument(category, recordId, documentId){
   if(!window.Auth || IS_DEMO_VIEW) return null;
@@ -1792,6 +1916,10 @@ async function ensureFinanceWorkspace(){
     if(recordRes && recordRes.ok && Array.isArray(recordRes.records) && recordRes.records.length){
       state.records = recordRes.records.map(mapApiRecordToLocal);
     }
+    const ocrStatus = await checkFinanceOcrStatus();
+    if(ocrStatus){
+      setReadSourceBox('slipReadSource', ocrStatus.ready ? 'Google Vision OCR server' : 'OCR server ยังไม่พร้อม', ocrStatus.message || '');
+    }
     save();
   }catch(err){
     rememberAi('Finance API', 'เชื่อม Finance Workspace ไม่สำเร็จ ใช้งานแบบ local draft ก่อน: ' + err.message);
@@ -1835,6 +1963,11 @@ function renderDocBoxes(targetId, items){
   el.innerHTML = filtered.map(item=>`
     <div class="doc-box"><b>${item.label}</b><span>${item.value || '-'}</span></div>
   `).join('');
+}
+function setReadSourceBox(targetId, source, detail){
+  const el = document.getElementById(targetId);
+  if(!el) return;
+  el.textContent = detail ? `${source} · ${detail}` : source;
 }
 function buildSlipCheckItems(result){
   return [
@@ -1963,25 +2096,30 @@ async function analyzeSlipFile(){
   const form = document.getElementById('quickSlipForm');
   const file = form.elements.slip.files[0];
   if(!file){ toast('เลือกไฟล์สลิปก่อน'); return; }
-  setHint('slipAnalyzeHint', 'กำลังส่งไฟล์ให้ AI ฝั่ง server...');
+  setHint('slipAnalyzeHint', 'กำลังส่งไฟล์ไป OCR server...');
   try{
     const analyzed = await requestFinanceAnalysis('slip', file);
-    if(analyzed && analyzed.parsed){
-      applySlipResult(analyzed.parsed, analyzed.raw_text || 'AI server-side extraction');
-      rememberAi('อ่านสลิปแล้ว', `${(analyzed.provider || 'AI').toUpperCase()} · ${analyzed.parsed.summary || 'อ่านข้อมูลสลิปแล้ว'}`);
-      setHint('slipAnalyzeHint', 'AI server อ่านไฟล์แล้ว แก้ไขข้อมูลได้ก่อนบันทึก');
+    if(analyzed && analyzed.raw_text){
+      const parsed = parseSlipDetails(analyzed.raw_text, file.name);
+      if(analyzed.score) parsed.confidence = Math.max(parsed.confidence || 0, analyzed.score);
+      applySlipResult(parsed, analyzed.raw_text);
+      setReadSourceBox('slipReadSource', 'Google Vision OCR server', analyzed.message || 'อ่านไฟล์จาก server สำเร็จ');
+      rememberAi('อ่านสลิปแล้ว', `OCR SERVER · ${parsed.summary || 'อ่านข้อมูลสลิปแล้ว'}`);
+      setHint('slipAnalyzeHint', 'OCR server อ่านไฟล์แล้ว แก้ไขข้อมูลได้ก่อนบันทึก');
       return;
     }
-    throw new Error('server analysis unavailable');
+    throw new Error('OCR server ไม่ส่งข้อความกลับมา');
   }catch(err){
     try{
       const text = await extractTextFromFile(file);
       const parsed = parseSlipDetails(text, file.name);
       applySlipResult(parsed, text);
-      document.getElementById('slipWarnings').innerHTML = `<div class="warning-item">AI server ใช้งานไม่ได้ชั่วคราว ระบบจึง fallback มาใช้ OCR ใน browser: ${escapeHtml(err.message || String(err))}</div>` + document.getElementById('slipWarnings').innerHTML;
-      rememberAi('Fallback OCR', 'อ่านสลิปด้วย browser OCR เพราะ AI server ไม่พร้อม: ' + (err.message || String(err)));
+      setReadSourceBox('slipReadSource', 'OCR ใน browser', err.message || String(err));
+      document.getElementById('slipWarnings').innerHTML = `<div class="warning-item">OCR server ใช้งานไม่ได้ชั่วคราว ระบบจึง fallback มาใช้ OCR ใน browser: ${escapeHtml(err.message || String(err))}</div>` + document.getElementById('slipWarnings').innerHTML;
+      rememberAi('Fallback OCR', 'อ่านสลิปด้วย browser OCR เพราะ OCR server ไม่พร้อม: ' + (err.message || String(err)));
       setHint('slipAnalyzeHint', 'ใช้ OCR สำรองใน browser แล้ว');
     }catch(innerErr){
+      setReadSourceBox('slipReadSource', 'อ่านไฟล์ไม่สำเร็จ', innerErr.message || String(innerErr));
       document.getElementById('slipWarnings').innerHTML = `<div class="warning-item">อ่านไฟล์ไม่สำเร็จ: ${escapeHtml(innerErr.message || String(innerErr))}</div>`;
       setHint('slipAnalyzeHint', 'อ่านไฟล์ไม่สำเร็จ');
     }
@@ -1991,23 +2129,24 @@ async function analyzePayableFile(){
   const form = document.getElementById('payableDocForm');
   const file = form.elements.docFile.files[0];
   if(!file){ toast('เลือกไฟล์เอกสารก่อน'); return; }
-  setHint('payableAnalyzeHint', 'กำลังส่งเอกสารให้ AI ฝั่ง server...');
+  setHint('payableAnalyzeHint', 'กำลังส่งเอกสารไป OCR server...');
   try{
     const analyzed = await requestFinanceAnalysis('payable', file);
-    if(analyzed && analyzed.parsed){
-      applyPayableResult(analyzed.parsed, analyzed.raw_text || 'AI server-side extraction');
-      rememberAi('อ่านเอกสารเจ้าหนี้แล้ว', `${(analyzed.provider || 'AI').toUpperCase()} · ${analyzed.parsed.summary || 'อ่านเอกสารแล้ว'}`);
-      setHint('payableAnalyzeHint', 'AI server อ่านเอกสารแล้ว ตรวจ/แก้ไขก่อนบันทึก');
+    if(analyzed && analyzed.raw_text){
+      const parsed = parsePayableDetails(analyzed.raw_text, file.name, form.elements.docType.value);
+      applyPayableResult(parsed, analyzed.raw_text);
+      rememberAi('อ่านเอกสารเจ้าหนี้แล้ว', `OCR SERVER · ${parsed.summary || 'อ่านเอกสารแล้ว'}`);
+      setHint('payableAnalyzeHint', 'OCR server อ่านเอกสารแล้ว ตรวจ/แก้ไขก่อนบันทึก');
       return;
     }
-    throw new Error('server analysis unavailable');
+    throw new Error('OCR server ไม่ส่งข้อความกลับมา');
   }catch(err){
     try{
       const text = await extractTextFromFile(file);
       const parsed = parsePayableDetails(text, file.name, form.elements.docType.value);
       applyPayableResult(parsed, text);
-      document.getElementById('payableWarnings').innerHTML = `<div class="warning-item">AI server ใช้งานไม่ได้ชั่วคราว ระบบจึง fallback มาใช้ OCR ใน browser: ${escapeHtml(err.message || String(err))}</div>` + document.getElementById('payableWarnings').innerHTML;
-      rememberAi('Fallback OCR', 'อ่านเอกสารเจ้าหนี้ด้วย browser OCR เพราะ AI server ไม่พร้อม: ' + (err.message || String(err)));
+      document.getElementById('payableWarnings').innerHTML = `<div class="warning-item">OCR server ใช้งานไม่ได้ชั่วคราว ระบบจึง fallback มาใช้ OCR ใน browser: ${escapeHtml(err.message || String(err))}</div>` + document.getElementById('payableWarnings').innerHTML;
+      rememberAi('Fallback OCR', 'อ่านเอกสารเจ้าหนี้ด้วย browser OCR เพราะ OCR server ไม่พร้อม: ' + (err.message || String(err)));
       setHint('payableAnalyzeHint', 'ใช้ OCR สำรองใน browser แล้ว');
     }catch(innerErr){
       document.getElementById('payableWarnings').innerHTML = `<div class="warning-item">อ่านเอกสารไม่สำเร็จ: ${escapeHtml(innerErr.message || String(innerErr))}</div>`;
@@ -2197,6 +2336,7 @@ async function saveSlipRecordFromForm(){
   document.getElementById('slipAiSummary').textContent = 'ยังไม่มีสรุป';
   document.getElementById('slipConfidence').textContent = 'รอวิเคราะห์';
   document.getElementById('slipCategorySuggestion').textContent = 'ยังไม่มี';
+  setReadSourceBox('slipReadSource', financeOcrStatus && financeOcrStatus.ready ? 'Google Vision OCR server' : 'รอเชื่อม OCR server', financeOcrStatus ? financeOcrStatus.message : '');
   renderDocBoxes('slipCheckGrid', []);
   renderLinks('slipDriveLinks', []);
   toast('บันทึกสลิปเข้า Cash Book แล้ว');

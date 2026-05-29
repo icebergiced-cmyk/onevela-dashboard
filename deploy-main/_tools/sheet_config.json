@@ -1,0 +1,7 @@
+{
+  "csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLktRnqTZBHTEqvjo3UoYu3UtjMm9_UfReDsB7sg68Vm-1GGN6O65m7RCDXIGf7A/pub?gid=1161906404&single=true&output=csv",
+  "installments_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLktRnqTZBHTEqvjo3UoYu3UtjMm9_UfReDsB7sg68Vm-1GGN6O65m7RCDXIGf7A/pub?gid=680588198&single=true&output=csv",
+  "cache_minutes": 5,
+  "edit_url_hint": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLktRnqTZBHTEqvjo3UoYu3UtjMm9_UfReDsB7sg68Vm-1GGN6O65m7RCDXIGf7A/pub",
+  "_note": "installments_csv_url รอ publish tab installments"
+}

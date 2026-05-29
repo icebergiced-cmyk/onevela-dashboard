@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔐 เข้าสู่ระบบ — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/brand/logo-icon.png">
+<style>
+  :root{--gold:#b08d57;--charcoal:#3d3d3d;--ink:#2b2b2b;--muted:#7d8794;--line:#e2e6ea;--red:#dc2626;--soft:#f7f8fa}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);
+    background:linear-gradient(135deg,#1a1a1a,#3d3d3d),url('assets/photos/village/hero.jpg') center/cover;
+    background-blend-mode:multiply;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:#fff;border-radius:18px;width:100%;max-width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);padding:30px 28px;text-align:center}
+  .logo img{max-width:160px;height:auto;margin-bottom:10px}
+  h1{font-size:22px;color:var(--charcoal);font-weight:800;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .lbl{text-align:left;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.5px;
+    margin-bottom:6px;text-transform:uppercase}
+  input{width:100%;font-family:inherit;font-size:16px;font-weight:600;
+    padding:13px 14px;border:2px solid var(--line);border-radius:11px;background:#fff;
+    color:var(--ink);margin-bottom:14px}
+  input[type=password]{font-size:22px;font-weight:700;text-align:center;letter-spacing:6px}
+  input:focus{outline:none;border-color:var(--gold)}
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:10px 14px;border-radius:9px;font-size:13px;margin-bottom:14px;display:none}
+  .err.on{display:block}
+  .btn{width:100%;font-family:inherit;font-size:16px;font-weight:800;
+    padding:14px;border:none;border-radius:11px;background:var(--gold);color:#fff;
+    cursor:pointer;letter-spacing:.5px;box-shadow:0 4px 14px rgba(176,141,87,.35)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .deny-banner{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:16px;line-height:1.5}
+  .hint{margin-top:18px;font-size:11px;color:var(--muted);line-height:1.5;
+    padding-top:14px;border-top:1px dashed var(--line)}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <img src="assets/brand/logo-vertical.png" alt="One Vela" onerror="this.style.display='none'">
+  </div>
+  <h1>เข้าสู่ระบบ</h1>
+  <div class="sub">One Vela · Two Build Development</div>
+
+  <div class="deny-banner" id="denyBanner" style="display:none">
+    ⛔ คุณไม่มีสิทธิ์เข้าหน้านี้ — กรุณา login ด้วยบัญชีที่มีสิทธิ์เพียงพอ
+  </div>
+
+  <div class="lbl">ชื่อผู้ใช้</div>
+  <input type="text" id="usernameInp" placeholder="ชื่อ" autocomplete="username">
+
+  <div class="lbl">PIN</div>
+  <input type="password" id="pinInp" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="current-password">
+
+  <div class="err" id="err"></div>
+
+  <button class="btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+
+  <div class="hint">
+    ลืม PIN? — ติดต่อ admin หรือ developer<br>
+    🔐 Session จะอยู่ 8 ชั่วโมง (กะกลางวัน)
+  </div>
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  if(params.get('deny') === '1'){
+    document.getElementById('denyBanner').style.display = '';
+  }
+
+  // ถ้า login อยู่แล้ว → redirect
+  if(Auth.isLoggedIn() && params.get('deny') !== '1' && params.get('relogin') !== '1'){
+    const next = params.get('next');
+    location.replace(next ? decodeURIComponent(next) : 'home.html');
+  }
+
+  function showErr(msg){
+    const e = document.getElementById('err');
+    e.textContent = '⚠️ '+msg;
+    e.classList.add('on');
+  }
+
+  async function doLogin(){
+    const u = document.getElementById('usernameInp').value.trim();
+    const pin = document.getElementById('pinInp').value.trim();
+    if(!u){ showErr('กรุณากรอกชื่อ'); return; }
+    if(pin.length < 4){ showErr('กรุณากรอก PIN'); return; }
+
+    document.getElementById('loginBtn').disabled = true;
+    document.getElementById('loginBtn').textContent = '⏳ กำลังตรวจสอบ...';
+    document.getElementById('err').classList.remove('on');
+
+    const r = await Auth.login(u, pin);
+    if(!r.ok){
+      showErr(r.error || 'ชื่อ หรือ PIN ไม่ถูกต้อง');
+      document.getElementById('loginBtn').disabled = false;
+      document.getElementById('loginBtn').textContent = 'เข้าสู่ระบบ';
+      return;
+    }
+    // success → redirect
+    const next = params.get('next');
+    if(next){
+      location.replace(decodeURIComponent(next));
+    } else {
+      // default landing ตาม role
+      if(r.user.role === 'foreman'){
+        location.replace('foreman-update.html');
+      } else {
+        location.replace('home.html');
+      }
+    }
+  }
+
+  // Enter submit
+  document.getElementById('pinInp').addEventListener('keydown', e => {
+    if(e.key === 'Enter') doLogin();
+  });
+  document.getElementById('usernameInp').addEventListener('keydown', e => {
+    if(e.key === 'Enter') document.getElementById('pinInp').focus();
+  });
+
+  // Auto-focus
+  document.getElementById('usernameInp').focus();
+</script>
+</body>
+</html>

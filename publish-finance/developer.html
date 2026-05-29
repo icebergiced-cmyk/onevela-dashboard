@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🔧 Developer — จัดการ Users</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2b2b2b;--charcoal:#3d3d3d;--gold:#b08d57;--gold-d:#8d6d3f;--bg:#eef1f4;--line:#e2e6ea;
+    --muted:#7d8794;--soft:#f7f8fa;--green:#16a34a;--red:#dc2626;--amber:#d97706}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);
+    padding:14px;line-height:1.5;font-size:15px}
+  .wrap{max-width:1100px;margin:0 auto}
+
+  .topbar{background:var(--charcoal);color:#fff;border-radius:14px;padding:15px 20px;
+    margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .topbar .ttl{font-weight:800;font-size:17px;margin-right:auto}
+  .topbar .ttl small{display:block;font-size:11px;opacity:.65;letter-spacing:2px;font-weight:500}
+  .topbar a,.topbar button{font-family:inherit;font-size:13px;font-weight:700;border:none;
+    border-radius:9px;padding:8px 14px;cursor:pointer;background:rgba(255,255,255,.15);
+    color:#fff;text-decoration:none}
+
+  h2.sec{font-size:16px;font-weight:800;color:var(--charcoal);margin:18px 0 10px;
+    border-left:4px solid var(--gold);padding-left:9px;display:flex;align-items:baseline;gap:8px}
+  h2.sec .ct{font-size:11.5px;color:var(--muted);font-weight:600;background:#eef1f4;
+    padding:2px 9px;border-radius:20px}
+  h2.sec .btn{margin-left:auto;font-family:inherit;font-size:13px;font-weight:700;
+    background:var(--gold);color:#fff;border:none;padding:9px 16px;border-radius:9px;cursor:pointer}
+
+  .roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:16px}
+  .role-card{background:#fff;border-radius:10px;padding:12px 14px;border-left:4px solid var(--gold);
+    box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .role-card .nm{font-size:14px;font-weight:800;color:var(--charcoal)}
+  .role-card .desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .role-card .perms{font-size:11px;color:var(--gold);margin-top:6px;font-weight:600}
+
+  .tbl-box{background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 5px rgba(0,0,0,.06);
+    overflow-x:auto;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
+  th{color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.3px;
+    padding:12px 14px;text-align:left;border-bottom:2px solid var(--line);
+    text-transform:uppercase;background:var(--soft)}
+  td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .badge-role{display:inline-block;font-size:11px;font-weight:800;color:#fff;padding:3px 9px;
+    border-radius:10px;letter-spacing:.4px}
+  .av{width:32px;height:32px;background:var(--gold);color:#fff;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;
+    margin-right:8px;vertical-align:middle}
+  .uname{font-weight:800;color:var(--charcoal);display:inline-block;vertical-align:middle}
+  .pin{font-family:monospace;color:var(--gold);font-weight:700}
+  .row-actions{display:flex;gap:5px;justify-content:flex-end}
+  .row-actions button{font-family:inherit;font-size:11.5px;font-weight:700;
+    border:1px solid var(--line);background:#fff;padding:4px 9px;border-radius:7px;cursor:pointer}
+  .row-actions button:hover{border-color:var(--gold);color:var(--gold)}
+  .row-actions button.danger:hover{border-color:var(--red);color:var(--red)}
+
+  /* Permission modal */
+  .perm-modal-bd{padding:0 18px 18px;max-height:65vh;overflow-y:auto}
+  .perm-info{background:#fff8e6;border:1px dashed var(--gold);border-radius:9px;
+    padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:#7a5a2e;line-height:1.5}
+  .perm-info b{color:var(--charcoal)}
+  .perm-group{margin-bottom:14px}
+  .perm-group h4{font-size:12px;font-weight:800;color:var(--charcoal);
+    text-transform:uppercase;letter-spacing:.4px;background:#f7f3eb;
+    padding:6px 10px;border-radius:5px;margin-bottom:6px}
+  .perm-item{display:flex;align-items:center;gap:10px;padding:7px 10px;
+    border-radius:6px;cursor:pointer;font-size:13px;user-select:none}
+  .perm-item:hover{background:var(--soft)}
+  .perm-item.role-default{opacity:.7;cursor:not-allowed;background:#f0fdf4}
+  .perm-item.role-default:hover{background:#f0fdf4}
+  .perm-item .cb{width:20px;height:20px;border:2px solid var(--line);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;background:#fff;flex-shrink:0;
+    color:#fff;font-weight:800;font-size:13px}
+  .perm-item.on .cb,.perm-item.role-default .cb{background:var(--green);border-color:var(--green)}
+  .perm-item .info{flex:1;min-width:0}
+  .perm-item .key{font-family:monospace;font-size:11px;color:var(--muted)}
+  .perm-item .lbl{font-weight:600;color:var(--charcoal)}
+  .perm-item .tag-default{font-size:10px;background:var(--green);color:#fff;padding:1px 6px;
+    border-radius:5px;font-weight:700;letter-spacing:.3px}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;
+    align-items:center;justify-content:center;padding:20px;z-index:100;overflow-y:auto}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:480px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden}
+  .modal-hd{background:var(--charcoal);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
+  .modal-hd .ttl{flex:1;font-weight:800;font-size:16px}
+  .modal-hd .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-size:16px}
+  .modal-bd{padding:18px}
+  .fld{margin-bottom:12px}
+  .fld .lbl{display:block;font-size:12px;color:var(--muted);font-weight:700;
+    letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase}
+  .fld input,.fld select{width:100%;font-family:inherit;font-size:15px;padding:10px 12px;
+    border:2px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--gold)}
+  .modal-ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;
+    justify-content:flex-end;background:var(--soft)}
+  .modal-ft button{font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;
+    border:none;border-radius:9px;cursor:pointer}
+  .btn-cancel{background:#fff;border:1px solid var(--line)!important;color:var(--charcoal)}
+  .btn-save{background:var(--green);color:#fff}
+
+  .loader{text-align:center;padding:30px;color:var(--muted)}
+  .err{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);
+    padding:10px 14px;border-radius:9px;font-size:13px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);
+    color:#fff;padding:14px 22px;border-radius:12px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none}
+  .toast.on{display:block}
+
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:20px 0}
+</style>
+</head>
+<body>
+<div id="authBar"></div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ttl">🔧 Developer — จัดการ Users<small>USER MANAGEMENT · ONE VELA</small></div>
+    <a href="home.html">← หน้าแรก</a>
+    <a href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank">📊 Sheet ↗</a>
+  </div>
+
+  <h2 class="sec">🛠️ Maintenance</h2>
+  <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.06)">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:14px;font-weight:800;color:var(--charcoal);margin-bottom:4px">📁 สร้างโฟลเดอร์ใน Drive ครบ 483 แปลง</div>
+        <div style="font-size:12px;color:var(--muted)">สร้างโฟลเดอร์ "แปลง XXX/" + sub-folders (ผ่อนดาวน์/ค่าส่วนกลาง/ใบชี้แจง/แยกเช็ค) — รันครั้งเดียว ~3-5 นาที</div>
+      </div>
+      <button id="btnPrewarm" onclick="runPrewarm()" style="font-family:inherit;font-size:14px;font-weight:700;
+        background:var(--gold);color:#fff;border:none;padding:11px 20px;border-radius:9px;cursor:pointer">
+        📁 เริ่มสร้างโฟลเดอร์
+      </button>
+    </div>
+    <div id="prewarmProgress" style="display:none;margin-top:14px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">
+        <span id="prewarmLabel">กำลังเริ่ม...</span>
+      </div>
+      <div style="height:10px;background:var(--soft);border-radius:5px;overflow:hidden">
+        <div id="prewarmBar" style="height:100%;background:linear-gradient(90deg,var(--gold),#d4b274);width:0%;transition:width .3s"></div>
+      </div>
+      <div id="prewarmLog" style="margin-top:8px;font-size:11.5px;color:var(--muted);max-height:120px;overflow-y:auto;font-family:monospace"></div>
+    </div>
+  </div>
+
+  <h2 class="sec">🎭 Roles + สิทธิ์ <span class="ct">7 บทบาท</span></h2>
+  <div class="roles" id="rolesGrid"></div>
+
+  <h2 class="sec">
+    👥 รายชื่อผู้ใช้ <span class="ct" id="userCount">—</span>
+    <button class="btn" onclick="openAdd()">+ เพิ่ม User</button>
+  </h2>
+  <div id="userBox">
+    <div class="loader">⏳ กำลังโหลด...</div>
+  </div>
+
+  <footer>Developer · One Vela — Two Build Development</footer>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="ttl" id="modalTtl">+ เพิ่ม User</div>
+      <button class="x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fld">
+        <label class="lbl">ชื่อผู้ใช้</label>
+        <input type="text" id="inUsername" placeholder="เช่น สมชาย">
+      </div>
+      <div class="fld">
+        <label class="lbl">PIN (4-6 หลัก)</label>
+        <input type="text" id="inPin" inputmode="numeric" placeholder="เช่น 1234">
+      </div>
+      <div class="fld">
+        <label class="lbl">บทบาท</label>
+        <select id="inRole"></select>
+      </div>
+      <div class="fld">
+        <label class="lbl">ใช้งาน</label>
+        <select id="inActive">
+          <option value="1">✓ ใช้งาน</option>
+          <option value="0">✕ ระงับ</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-save" id="btnSave" onclick="saveUser()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Permission modal -->
+<div class="modal-bg" id="permModal">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-hd">
+      <div class="ttl" id="permTtl">🔑 จัดการสิทธิ์ — </div>
+      <button class="x" onclick="closePermModal()">✕</button>
+    </div>
+    <div class="perm-modal-bd">
+      <div class="perm-info">
+        💡 <b>วิธีใช้:</b><br>
+        — สิทธิ์<b>สีเขียวพื้น (default)</b> มาจาก role — แก้ไม่ได้<br>
+        — ติ๊ก ☑️ เพื่อ <b>เพิ่มสิทธิ์เฉพาะคนนี้</b> นอกเหนือจาก role
+      </div>
+      <div id="permList"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-cancel" onclick="closePermModal()">ยกเลิก</button>
+      <button class="btn-save" id="btnSavePerm" onclick="savePerms()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/auth-client.js"></script>
+<script>
+  Auth.require('*');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+
+  let USERS = [];
+  let editingId = null;
+
+  const ROLES = Auth.ROLE_INFO;
+  const ROLE_DESCS = {
+    developer: 'เข้าได้ทุกหน้า + จัดการ user/role',
+    admin: 'ดูทุกแดชบอร์ด + จัดการก่อสร้าง + งานโอน — แต่จัดการ user ไม่ได้',
+    sales: 'แดชบอร์ดขาย + ออกเอกสาร + ลูกค้าวอร์คอิน',
+    finance: 'ดู/บันทึก ผ่อนดาวน์ ค่าส่วนกลาง ใบเสร็จ',
+    foreman: 'เข้าได้แค่หน้าโฟร์แมน — อัปเดตงานหน้าไซต์',
+    transfer: 'จัดการเอกสารวันโอนกรรมสิทธิ์',
+    viewer: 'ดูแดชบอร์ดได้ — บันทึก/แก้ไม่ได้'
+  };
+
+  function renderRoles(){
+    const el = document.getElementById('rolesGrid');
+    el.innerHTML = Object.entries(ROLES).map(([key, r]) => {
+      const perms = Auth.ROLE_PERMS[key] || [];
+      const tag = perms[0] === '*' ? '🔓 ทุกสิทธิ์' : `🔑 ${perms.length} permissions`;
+      return `
+        <div class="role-card" style="border-left-color:${r.color}">
+          <div class="nm" style="color:${r.color}">${r.label}</div>
+          <div class="desc">${ROLE_DESCS[key]||''}</div>
+          <div class="perms">${tag}</div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadUsers(){
+    try {
+      const r = await Auth.api('userList');
+      if(!r.ok){
+        document.getElementById('userBox').innerHTML = '<div class="err">⚠️ '+esc(r.error||'โหลดไม่สำเร็จ')+'</div>';
+        return;
+      }
+      USERS = r.users || [];
+      renderUsers();
+    } catch(e){
+      document.getElementById('userBox').innerHTML = '<div class="err">⚠️ '+esc(e.message||'โหลดไม่สำเร็จ')+'</div>';
+    }
+  }
+
+  function renderUsers(){
+    document.getElementById('userCount').textContent = USERS.length + ' คน';
+    const html = `
+      <div class="tbl-box">
+        <table>
+          <thead><tr>
+            <th>ผู้ใช้</th><th>PIN</th><th>บทบาท</th><th>ใช้งาน</th><th>สร้างเมื่อ</th><th style="text-align:right">การจัดการ</th>
+          </tr></thead>
+          <tbody>` +
+      USERS.map(u => {
+        const r = ROLES[u.role] || {label:u.role,color:'#666'};
+        const isActive = String(u.active) === '1' || String(u.active).toLowerCase() === 'true';
+        return `
+          <tr>
+            <td><span class="av" style="background:${r.color}">${esc((u.display_name||'?').charAt(0))}</span><span class="uname">${esc(u.display_name)}</span></td>
+            <td><span class="pin">${esc(u.phone)}</span></td>
+            <td><span class="badge-role" style="background:${r.color}">${r.label}</span></td>
+            <td style="color:${isActive?'var(--green)':'var(--muted)'};font-weight:700">${isActive?'✓ ใช้งาน':'✕ ระงับ'}</td>
+            <td style="font-size:11.5px;color:var(--muted)">${esc(String(u.created_at||'').slice(0,10))}</td>
+            <td>
+              <div class="row-actions">
+                <button onclick="openPerms('${esc(u.user_id)}')" style="background:#fff8e6;border-color:#f5d8a0;color:#7a5a2e">🔑 สิทธิ์</button>
+                <button onclick="openEdit('${esc(u.user_id)}')">แก้ไข</button>
+                <button class="danger" onclick="delUser('${esc(u.user_id)}','${esc(u.display_name)}','${esc(u.role)}')">ลบ</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('') +
+      '</tbody></table></div>';
+    document.getElementById('userBox').innerHTML = html;
+  }
+
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function populateRoleSel(){
+    const sel = document.getElementById('inRole');
+    sel.innerHTML = Object.entries(ROLES).map(([key, r]) =>
+      `<option value="${key}">${r.label}</option>`).join('');
+  }
+
+  function openAdd(){
+    editingId = null;
+    document.getElementById('modalTtl').textContent = '+ เพิ่ม User';
+    document.getElementById('inUsername').value = '';
+    document.getElementById('inPin').value = '';
+    document.getElementById('inRole').value = 'viewer';
+    document.getElementById('inActive').value = '1';
+    document.getElementById('modal').classList.add('on');
+  }
+  function openEdit(id){
+    const u = USERS.find(x => String(x.user_id) === String(id));
+    if(!u) return;
+    editingId = id;
+    document.getElementById('modalTtl').textContent = '✏️ แก้ไข User';
+    document.getElementById('inUsername').value = u.display_name;
+    document.getElementById('inPin').value = u.phone;
+    document.getElementById('inRole').value = u.role;
+    document.getElementById('inActive').value = String(u.active) === '1' || String(u.active).toLowerCase()==='true' ? '1' : '0';
+    document.getElementById('modal').classList.add('on');
+  }
+  function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+
+  async function saveUser(){
+    const username = document.getElementById('inUsername').value.trim();
+    const pin = document.getElementById('inPin').value.trim();
+    const role = document.getElementById('inRole').value;
+    const active = document.getElementById('inActive').value === '1';
+    if(!username){ alert('กรุณากรอกชื่อ'); return; }
+    if(pin.length < 4){ alert('PIN ต้อง 4-6 หลัก'); return; }
+
+    document.getElementById('btnSave').disabled = true;
+    document.getElementById('btnSave').textContent = '⏳';
+    try {
+      const data = {username, pin, role, active};
+      if(editingId) data.userId = editingId;
+      const r = await Auth.api('userSave', {data: JSON.stringify(data)});
+      if(!r.ok){ alert(r.error); return; }
+      closeModal();
+      showToast('✅ '+(editingId?'แก้ไข':'เพิ่ม')+' user สำเร็จ');
+      await loadUsers();
+    } catch(e){
+      alert('บันทึกไม่สำเร็จ: '+e.message);
+    } finally {
+      document.getElementById('btnSave').disabled = false;
+      document.getElementById('btnSave').textContent = 'บันทึก';
+    }
+  }
+
+  async function delUser(id, name, role){
+    if(!confirm(`ลบ user "${name}" (${role})?`)) return;
+    try {
+      const r = await Auth.api('userDelete', {userId: id});
+      if(!r.ok){ alert(r.error); return; }
+      showToast('✅ ลบ user แล้ว');
+      await loadUsers();
+    } catch(e){ alert('ลบไม่สำเร็จ: '+e.message); }
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'), 3000);
+  }
+
+  // ── Permission management ──
+  let ALL_PERMS = [];
+  let ROLE_PERMS_BACK = {};
+  let permEditingUser = null;
+  let permSelectedCustom = new Set();
+
+  async function loadPermissionList(){
+    if(ALL_PERMS.length) return;
+    try {
+      const r = await Auth.api('listAllPermissions');
+      if(r.ok){
+        ALL_PERMS = r.permissions || [];
+        ROLE_PERMS_BACK = r.rolePerms || {};
+      }
+    } catch(e){}
+  }
+
+  async function openPerms(userId){
+    const u = USERS.find(x => String(x.user_id) === String(userId));
+    if(!u) return;
+    permEditingUser = u;
+    await loadPermissionList();
+
+    // parse custom_permissions ที่มีอยู่
+    let custom = [];
+    try {
+      if(u.custom_permissions){
+        const v = String(u.custom_permissions).trim();
+        if(v && v !== 'null') custom = JSON.parse(v);
+        if(!Array.isArray(custom)) custom = [];
+      }
+    } catch(e){ custom = []; }
+    permSelectedCustom = new Set(custom);
+
+    document.getElementById('permTtl').textContent =
+      '🔑 จัดการสิทธิ์ — ' + u.display_name + ' (' + u.role + ')';
+    renderPermList();
+    document.getElementById('permModal').classList.add('on');
+  }
+
+  function closePermModal(){
+    document.getElementById('permModal').classList.remove('on');
+    permEditingUser = null;
+  }
+
+  function renderPermList(){
+    const role = permEditingUser.role;
+    const rolePerms = ROLE_PERMS_BACK[role] || [];
+    const isDeveloper = rolePerms.indexOf('*') >= 0;
+
+    if(isDeveloper){
+      document.getElementById('permList').innerHTML =
+        '<div style="padding:20px;text-align:center;color:var(--muted)">' +
+        '🔓 <b>Developer</b> มีสิทธิ์ทั้งหมด — ไม่ต้องกำหนดเพิ่ม</div>';
+      document.getElementById('btnSavePerm').style.display = 'none';
+      return;
+    }
+    document.getElementById('btnSavePerm').style.display = '';
+
+    // Group by .group field
+    const groups = {};
+    ALL_PERMS.forEach(p => {
+      if(!groups[p.group]) groups[p.group] = [];
+      groups[p.group].push(p);
+    });
+
+    let html = '';
+    Object.keys(groups).forEach(groupName => {
+      html += '<div class="perm-group"><h4>'+esc(groupName)+'</h4>';
+      groups[groupName].forEach(perm => {
+        const isRoleDefault = rolePerms.indexOf(perm.key) >= 0;
+        const isCustom = permSelectedCustom.has(perm.key);
+        const isOn = isRoleDefault || isCustom;
+        const cls = isRoleDefault ? 'role-default' : (isCustom ? 'on' : '');
+        html += `<div class="perm-item ${cls}" onclick="${isRoleDefault?'':"togglePerm('"+esc(perm.key)+"')"}">
+          <div class="cb">${isOn?'✓':''}</div>
+          <div class="info">
+            <div class="lbl">${esc(perm.label)}</div>
+            <div class="key">${esc(perm.key)}</div>
+          </div>
+          ${isRoleDefault?'<span class="tag-default">role</span>':''}
+        </div>`;
+      });
+      html += '</div>';
+    });
+    document.getElementById('permList').innerHTML = html;
+  }
+
+  function togglePerm(key){
+    if(permSelectedCustom.has(key)) permSelectedCustom.delete(key);
+    else permSelectedCustom.add(key);
+    renderPermList();
+  }
+
+  async function savePerms(){
+    if(!permEditingUser) return;
+    const data = {
+      userId: permEditingUser.user_id,
+      username: permEditingUser.display_name,
+      pin: permEditingUser.phone,
+      role: permEditingUser.role,
+      active: String(permEditingUser.active) === '1' || String(permEditingUser.active).toLowerCase() === 'true',
+      customPermissions: [...permSelectedCustom]
+    };
+    document.getElementById('btnSavePerm').disabled = true;
+    document.getElementById('btnSavePerm').textContent = '⏳';
+    try {
+      const r = await Auth.api('userSave', {data: JSON.stringify(data)});
+      if(!r.ok){ alert(r.error); return; }
+      closePermModal();
+      showToast('✅ บันทึกสิทธิ์ของ '+permEditingUser.display_name+' แล้ว');
+      await loadUsers();
+    } catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+    finally {
+      document.getElementById('btnSavePerm').disabled = false;
+      document.getElementById('btnSavePerm').textContent = '💾 บันทึก';
+    }
+  }
+
+  // ── Prewarm folders ──
+  async function runPrewarm(){
+    if(!confirm('สร้างโฟลเดอร์ครบ 483 แปลงใน Drive?\n(ใช้เวลา ~3-5 นาที — ห้ามปิดหน้า)')) return;
+    const btn = document.getElementById('btnPrewarm');
+    btn.disabled = true; btn.textContent = '⏳ กำลังทำงาน...';
+    document.getElementById('prewarmProgress').style.display = '';
+    const logEl = document.getElementById('prewarmLog');
+    logEl.innerHTML = '';
+
+    let start = 1, total = 0, done = 0;
+    try {
+      while(true){
+        const r = await Auth.api('prewarmPlotFolders', {start, count: 30}, 90000);
+        if(!r.ok){
+          logEl.innerHTML += '<div style="color:var(--red)">⚠️ '+esc(r.error||'')+'</div>';
+          break;
+        }
+        total = r.total;
+        done += r.processed;
+        logEl.innerHTML += '<div>✓ '+r.from+' → '+r.to+' ('+r.processed+' แปลง)</div>';
+        logEl.scrollTop = logEl.scrollHeight;
+        const pct = Math.round(done/total*100);
+        document.getElementById('prewarmBar').style.width = pct+'%';
+        document.getElementById('prewarmLabel').textContent =
+          'สร้างแล้ว '+done+'/'+total+' แปลง ('+pct+'%)';
+        if(!r.hasMore){
+          showToast('✅ สร้างครบ '+done+' แปลงแล้ว!');
+          break;
+        }
+        start = r.to + 1;
+        await new Promise(rsv => setTimeout(rsv, 1500));
+      }
+    } catch(e){
+      logEl.innerHTML += '<div style="color:var(--red)">⚠️ '+esc(e.message||'')+'</div>';
+    } finally {
+      btn.disabled = false; btn.textContent = '📁 รันอีกครั้ง (ทำซ้ำได้)';
+    }
+  }
+
+  populateRoleSel();
+  renderRoles();
+  loadUsers();
+</script>
+</body>
+</html>

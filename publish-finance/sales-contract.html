@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สัญญาจะซื้อจะขาย — One Vela</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1e293b;--muted:#64748b;--line:#d9dee5;--brand:#3d3d3d;--accent:#b08d57;--bg:#eef1f4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;color:var(--ink);background:var(--bg);padding:14px;line-height:1.5}
+  .wrap{max-width:900px;margin:0 auto}
+  .toolbar{background:var(--brand);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:14px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .toolbar .ttl{font-weight:800;font-size:16px;margin-right:auto}
+  .toolbar .ttl small{display:block;font-size:11px;opacity:.7;font-weight:500;letter-spacing:2px}
+  .toolbar button{font-family:inherit;font-size:13.5px;font-weight:700;border:none;border-radius:9px;
+    padding:9px 13px;cursor:pointer;transition:.15s}
+  .b-print{background:#fff;color:var(--brand)}
+  .b-line{background:#06c755;color:#fff}
+  .b-save{background:var(--accent);color:#fff}
+  .b-log{background:rgba(255,255,255,.18);color:#fff}
+  .b-reset{background:rgba(255,255,255,.1);color:#fff}
+  .toolbar button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+  .card{background:#fff;border-radius:13px;padding:15px 16px 8px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .card h2{font-size:14px;font-weight:800;color:var(--brand);margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 12px}
+  .grid.g2{grid-template-columns:1fr 1fr}
+  .grid .full{grid-column:1/-1}
+  .f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
+  .f input{width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:14px;color:var(--ink)}
+  .f input:focus{outline:none;border-color:var(--accent)}
+  .f input.num{text-align:right}
+  .f input[readonly]{background:#f1f5f9;font-weight:700}
+  .hint{font-size:11.5px;color:var(--muted);margin:-2px 0 10px}
+  .lookup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f3efe6;
+    border:1px solid var(--accent);border-radius:9px;padding:8px 12px;margin-bottom:11px;
+    font-size:12.5px;color:var(--muted)}
+  .lk-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;
+    font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .lk-btn:hover{filter:brightness(1.07)}
+
+  .doc{background:#fff;border-radius:4px;box-shadow:0 3px 16px rgba(0,0,0,.13);
+    padding:44px 50px;margin-bottom:14px;font-size:13px;color:#1c1c1c;line-height:1.95}
+  .doc .ct{text-align:center;font-weight:800;color:var(--brand)}
+  .doc .ct.t1{font-size:18px}
+  .doc .ct.t2{font-size:15px;margin-bottom:2px}
+  .doc .rt{text-align:right;font-size:12.5px}
+  .doc .ce{text-align:center;font-size:12.5px}
+  .clause-h{font-weight:800;color:var(--brand);margin-top:13px;font-size:13.5px}
+  p.cl{margin:5px 0;text-indent:34px;text-align:justify}
+  p.cl.ni{text-indent:0}
+  p.sub{margin:4px 0 4px 22px;text-align:justify}
+  .fv{font-weight:700;border-bottom:1px dotted #888;padding:0 3px}
+  .pagebreak{border-top:1px dashed #c8cdd4;margin:14px 0;text-align:center;font-size:10px;color:#aab}
+  table.inst{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+  table.inst th,table.inst td{border:1px solid #666;padding:3px 7px}
+  table.inst th{background:#f1f3f5;font-weight:700;text-align:center}
+  table.inst td.c{text-align:center}
+  table.inst td.r{text-align:right}
+  table.inst tr.tot td{background:#faf6ef;font-weight:800}
+  .wlist{margin:2px 0 2px 22px;font-size:12.5px}
+  .wlist div{margin:1px 0}
+  .signs{display:flex;justify-content:space-around;gap:24px;margin-top:20px;text-align:center}
+  .signs .s{flex:1}
+  .signs .sl{border-bottom:1px dotted #777;padding-top:26px;margin-bottom:3px}
+  .signs .sc{font-size:11.5px}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin:6px 0 22px}
+  @media(max-width:620px){.grid,.grid.g2{grid-template-columns:1fr}.doc{padding:24px 18px}}
+  @media print{
+    body{background:#fff;padding:0}
+    .toolbar,.card,.hint,footer,.no-print{display:none!important}
+    .doc{box-shadow:none;border-radius:0;padding:0;margin:0;font-size:12.5px;line-height:1.85}
+    .pagebreak{page-break-before:always;border:none}
+    @page{size:A4;margin:16mm 16mm}
+  }
+</style>
+</head>
+<body>
+<a href="home.html" class="home-fab" title="กลับหน้าแรก">🏠 หน้าแรก</a>
+<style>.home-fab{position:fixed;left:14px;bottom:14px;z-index:99999;background:#3d3d3d;color:#fff;text-decoration:none;font-family:Sarabun,sans-serif;font-weight:700;font-size:13px;padding:9px 15px;border-radius:22px;box-shadow:0 3px 12px rgba(0,0,0,.28)}.home-fab:hover{background:#b08d57}body{background:linear-gradient(rgba(246,244,239,.94),rgba(246,244,239,.94)),url('assets/photos/village/hero.jpg') center/cover fixed no-repeat!important}.b-print,.b-line,.b-save,.b-log,.b-reset,.btn-print,.btn-line,.btn-reset{background:#efeae1!important;color:#3d3d3d!important;border:1px solid #ddd5c6!important;box-shadow:none!important}.b-print:hover,.b-line:hover,.b-save:hover,.b-log:hover,.b-reset:hover,.btn-print:hover,.btn-line:hover,.btn-reset:hover{background:#b08d57!important;color:#fff!important;border-color:#b08d57!important}@media print{.home-fab{display:none!important}body{background:#fff!important}}</style>
+<div class="wrap">
+
+  <div class="toolbar no-print">
+    <div class="ttl">สัญญาจะซื้อจะขาย<small>CONTRACT</small></div>
+    <button class="b-print" onclick="printAndUpload()">🖨️ พิมพ์ / บันทึก / อัปโหลด</button>
+    <button class="b-log" onclick="saveToFolder()">💾 เก็บเข้าโฟลเดอร์</button>
+    <button class="b-line" onclick="shareLine()">📲 แชร์ LINE</button>
+    <button class="b-save" onclick="saveLog()">💾 บันทึก Log</button>
+    <button class="b-log" onclick="exportLog()">📊 ส่งออก Log</button>
+    <button class="b-reset" onclick="resetForm()">↺ ล้าง</button>
+  </div>
+
+  <!-- ===== FORM ===== -->
+  <div class="card">
+    <h2>📄 ข้อมูลสัญญา</h2>
+    <div class="grid">
+      <div class="f"><label>เลขที่สัญญา</label><input id="docNo" type="text" placeholder="070269-C140"></div>
+      <div class="f"><label>วันที่ทำสัญญา</label><input id="docDate" type="date"></div>
+      <div class="f"><label>เลขที่จองอ้างอิง</label><input id="bookingNo" type="text" placeholder="070269-C140"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 ผู้จะซื้อ</h2>
+    <div class="grid">
+      <div class="f"><label>ชื่อ-นามสกุล</label><input id="bName" type="text"></div>
+      <div class="f"><label>สัญชาติ</label><input id="bNation" type="text"></div>
+      <div class="f"><label>เลขบัตรประชาชน</label><input id="bId" type="text"></div>
+      <div class="f"><label>ที่อยู่เลขที่</label><input id="aNo" type="text"></div>
+      <div class="f"><label>หมู่ที่</label><input id="aMoo" type="text"></div>
+      <div class="f"><label>ตำบล</label><input id="aTambon" type="text"></div>
+      <div class="f"><label>อำเภอ</label><input id="aAmphoe" type="text"></div>
+      <div class="f"><label>จังหวัด</label><input id="aProvince" type="text"></div>
+      <div class="f"><label>รหัสไปรษณีย์</label><input id="aZip" type="text"></div>
+      <div class="f full"><label>โทรศัพท์</label><input id="bPhone" type="text"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏠 ทรัพย์สิน (ข้อ 2)</h2>
+    <div class="lookup">
+      <span>กรอก "แปลงขายเลขที่" ด้านล่าง แล้วกด →</span>
+      <button type="button" class="lk-btn" onclick="fetchPlot()">🔍 ดึงราคา/ข้อมูลจากฐานข้อมูล</button>
+    </div>
+    <div class="grid">
+      <div class="f"><label>เนื้อที่ (ตร.ว.)</label><input id="areaWa" type="text" placeholder="41.3"></div>
+      <div class="f"><label>แปลงขายเลขที่</label><input id="plotNo" type="text" placeholder="140"></div>
+      <div class="f"><label>บ้านเลขที่</label><input id="houseNo" type="text" placeholder="89/140"></div>
+      <div class="f full"><label>ประเภทสิ่งปลูกสร้าง</label><input id="buildType" type="text" placeholder="บ้านแฝดชั้นเดียว"></div>
+      <div class="f full"><label>รายละเอียด TYPE</label><input id="typeDetail" type="text" placeholder="TYPE C SECOND 3 ห้องนอน 2 ห้องน้ำ 1 ครัว 2 ที่จอดรถ"></div>
+      <div class="f"><label>โฉนดที่ดินเลขที่</label><input id="deedNo" type="text"></div>
+      <div class="f"><label>หน้าสำรวจ</label><input id="surveyNo" type="text"></div>
+      <div class="f"><label>เลขที่ดิน</label><input id="landNo" type="text"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💰 ราคา &amp; การชำระเงิน (ข้อ 3-4)</h2>
+    <div class="grid">
+      <div class="f"><label>ราคาที่ดินพร้อมสิ่งปลูกสร้าง (บาท)</label><input id="price" class="num" type="number" min="0" placeholder="3179000"></div>
+      <div class="f"><label>เงินจอง (บาท)</label><input id="bookAmt" class="num" type="number" min="0" placeholder="5000"></div>
+      <div class="f"><label>วันที่จอง</label><input id="bookDate" type="date"></div>
+      <div class="f"><label>เงินทำสัญญา (บาท)</label><input id="contractAmt" class="num" type="number" min="0" placeholder="10000"></div>
+      <div class="f"><label>จำนวนงวดผ่อนดาวน์</label><input id="instN" class="num" type="number" min="0" placeholder="12"></div>
+      <div class="f"><label>งวดละ (บาท)</label><input id="instAmt" class="num" type="number" min="0" placeholder="8000"></div>
+      <div class="f"><label>ชำระภายในวันที่ (ของเดือน)</label><input id="instDay" class="num" type="number" min="1" max="31" placeholder="30"></div>
+      <div class="f"><label>เริ่มงวดเดือน</label><input id="startMonth" type="month"></div>
+      <div class="f"><label>รวมผ่อนดาวน์ (อัตโนมัติ)</label><input id="downView" class="num" type="text" readonly></div>
+      <div class="f full"><label>คงเหลือชำระวันโอนกรรมสิทธิ์ (อัตโนมัติ)</label><input id="transferView" class="num" type="text" readonly></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📑 ใบอนุญาตก่อสร้าง (ข้อ 7.1) &amp; ผู้ลงนาม</h2>
+    <div class="grid">
+      <div class="f"><label>ใบอนุญาตก่อสร้างเลขที่</label><input id="permitNo" type="text" placeholder="(ถ้ามี)"></div>
+      <div class="f"><label>ลงวันที่</label><input id="permitDate" type="text" placeholder="(ถ้ามี)"></div>
+      <div class="f"><label>กรรมการผู้มีอำนาจลงนาม</label><input id="director" type="text"></div>
+      <div class="f"><label>พยานคนที่ 1</label><input id="wit1" type="text"></div>
+      <div class="f"><label>พยานคนที่ 2</label><input id="wit2" type="text"></div>
+    </div>
+  </div>
+
+  <!-- ===== DOCUMENT ===== -->
+  <div class="doc" id="doc">
+    <div class="ct t1">สัญญาจะซื้อจะขายที่ดินจัดสรรพร้อมสิ่งปลูกสร้าง</div>
+    <div class="ct t2">โครงการ วันเวลาอมตะชลบุรี</div>
+    <div class="rt">สัญญาเลขที่ <span class="fv" id="o_docNo">-</span></div>
+    <div class="ce">ทำที่ สำนักงานขายโครงการวันเวลาอมตะชลบุรี</div>
+    <div class="ce">89 หมู่ที่ 1 ต.คลองตำหรุ อ.เมือง จ.ชลบุรี 20000</div>
+    <div class="rt">วันที่ <span class="fv" id="o_docDate">-</span></div>
+
+    <p class="cl">สัญญาฉบับนี้ทำขึ้น ระหว่าง บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด โดย
+      <span class="fv" id="o_director">-</span> กรรมการผู้มีอำนาจลงนาม สำนักงานตั้งอยู่ที่ 89 หมู่ที่ 1
+      ตำบลคลองตำหรุ อำเภอเมืองชลบุรี จังหวัดชลบุรี ซึ่งต่อไปในสัญญานี้เรียกว่า &#8220;ผู้จะขาย&#8221; ฝ่ายหนึ่ง</p>
+    <p class="cl">กับ <span class="fv" id="o_bName">-</span> สัญชาติ <span class="fv" id="o_bNation">-</span>
+      บัตรประชาชนเลขที่ <span class="fv" id="o_bId">-</span> ที่อยู่ <span class="fv" id="o_bAddr">-</span>
+      โทรศัพท์ <span class="fv" id="o_bPhone">-</span> ซึ่งต่อไปในสัญญานี้เรียกว่า &#8220;ผู้จะซื้อ&#8221; อีกฝ่ายหนึ่ง
+      คู่สัญญาทั้งสองฝ่ายตกลงทำสัญญากันโดยมีข้อความดังต่อไปนี้</p>
+
+    <div class="clause-h">ข้อ 1 คำรับรองของผู้จะขาย</div>
+    <p class="cl">ผู้จะขายขอรับรองว่าผู้จะขายเป็นผู้จัดสรรที่ดิน &#8220;โครงการ วันเวลาอมตะชลบุรี&#8221;
+      สำนักงานขายตั้งอยู่ที่ 89 หมู่ที่ 1 ตำบลคลองตำหรุ อำเภอเมือง จังหวัดชลบุรี
+      โดยได้รับอนุญาตให้ทำการจัดสรรที่ดินตามกฎหมายว่าด้วยการจัดสรรที่ดิน
+      ตามใบอนุญาตเลขที่ 78/2568 ลงวันที่ 17 ตุลาคม 2568</p>
+
+    <div class="clause-h">ข้อ 2 ข้อตกลงจะซื้อจะขาย</div>
+    <p class="cl">ผู้จะขายตกลงจะขาย และผู้จะซื้อตกลงจะซื้อที่ดินพร้อมสิ่งปลูกสร้างในบริเวณโครงการ
+      เนื้อที่ <span class="fv" id="o_areaWa">-</span> ตารางวา แปลงขายเลขที่ <span class="fv" id="o_plotNo">-</span>
+      บ้านเลขที่ <span class="fv" id="o_houseNo">-</span> ปรากฏตามแผนผังโครงการที่ยื่นขอทำการจัดสรรที่ดิน
+      ตามเอกสารผนวก 3 และสิ่งปลูกสร้างเป็น <span class="fv" id="o_buildType">-</span>
+      <span class="fv" id="o_typeDetail">-</span> จำนวน 1 หลัง</p>
+    <p class="cl">ในขณะที่ทำสัญญาฉบับนี้ ที่ดินตามวรรคหนึ่ง โฉนดที่ดินเลขที่ <span class="fv" id="o_deedNo">-</span>
+      หน้าสำรวจ <span class="fv" id="o_surveyNo">-</span> เลขที่ดิน <span class="fv" id="o_landNo">-</span>
+      ตำบลคลองตำหรุ อำเภอเมืองชลบุรี จังหวัดชลบุรี เป็นกรรมสิทธิ์ของ &#8220;ผู้จะขาย&#8221;</p>
+
+    <div class="clause-h">ข้อ 3 ราคาจะซื้อจะขาย</div>
+    <p class="sub">3.1 ผู้จะซื้อและผู้จะขาย ตกลงจะซื้อจะขายที่ดินพร้อมสิ่งปลูกสร้างตามข้อ 2
+      ในราคา เป็นเงิน <span class="fv" id="o_price">0</span> บาท (<span id="o_priceTxt">-</span>)</p>
+    <p class="sub">3.2 ในกรณีที่ยังไม่ได้แบ่งแยกโฉนดที่ดิน เมื่อได้แบ่งแยกแล้วหากปรากฏว่ามีเนื้อที่ดินเพิ่มขึ้น
+      หรือลดลงจากจำนวนที่ระบุไว้ในสัญญา คู่สัญญาตกลงคิดราคาที่ดินส่วนที่เพิ่มขึ้นหรือลดลงในราคาต่อหน่วย
+      ตารางวาละ 30,000 บาท (สามหมื่นบาทถ้วน) และให้นำราคาที่ดินในส่วนที่เพิ่มขึ้นหรือลดลง
+      ไปเพิ่มหรือลดจากราคาตามข้อ 3.1 และจำนวนเงินที่ต้องชำระตามข้อ 4.2</p>
+
+    <div class="pagebreak">— หน้า 2 —</div>
+
+    <div class="clause-h">ข้อ 4 การชำระเงินและการโอนกรรมสิทธิ์</div>
+    <p class="sub">4.1 คู่สัญญาตกลงให้ถือเอาเงินที่ผู้จะซื้อได้ชำระเป็นเงินมัดจำในวันที่จอง ซึ่งต่อไปเรียกว่า
+      &#8220;เงินจอง&#8221; เมื่อวันที่ <span class="fv" id="o_bookDate">-</span> จำนวนเงิน
+      <span class="fv" id="o_bookAmt">0</span> บาท (<span id="o_bookAmtTxt">-</span>) และเงินทำสัญญา
+      จำนวนเงิน <span class="fv" id="o_contractAmt">0</span> บาท (<span id="o_contractAmtTxt">-</span>)
+      รวมเงินที่ผู้จะซื้อได้ชำระให้แก่ผู้จะขายไปแล้วทั้งสิ้น <span class="fv" id="o_paidSum">0</span> บาท
+      (<span id="o_paidSumTxt">-</span>) เป็นการชำระราคาตามข้อ 3.1 ส่วนหนึ่ง</p>
+    <p class="sub">4.2 ผู้จะซื้อตกลงชำระผ่อนดาวน์จำนวนเงิน <span class="fv" id="o_downTotal">0</span> บาท
+      (<span id="o_downTotalTxt">-</span>) เป็น <span class="fv" id="o_instN">-</span> งวด ดังนี้</p>
+    <table class="inst"><thead><tr>
+      <th style="width:50px">งวดที่</th><th>กำหนดชำระ</th><th style="width:110px">จำนวนเงิน (บาท)</th>
+    </tr></thead><tbody id="o_instBody"></tbody></table>
+    <p class="sub">ในวันจดทะเบียนโอนกรรมสิทธิ์ ผู้จะซื้อจะต้องชำระเงินทั้งสิ้นจำนวน
+      <span class="fv" id="o_transfer">0</span> บาท (<span id="o_transferTxt">-</span>)
+      ภายใน 30 วัน หรือเมื่อสิ่งปลูกสร้างแล้วเสร็จ ทั้งนี้ผู้จะขายจะต้องแจ้งกำหนดวันจดทะเบียนโอนกรรมสิทธิ์
+      ให้ผู้จะซื้อทราบล่วงหน้าไม่น้อยกว่าเจ็ดวัน</p>
+
+    <div class="clause-h">ข้อ 5 หลักฐานการชำระเงิน</div>
+    <p class="cl">ในการชำระเงินค่าที่ดินพร้อมสิ่งปลูกสร้าง ผู้จะขายต้องออกหลักฐานเป็นหนังสือลงลายมือชื่อ
+      ผู้จะขายหรือผู้รับเงินให้แก่ผู้จะซื้อ และผู้จะขายยอมรับหลักฐานการชำระเงินดังกล่าว
+      เป็นหลักฐานการแสดงการชำระราคาที่ดินพร้อมสิ่งปลูกสร้างด้วย</p>
+
+    <div class="clause-h">ข้อ 6 สาธารณูปโภคและบริการสาธารณะ</div>
+    <p class="sub">6.1 ผู้จะขายต้องจัดให้มีสาธารณูปโภคและบริการสาธารณะในโครงการจัดสรรที่ดิน
+      ตามที่ได้รับอนุญาตจากคณะกรรมการจัดสรรที่ดินจังหวัดชลบุรี ทั้งนี้การจัดให้มีบริการสาธารณะ
+      อาจเปลี่ยนแปลงได้ตามข้อกำหนดเกี่ยวกับการจัดสรรที่ดินจังหวัดชลบุรี</p>
+    <p class="sub">6.2 ในกรณีผู้จะขายเป็นผู้ดำเนินการติดตั้งมาตรวัดปริมาตรและปริมาณการใช้สาธารณูปโภค
+      ผู้จะขายต้องโอนสิทธิมาตรวัดให้เป็นชื่อของผู้จะซื้อภายใน 60 วัน นับแต่วันจดทะเบียนโอนกรรมสิทธิ์
+      ทั้งนี้ค่าธรรมเนียมและค่าใช้จ่ายในการติดตั้งและโอนสิทธิ ผู้จะขายจะเป็นผู้ชำระ</p>
+    <p class="sub">6.3 ผู้จะซื้อยินยอมออกค่าใช้จ่ายในการใช้บริการและค่าบำรุงรักษาบริการสาธารณะ
+      ในอัตราเนื้อที่ดินที่ตกลงจะซื้อจะขายตามข้อ 2 คิดตารางวาละ 30 บาทต่อเดือน
+      ซึ่งเป็นอัตราที่คณะกรรมการจัดสรรที่ดินจังหวัดชลบุรีให้ความเห็นชอบ และจะชำระล่วงหน้ารวม 24 เดือน
+      เพื่อเป็นกองทุนในการจัดตั้งนิติบุคคลบ้านจัดสรร ณ วันจดทะเบียนโอนกรรมสิทธิ์</p>
+
+    <div class="clause-h">ข้อ 7 การก่อสร้างอาคาร</div>
+    <p class="sub">7.1 ผู้จะขายรับรองว่าได้รับอนุญาตให้ก่อสร้างอาคารแล้ว ตามใบอนุญาตก่อสร้างอาคารเลขที่
+      <span class="fv" id="o_permitNo">.............</span> ลงวันที่ <span class="fv" id="o_permitDate">.............</span></p>
+    <p class="sub">7.2 ผู้จะขายต้องก่อสร้างอาคารตามที่กำหนดไว้ในข้อ 2 โดยจัดหาวัสดุที่มีคุณภาพตามที่กำหนด
+      ในแบบแปลนการก่อสร้าง หากไม่สามารถหาวัสดุตามที่กำหนดได้ ผู้จะขายต้องจัดหาวัสดุที่มีคุณภาพ
+      เทียบเท่าหรือดีกว่า และต้องจัดหาผู้ควบคุมงานที่มีความรู้ความสามารถควบคุมงานให้เป็นไปตามแบบแปลน</p>
+    <p class="sub">7.3 เมื่อการก่อสร้างแล้วเสร็จพร้อมโอนกรรมสิทธิ์ ผู้จะขายต้องขนย้ายเครื่องมือ วัสดุเหลือใช้
+      และสิ่งรกรุงรังออกให้พ้นบริเวณก่อสร้าง พร้อมทำความสะอาดให้อยู่ในสภาพที่ผู้จะซื้อเข้าอยู่ได้ทันที</p>
+
+    <div class="pagebreak">— หน้า 3 —</div>
+
+    <div class="clause-h">ข้อ 8 การจดทะเบียนโอนกรรมสิทธิ์</div>
+    <p class="sub">8.1 ในการจดทะเบียนโอนกรรมสิทธิ์ที่ดินพร้อมสิ่งปลูกสร้างให้ผู้จะซื้อ
+      ผู้จะขายโอนกรรมสิทธิ์โดยปราศจากภาระการจำนองในที่ดินพร้อมสิ่งปลูกสร้างนั้น</p>
+    <p class="sub">8.2 ถ้าผู้จะขายไม่ปฏิบัติตามข้อ 8.1 ผู้จะซื้อมีสิทธิชำระหนี้จำนองต่อผู้รับจำนองได้
+      และให้ถือว่าเป็นการชำระราคาซื้อขายแก่ผู้จะขายส่วนหนึ่งด้วย</p>
+    <p class="sub">8.3 เมื่อผู้จะซื้อได้ชำระราคาตามข้อ 3 ครบถ้วนแล้ว ผู้จะซื้อสามารถนำหลักฐานเป็นหนังสือ
+      ที่แสดงว่าได้ชำระราคาดังกล่าว พร้อมหนังสือแสดงสิทธิในที่ดิน ไปขอจดทะเบียนโอนกรรมสิทธิ์
+      ต่อพนักงานเจ้าหน้าที่ได้</p>
+
+    <div class="clause-h">ข้อ 9 ค่าใช้จ่ายในการจดทะเบียนโอนกรรมสิทธิ์</div>
+    <p class="sub">9.1 ค่าภาษีอากรในการจดทะเบียนโอนกรรมสิทธิ์ที่ดินพร้อมสิ่งปลูกสร้าง ผู้จะขายเป็นผู้ชำระ</p>
+    <p class="sub">9.2 ค่าธรรมเนียมและค่าใช้จ่ายในการจดทะเบียนโอนกรรมสิทธิ์ ผู้จะซื้อเป็นผู้ชำระ</p>
+
+    <div class="clause-h">ข้อ 10 เบี้ยปรับและดอกเบี้ยผิดนัด</div>
+    <p class="sub">10.1 หากผู้จะขายไม่โอนกรรมสิทธิ์ภายในกำหนดเวลาในข้อ 4 และผู้จะซื้อไม่ใช้สิทธิบอกเลิกสัญญา
+      ตามข้อ 14.1 ผู้จะขายยอมให้ปรับเป็นรายวันในอัตราร้อยละ 0.01 ของราคาที่ดินพร้อมสิ่งปลูกสร้าง
+      นับแต่วันที่จะต้องโอนกรรมสิทธิ์ แต่รวมกันแล้วต้องไม่เกินร้อยละสิบของราคาที่ดินพร้อมสิ่งปลูกสร้าง</p>
+    <p class="sub">10.2 หากผู้จะซื้อผิดนัดการชำระเงินตามที่กำหนดในข้อ 4 ผู้จะซื้อยินยอมให้ผู้จะขายเรียกดอกเบี้ย
+      ผิดนัดในอัตราร้อยละ 15 ต่อปี ของจำนวนเงินที่ค้างชำระ แต่รวมกันแล้วต้องไม่เกินร้อยละสิบ
+      ของราคาที่ดินพร้อมสิ่งปลูกสร้าง</p>
+
+    <div class="clause-h">ข้อ 11 ความรับผิดในความชำรุดบกพร่อง</div>
+    <p class="sub">11.1 เมื่อมีการโอนกรรมสิทธิ์ให้ผู้จะซื้อแล้ว ผู้จะขายต้องรับผิดในความเสียหายหรือชำรุดบกพร่อง
+      ของอาคาร ดังนี้</p>
+    <p class="sub">11.1.1 กรณีโครงสร้างของอาคาร (เสาเข็ม ฐานราก เสา คาน พื้น โครงหลังคา และผนังรับน้ำหนัก)
+      ภายใน 5 ปี นับแต่วันโอนกรรมสิทธิ์</p>
+    <p class="sub">11.1.2 กรณีส่วนควบหรืออุปกรณ์อันเป็นส่วนประกอบสำคัญ นอกจาก 11.1.1 ภายใน 6 เดือน นับแต่วันโอนกรรมสิทธิ์</p>
+    <p class="sub">11.1.3 รั้ว กำแพง ประตูภายใน อ่างล้างหน้า โถสุขภัณฑ์ ระบบสุขาภิบาล ภายใน 1 ปี นับแต่วันโอนกรรมสิทธิ์</p>
+
+    <div class="pagebreak">— หน้า 4 —</div>
+
+    <p class="sub" style="font-weight:700">หมวดงานรับประกัน 1 ปี</p>
+    <div class="wlist">
+      <div>1. งานพื้น รับประกันเฉพาะการร่อนของกระเบื้อง</div>
+      <div>2. งานผนังและตกแต่งผนัง รับประกันผนังก่อฉาบทั่วไป</div>
+      <div>3. งานฝ้าเพดาน รับประกันความเสียหายจากการรั่วซึมของน้ำฝนตามวัสดุมุงหลังคา และท่อน้ำดี-น้ำเสีย รั่ว แตก ซึม และฝ้าแตกร้าว</div>
+      <div>4. งานมุงหลังคา รับประกันการรั่วซึมของน้ำฝนวัสดุมุงหลังคา</div>
+      <div>5. งานประตู-หน้าต่าง การยึดตัววงกบ บริษัทจะทาสีให้ใช้งานได้เท่านั้น รับประกันการรั่วซึมตรงหน้าต่าง</div>
+      <div>6. งานบันได รับประกันกรณีการยึด-หดตัวของบันได บริษัทจะปรับแต่งทาสีให้ใช้งานได้เท่านั้น</div>
+      <div>7. งานระบบประปาและสุขาภิบาล รับประกันเฉพาะกรณีท่อน้ำดี-น้ำเสีย รั่ว แตก ซึม</div>
+      <div>8. งานทาสี รับประกันเฉพาะบริเวณที่มีการซ่อมแซมพื้นผิวผนัง</div>
+      <div>9. งานระบบไฟฟ้า รับประกันเฉพาะกรณีสายไฟลัดวงจร รั่ว ช็อต เฉพาะที่ไม่มีการดัดแปลง</div>
+      <div>10. งานรั้ว กำแพง ราว ระเบียง รับประกันเฉพาะการชำรุดจากโครงสร้าง อุปกรณ์รางเลื่อน หรือสนิมตามธรรมชาติ</div>
+    </div>
+    <p class="sub" style="font-weight:700">กรณีไม่อยู่ภายใต้ขอบเขตการรับประกันและการบริการ</p>
+    <div class="wlist">
+      <div>1. เกิดจากการกระทำของเจ้าของบ้าน</div>
+      <div>2. เกิดจากการดัดแปลง แก้ไข ตกแต่ง ต่อเติม ของเจ้าของบ้าน</div>
+      <div>3. เกิดจากการเสื่อมสภาพของวัสดุตามอายุการใช้งาน</div>
+      <div>4. เกิดจากภัยธรรมชาติ</div>
+      <div>5. เกิดจากน้ำท่วมขังพื้นผิวด้วยพื้นลามิเนต</div>
+      <div>6. เจ้าของบ้านไม่ได้เข้าพักอาศัยเกินกว่าระยะเวลา 3 เดือน</div>
+      <div>7. การแตกร้าวตามธรรมชาติ เช่น พื้นที่จอดรถยนต์ และพื้นดินทั่วไป</div>
+      <div>8. ทรัพย์สินเสียหายเนื่องจาก ปลวก มด มอด แมลงสาบ หรือสัตว์ชนิดอื่น</div>
+      <div>9. รายการส่งเสริมการขายทุกประเภท และสินค้าที่ใช้สิทธิ์เลือกซื้อโดยบัตรกำนัล เงื่อนไขรับประกันเป็นไปตามผู้ผลิตกำหนด</div>
+    </div>
+    <p class="sub">11.2 ผู้จะขายต้องเริ่มดำเนินการแก้ไขความเสียหายหรือความชำรุดบกพร่องภายใน 60 วัน
+      นับแต่วันที่ผู้จะซื้อแจ้งเป็นหนังสือ และต้องดำเนินการให้แล้วเสร็จภายในเวลาอันสมควร</p>
+
+    <div class="pagebreak">— หน้า 5 —</div>
+
+    <div class="clause-h">ข้อ 12 การก่อภาระผูกพัน</div>
+    <p class="cl">ภายหลังการทำสัญญาแล้ว ผู้จะขายต้องไม่กระทำการใด ๆ อันเป็นเหตุให้ที่ดินและสิ่งปลูกสร้าง
+      ที่จะขายนั้นเกิดภาระผูกพันมากขึ้น</p>
+
+    <div class="clause-h">ข้อ 13 การขยายระยะเวลาการปฏิบัติตามสัญญา</div>
+    <p class="cl">ในกรณีเกิดเหตุสุดวิสัยที่ไม่อาจหลีกเลี่ยงได้ และเป็นเหตุให้การก่อสร้างหยุดชะงัก
+      โดยมิใช่ความผิดของผู้จะขาย ให้ขยายระยะเวลาแล้วเสร็จออกไปเท่ากับเวลาที่เสียไป
+      โดยผู้จะขายต้องแจ้งเป็นหนังสือให้ผู้จะซื้อทราบภายใน 30 วัน นับแต่วันที่เหตุนั้นสิ้นสุดลง</p>
+
+    <div class="clause-h">ข้อ 14 การบอกเลิกสัญญา</div>
+    <p class="sub">14.1 ผู้จะขายผิดสัญญาข้อหนึ่งข้อใด ผู้จะซื้อมีสิทธิบอกเลิกสัญญาและใช้สิทธิตามข้อ 15.1</p>
+    <p class="sub">14.2 กรณีแบ่งชำระเกินสามงวด และผู้จะซื้อผิดนัดไม่ชำระตั้งแต่สามงวดติดต่อกัน
+      เมื่อผู้จะขายบอกกล่าวทวงถามเป็นหนังสือโดยให้เวลาไม่น้อยกว่าสามสิบวันแล้วยังไม่ชำระ
+      ผู้จะขายมีสิทธิบอกเลิกสัญญาและใช้สิทธิตามข้อ 15.2</p>
+    <p class="sub">14.3 หากผู้จะซื้อไม่รับโอนกรรมสิทธิ์ภายในระยะเวลาที่กำหนดตามข้อ 4.2
+      ผู้จะขายมีสิทธิบอกเลิกสัญญาและใช้สิทธิตามข้อ 15.2</p>
+
+    <div class="clause-h">ข้อ 15 สิทธิภายหลังการบอกเลิกสัญญา</div>
+    <p class="sub">15.1 เมื่อผู้จะซื้อบอกเลิกสัญญาแล้ว ผู้จะขายยินยอมให้ผู้จะซื้อเรียกเงินที่ชำระไปแล้วทั้งหมดคืน
+      พร้อมดอกเบี้ยในอัตราตามข้อ 10.2 รวมทั้งเรียกค่าเสียหายอื่นอันพึงมี</p>
+    <p class="sub">15.2 เมื่อผู้จะขายบอกเลิกสัญญาแล้ว ผู้จะซื้อยินยอมให้ผู้จะขายหักเงินที่ชำระไว้แล้วทั้งจำนวน</p>
+
+    <div class="clause-h">ข้อ 16 คำบอกกล่าว</div>
+    <p class="cl">การบอกกล่าวใด ๆ ตามสัญญานี้ต้องทำเป็นหนังสือและแจ้งไปยังคู่สัญญาอีกฝ่ายตามที่อยู่ข้างต้น
+      หากเป็นการแจ้งทางไปรษณีย์ให้ส่งโดยไปรษณีย์ลงทะเบียนตอบรับ</p>
+
+    <div class="clause-h">ข้อ 17 เอกสารแนบท้ายสัญญา</div>
+    <p class="sub">17.1 สำเนาบัตรประชาชน / สำเนาทะเบียนบ้านของผู้จะซื้อ จำนวน 2 แผ่น</p>
+    <p class="sub">17.2 สำเนาโฉนดที่ดิน จำนวน 1 แผ่น</p>
+
+    <p class="cl ni" style="margin-top:10px">สัญญานี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความ
+      โดยตลอดดีแล้ว จึงลงลายมือชื่อพร้อมทั้งประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยาน และเก็บไว้ฝ่ายละหนึ่งฉบับ</p>
+
+    <div class="signs">
+      <div class="s"><div class="sl"></div><div class="sc">ผู้จะขาย</div>
+        <div class="sc">(บริษัท ทู บิลด์ ดีเวลลอปเม้นท์ จำกัด)</div>
+        <div class="sc">โดย <span id="o_director2">-</span></div></div>
+      <div class="s"><div class="sl"></div><div class="sc">ผู้จะซื้อ</div>
+        <div class="sc" id="o_bName2">(.............................)</div></div>
+    </div>
+    <div class="signs">
+      <div class="s"><div class="sl"></div><div class="sc">พยาน</div>
+        <div class="sc" id="o_wit1">(.............................)</div></div>
+      <div class="s"><div class="sl"></div><div class="sc">พยาน</div>
+        <div class="sc" id="o_wit2">(.............................)</div></div>
+    </div>
+  </div>
+
+  <footer>สัญญาจะซื้อจะขาย v1.0 · One Vela — Two Build Development</footer>
+</div>
+
+<script>
+  const LS_LOG='onevela_ct_log';
+  const API_URL='https://script.google.com/macros/s/AKfycbzR-qHtv0GgHRVmon14YEPM_2XFACo2ZzdPTYc0UBLgAjPHYrr9FTt7L4B2xZVLAi1F/exec';
+  let PLOTS_CACHE=null;
+  async function fetchPlot(){
+    const pno=$('plotNo').value.trim();
+    if(!pno){ alert('กรอกแปลงขายเลขที่ก่อน'); return; }
+    try{
+      // ดึงข้อมูลสดจากฐานข้อมูลทุกครั้ง — ราคาที่แก้ใน Sheet อัปเดตทันที (ไม่แคช)
+      const r=await fetch(API_URL+'?action=getSalesData');
+      PLOTS_CACHE=(await r.json()).plots||[];
+      const p=PLOTS_CACHE.find(x=>String(x.plot)===pno);
+      if(!p){ alert('ไม่พบแปลง '+pno+' ในฐานข้อมูล'); return; }
+      $('houseNo').value   = p.houseNo || '';
+      $('areaWa').value    = p.area || '';
+      $('buildType').value = p.typeShort || '';
+      $('typeDetail').value= p.typeCode || '';
+      $('deedNo').value    = p.deed || '';
+      $('price').value     = p.priceNet || '';
+      render();
+      alert('✅ ดึงข้อมูลแปลง '+pno+' แล้ว\nราคา '+
+        Number(p.priceNet||0).toLocaleString('th-TH')+' บาท');
+    }catch(e){ alert('⚠️ ดึงข้อมูลไม่สำเร็จ — ตรวจอินเทอร์เน็ต หรือเปิดหน้านี้ผ่านเว็บ'); }
+  }
+  const TH_MONTH=['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                  'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const $=id=>document.getElementById(id);
+  const numv=id=>{const v=parseFloat($(id).value);return isFinite(v)&&v>0?v:0;};
+  const fmt=n=>Number(n||0).toLocaleString('th-TH');
+  const dThai=iso=>{if(!iso)return '-';const [y,m,d]=iso.split('-').map(Number);
+    return d+' '+TH_MONTH[m]+' '+(y+543);};
+
+  function bahtText(num){
+    num=Math.round((num||0)*100)/100;
+    if(num===0)return 'ศูนย์บาทถ้วน';
+    const d=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+    const pos=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+    function rg(s){let r='';const L=s.length;
+      for(let i=0;i<L;i++){const dg=+s[i],p=L-1-i;if(dg===0)continue;
+        if(p===0&&dg===1&&L>1)r+='เอ็ด';else if(p===1&&dg===1)r+='สิบ';
+        else if(p===1&&dg===2)r+='ยี่สิบ';else r+=d[dg]+pos[p];}return r;}
+    const [ip,dp]=num.toFixed(2).split('.');
+    let s=ip,g=[];while(s.length>6){g.unshift(s.slice(-6));s=s.slice(0,-6);}g.unshift(s);
+    let t='';for(let i=0;i<g.length;i++){t+=rg(g[i]);if(i<g.length-1)t+='ล้าน';}
+    t=t?t+'บาท':'';t+=(+dp===0)?'ถ้วน':rg(dp)+'สตางค์';return t;
+  }
+
+  const FIELDS=['docNo','docDate','bookingNo','bName','bNation','bId','aNo','aMoo','aTambon',
+    'aAmphoe','aProvince','aZip','bPhone','areaWa','plotNo','houseNo','buildType','typeDetail',
+    'deedNo','surveyNo','landNo','price','bookAmt','bookDate','contractAmt','instN','instAmt',
+    'instDay','startMonth','permitNo','permitDate','director','wit1','wit2'];
+
+  function render(){
+    const set=(id,v)=>$(id).textContent=v;
+    set('o_docNo',$('docNo').value||'-');
+    set('o_docDate',dThai($('docDate').value));
+    set('o_director',$('director').value||'-');
+    set('o_director2',$('director').value||'-');
+    set('o_bName',$('bName').value||'-');
+    set('o_bNation',$('bNation').value||'-');
+    set('o_bId',$('bId').value||'-');
+    set('o_bPhone',$('bPhone').value||'-');
+    const addr=['เลขที่ '+($('aNo').value||'-'),
+      $('aMoo').value?'หมู่ที่ '+$('aMoo').value:'',
+      $('aTambon').value?'ตำบล'+$('aTambon').value:'',
+      $('aAmphoe').value?'อำเภอ'+$('aAmphoe').value:'',
+      $('aProvince').value?'จังหวัด'+$('aProvince').value:'',
+      $('aZip').value?'รหัสไปรษณีย์ '+$('aZip').value:''].filter(Boolean).join(' ');
+    set('o_bAddr',addr);
+    set('o_areaWa',$('areaWa').value||'-');
+    set('o_plotNo',$('plotNo').value||'-');
+    set('o_houseNo',$('houseNo').value||'-');
+    set('o_buildType',$('buildType').value||'-');
+    set('o_typeDetail',$('typeDetail').value||'-');
+    set('o_deedNo',$('deedNo').value||'-');
+    set('o_surveyNo',$('surveyNo').value||'-');
+    set('o_landNo',$('landNo').value||'-');
+    set('o_permitNo',$('permitNo').value||'.............');
+    set('o_permitDate',$('permitDate').value||'.............');
+
+    const price=numv('price'),book=numv('bookAmt'),contract=numv('contractAmt');
+    const instN=numv('instN'),instAmt=numv('instAmt');
+    const downTotal=instN*instAmt;
+    const paidSum=book+contract;
+    const transfer=Math.max(0,price-book-contract-downTotal);
+
+    set('o_price',fmt(price));set('o_priceTxt',bahtText(price));
+    set('o_bookDate',dThai($('bookDate').value));
+    set('o_bookAmt',fmt(book));set('o_bookAmtTxt',bahtText(book));
+    set('o_contractAmt',fmt(contract));set('o_contractAmtTxt',bahtText(contract));
+    set('o_paidSum',fmt(paidSum));set('o_paidSumTxt',bahtText(paidSum));
+    set('o_instN',instN||'-');
+    set('o_downTotal',fmt(downTotal));set('o_downTotalTxt',bahtText(downTotal));
+    set('o_transfer',fmt(transfer));set('o_transferTxt',bahtText(transfer));
+    $('downView').value=fmt(downTotal);
+    $('transferView').value=fmt(transfer);
+
+    // ตารางผ่อนชำระ
+    let rows='<tr><td class="c">จอง</td><td>ชำระในวันจอง</td><td class="r">'+fmt(book)+'</td></tr>';
+    rows+='<tr><td class="c">สัญญา</td><td>ชำระในวันทำสัญญา</td><td class="r">'+fmt(contract)+'</td></tr>';
+    let sm=null;
+    if($('startMonth').value){const [y,m]=$('startMonth').value.split('-').map(Number);sm={y,m};}
+    const day=$('instDay').value||'30';
+    for(let i=1;i<=instN;i++){
+      let due='งวดที่ '+i;
+      if(sm){const tot=sm.m-1+(i-1);const yy=sm.y+Math.floor(tot/12),mm=(tot%12)+1;
+        due='ชำระภายในวันที่ '+day+' '+TH_MONTH[mm]+' '+(yy+543);}
+      rows+='<tr><td class="c">'+i+'</td><td>'+due+'</td><td class="r">'+fmt(instAmt)+'</td></tr>';
+    }
+    rows+='<tr class="tot"><td colspan="2" class="r">รวม</td><td class="r">'+fmt(paidSum+downTotal)+'</td></tr>';
+    $('o_instBody').innerHTML=rows;
+
+    const bn=$('bName').value;
+    set('o_bName2',bn?'( '+bn+' )':'(.............................)');
+    set('o_wit1',$('wit1').value?'( '+$('wit1').value+' )':'(.............................)');
+    set('o_wit2',$('wit2').value?'( '+$('wit2').value+' )':'(.............................)');
+    return {price,transfer};
+  }
+
+  function saveLog(){
+    if(!$('docNo').value||!$('bName').value){alert('กรุณากรอก เลขที่สัญญา และ ชื่อผู้จะซื้อ');return;}
+    const r=render();
+    let log;try{log=JSON.parse(localStorage.getItem(LS_LOG))||[];}catch(e){log=[];}
+    log.push({docNo:$('docNo').value,date:$('docDate').value,buyer:$('bName').value,
+      plot:$('plotNo').value,houseNo:$('houseNo').value,price:r.price,
+      bookingNo:$('bookingNo').value,savedAt:new Date().toISOString().slice(0,16).replace('T',' ')});
+    localStorage.setItem(LS_LOG,JSON.stringify(log));
+    // ส่งเข้าฐานข้อมูลกลาง (Google Sheet) ผ่าน Apps Script API
+    const data={contractNo:$('docNo').value,plot:$('plotNo').value,bookingNo:$('bookingNo').value,
+      contractDate:$('docDate').value,customer:$('bName').value,priceNet:r.price,
+      transferDate:'',contractFileLink:'',status:'ทำสัญญา',note:''};
+    // GET แทน POST เลี่ยง 302 redirect bug
+    const url=API_URL+'?action=saveContract&data='+encodeURIComponent(JSON.stringify(data));
+    fetch(url).then(r=>r.json())
+      .then(j=>alert((j&&j.ok?'บันทึกแล้ว ✅\n':'⚠️ บันทึกในเครื่อง · ส่ง Sheet ไม่สำเร็จ\n')+
+        $('docNo').value+' · '+$('bName').value))
+      .catch(()=>alert('บันทึกในเครื่องแล้ว ✅\n⚠️ ส่งเข้า Sheet ไม่สำเร็จ — เช็คอินเทอร์เน็ต'));
+  }
+  function exportLog(){
+    let log;try{log=JSON.parse(localStorage.getItem(LS_LOG))||[];}catch(e){log=[];}
+    if(!log.length){alert('ยังไม่มีรายการใน Log');return;}
+    const head=['เลขที่สัญญา','วันที่','ผู้จะซื้อ','แปลง','บ้านเลขที่','ราคา','เลขที่จองอ้างอิง','บันทึกเมื่อ'];
+    const rows=log.map(e=>[e.docNo,e.date,e.buyer,e.plot,e.houseNo,e.price,e.bookingNo,e.savedAt]);
+    const csv='﻿'+[head,...rows].map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download='ContractLog_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  }
+  function printDoc(){
+    const o=document.title;
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const plot=clean($('plotNo').value)||'-', cust=clean($('bName').value)||'ลูกค้า';
+    document.title='สัญญาจะซื้อจะขาย_แปลง'+plot+'_'+cust;
+    window.print();
+    setTimeout(()=>{document.title=o;},800);
+  }
+
+  function _blobToB64(b){return new Promise((res,rej)=>{const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result).split(',')[1]);fr.onerror=rej;fr.readAsDataURL(b);});}
+  function _postViaForm(payload){
+    return new Promise(resolve=>{
+      let frame=document.getElementById('apiUploadFrame');
+      let form=document.getElementById('apiUploadForm');
+      let ta=document.getElementById('apiUploadPayload');
+      if(!frame){
+        frame=document.createElement('iframe');
+        frame.id='apiUploadFrame'; frame.name='apiUploadFrame';
+        frame.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+        document.body.appendChild(frame);
+        form=document.createElement('form');
+        form.id='apiUploadForm'; form.method='POST'; form.target='apiUploadFrame';
+        form.enctype='text/plain'; form.style.display='none';
+        ta=document.createElement('textarea');
+        ta.id='apiUploadPayload'; ta.name='d';
+        form.appendChild(ta); document.body.appendChild(form);
+      }
+      form.action=API_URL; ta.value=JSON.stringify(payload);
+      let done=false;
+      const finish=()=>{ if(!done){ done=true; frame.onload=null; resolve(); } };
+      frame.onload=finish; setTimeout(finish, 20000);
+      form.submit();
+    });
+  }
+  async function _uploadPdf(opts){
+    if(!window.html2pdf) return;
+    try{
+      const blob=await html2pdf().from($('doc'))
+        .set({margin:8,filename:opts.fileName,image:{type:'jpeg',quality:.94},
+              html2canvas:{scale:2,useCORS:true},jsPDF:{format:'a4',orientation:'portrait'}})
+        .outputPdf('blob');
+      const fileBase64=await _blobToB64(blob);
+      await _postViaForm({action:'uploadFile',plot:opts.plot,category:opts.category,
+        tab:opts.tab,docNo:opts.docNo,fileName:opts.fileName,
+        mimeType:'application/pdf',fileBase64});
+    }catch(e){console.warn('upload pdf failed',e);}
+  }
+  async function printAndUpload(){
+    const btn=document.querySelector('.b-print');
+    const orig=btn.textContent; btn.disabled=true; btn.textContent='⏳ บันทึก...';
+    try{ if(typeof saveLog==='function') saveLog(); }catch(e){}
+    btn.textContent='⏳ อัปโหลด PDF...';
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    await _uploadPdf({
+      plot:$('plotNo').value||'อื่นๆ',
+      category:'สัญญา', tab:'contracts', docNo:$('docNo').value,
+      fileName:'สัญญา_'+($('docNo').value||'')+'_แปลง'+(clean($('plotNo').value)||'-')+
+               '_'+(clean($('bName').value)||'ลูกค้า')+'.pdf',
+    });
+    btn.disabled=false; btn.textContent=orig;
+    printDoc();
+  }
+
+  async function saveToFolder(){
+    if(!window.showDirectoryPicker){
+      alert('⚠️ การเก็บเข้าโฟลเดอร์อัตโนมัติใช้ได้เฉพาะ Chrome / Edge'); return;
+    }
+    const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,'').trim();
+    const name='สัญญาจะซื้อจะขาย_แปลง'+(clean($('plotNo').value)||'-')+'_'+(clean($('bName').value)||'ลูกค้า');
+    try{
+      if(!window._ovDir) window._ovDir=await window.showDirectoryPicker({mode:'readwrite'});
+      const styles=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+      const html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>'+name+'</title>'+
+        '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">'+
+        '<style>'+styles+'\nbody{background:#fff;padding:18px}</style></head><body>'+
+        document.getElementById('doc').outerHTML+'</body></html>';
+      const fh=await window._ovDir.getFileHandle(name+'.html',{create:true});
+      const w=await fh.createWritable(); await w.write(html); await w.close();
+      alert('✅ เก็บเข้าโฟลเดอร์แล้ว\n'+name+'.html');
+    }catch(e){
+      if(e&&e.name==='AbortError') return;
+      alert('เก็บไม่สำเร็จ — ฟีเจอร์นี้ใช้ได้บน Chrome/Edge เมื่อเปิดผ่านเว็บ (https)');
+    }
+  }
+
+  function shareLine(){
+    const r=render();
+    const txt=['📜 สัญญาจะซื้อจะขาย One Vela',
+      'เลขที่: '+($('docNo').value||'-'),
+      'ผู้จะซื้อ: '+($('bName').value||'-'),
+      'แปลง: '+($('plotNo').value||'-')+' บ้านเลขที่ '+($('houseNo').value||'-'),
+      'ราคา: '+fmt(r.price)+' บาท'].join('\n');
+    if(navigator.share)navigator.share({title:'สัญญา One Vela',text:txt}).catch(()=>{});
+    else window.open('https://line.me/R/msg/text/?'+encodeURIComponent(txt),'_blank');
+  }
+  function resetForm(){
+    if(!confirm('ล้างข้อมูลในฟอร์มทั้งหมด?'))return;
+    FIELDS.forEach(id=>$(id).value='');
+    initDefaults();render();
+  }
+  function initDefaults(){
+    const d=new Date();
+    $('docDate').value=d.toISOString().slice(0,10);
+    $('bNation').value='ไทย';
+    $('director').value='นายเฉลิมไชย ดีแสน';
+    $('wit1').value='นายพงศกร ดีแสน';
+    $('wit2').value='นางสาวกมลชนก สิมมาลา';
+    $('instN').value='12';
+    $('instDay').value='30';
+  }
+  FIELDS.forEach(id=>$(id).addEventListener('input',render));
+  initDefaults();render();
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <rect width="800" height="600" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- Type badge -->
+  <rect x="30" y="30" width="220" height="50" rx="25" fill="#10b981" opacity="0.9"/>
+  <text x="140" y="63" font-family="Sarabun, sans-serif" font-size="22" font-weight="800"
+        fill="#fff" text-anchor="middle">C SECOND</text>
+
+  <!-- Center icon -->
+  <circle cx="400" cy="240" r="80" fill="#10b981" opacity="0.15"/>
+  <text x="400" y="270" font-size="80" text-anchor="middle">🛋️</text>
+
+  <!-- View title -->
+  <text x="400" y="370" font-family="Sarabun, sans-serif" font-size="36" font-weight="800"
+        fill="#0f2742" text-anchor="middle">ภายในบ้าน</text>
+
+  <!-- Type Thai -->
+  <text x="400" y="410" font-family="Sarabun, sans-serif" font-size="20" font-weight="600"
+        fill="#10b981" text-anchor="middle">บ้านแฝดชั้นเดียว · เริ่มต้น 2.39 ลบ.</text>
+
+  <!-- Instructions -->
+  <text x="400" y="490" font-family="Sarabun, sans-serif" font-size="16"
+        fill="#64748b" text-anchor="middle">📷 อัพรูปห้องนั่งเล่น/ครัว/ห้องนอน</text>
+  <text x="400" y="520" font-family="Sarabun, sans-serif" font-size="14"
+        fill="#94a3b8" text-anchor="middle">วางไฟล์ในโฟลเดอร์ assets/photos/ ชื่อ C_interior.jpg</text>
+
+  <!-- Border -->
+  <rect x="2" y="2" width="796" height="596" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="10,6" opacity="0.4"/>
+</svg>

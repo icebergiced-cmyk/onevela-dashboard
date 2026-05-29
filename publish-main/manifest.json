@@ -1,0 +1,38 @@
+{
+  "name": "ระบบต้นทุนบ้าน — โครงการวันเวลา",
+  "short_name": "ต้นทุนบ้าน",
+  "description": "ระบบติดตามต้นทุนบ้านรายหลัง โครงการวันเวลา One Vela — Two Build Development",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef2f6",
+  "theme_color": "#0f2742",
+  "lang": "th",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

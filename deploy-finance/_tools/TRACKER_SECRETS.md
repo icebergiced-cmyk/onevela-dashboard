@@ -18,7 +18,7 @@
 | `LINE_MESSAGING_TOKEN` | ส่งข้อความแจ้งเตือนผ่าน LINE | LINE Developers Console → Messaging API channel |
 | `JWT_SECRET` | เซ็น session token (อายุ 30 วัน) | สุ่มเอง — string ยาว ≥32 ตัวอักษร |
 | `ANTHROPIC_API_KEY` | AI วิเคราะห์รูป (เผื่อใช้ทีหลัง) | console.anthropic.com |
-| `OPENAI_API_KEY` | AI อ่านสลิป / PDF / เอกสารการเงิน | platform.openai.com |
+| `GOOGLE_VISION_API_KEY` | OCR server อ่านสลิป / PDF / เอกสารการเงิน | Google Cloud Console → APIs & Services → Credentials |
 
 ### กลุ่ม B — ค่าสาธารณะ (ใส่ในโค้ดฝั่งหน้าเว็บได้ — ไม่ลับ)
 
@@ -26,7 +26,7 @@
 |---|---|---|
 | `LINE_LIFF_ID` | เริ่มต้น LIFF SDK ในเบราว์เซอร์ | ฝังในหน้า HTML ได้ — ไม่ลับ |
 | `LINE_LOGIN_CHANNEL_ID` | ใช้ใน LINE login URL | ไม่ลับ (เปิดเผยได้) |
-| `FINANCE_AI_MODEL` | override รุ่นโมเดลสำหรับอ่านเอกสาร | เช่น `gpt-4.1-mini` |
+| `GOOGLE_VISION_LOCATION` | เลือก region ของ Vision ถ้าจะปรับเพิ่มภายหลัง | ปล่อยว่างได้สำหรับค่า default |
 
 ---
 
@@ -41,6 +41,14 @@
 5. กด **Save script properties**
 
 > ค่าเหล่านี้อยู่กับ Apps Script project — ไม่ต้องใส่ใหม่ตอน deploy เวอร์ชันใหม่
+
+### สำหรับระบบอ่านสลิป/เอกสารการเงิน
+
+1. เปิด Google Cloud project ที่ผูกกับ Apps Script ตัวนี้
+2. เปิดใช้ `Cloud Vision API`
+3. สร้าง API key ใหม่
+4. เอา key ไปใส่ใน Script Properties เป็น `GOOGLE_VISION_API_KEY`
+5. Deploy Apps Script ใหม่อีกครั้ง
 
 ---
 

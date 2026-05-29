@@ -1,0 +1,91 @@
+{
+  "last_sync": "2026-05-22T03:11:00Z",
+  "last_file": "2026-05-22-merged-v2__การขายลงทุกแปลงทั้งหมด.xlsx",
+  "last_result": "success",
+  "history": [
+    {
+      "at": "2026-05-22T03:11:00Z",
+      "file": "2026-05-22-merged-v2__การขายลงทุกแปลงทั้งหมด.xlsx",
+      "result": "success",
+      "plotsAffected": 4,
+      "totalCost": 7169454,
+      "totalDelta": 283366.45,
+      "newItems": 8,
+      "duplicates": 0,
+      "auditFile": "",
+      "topPlots": [
+        {
+          "plot": "6",
+          "before": 366834.72,
+          "after": 454098.56,
+          "delta": 87263.84
+        },
+        {
+          "plot": "7",
+          "before": 405833.66,
+          "after": 490037.79,
+          "delta": 84204.13
+        },
+        {
+          "plot": "8",
+          "before": 357919.15,
+          "after": 442123.28,
+          "delta": 84204.13
+        },
+        {
+          "plot": "5",
+          "before": 349931.19,
+          "after": 377625.54,
+          "delta": 27694.35
+        }
+      ],
+      "note": "Merged 19.5.69 file (56 new transactions for plots 5/6/7/8). Skipped 14.5.69 — all 52 rows already in ERP1. 8 new items need category review."
+    },
+    {
+      "at": "2026-05-22T00:52:00Z",
+      "file": "2026-05-22-merged__การขายลงทุกแปลงทั้งหมด.xlsx",
+      "result": "success",
+      "plotsAffected": 59,
+      "totalCost": 6886088,
+      "totalDelta": 300000,
+      "newItems": 0,
+      "duplicates": 0,
+      "auditFile": "",
+      "topPlots": [
+        {
+          "plot": "1",
+          "before": 5856.29,
+          "after": 305856.29,
+          "delta": 300000
+        }
+      ],
+      "note": "Restore sync — รวม ERP1 (476 detail rows, 59 plots, ฿6,586,087.54) + new 17 พ.ค. plot-1 transaction (฿300,000). Total cost matches 18 พ.ค. baseline + new entry exactly. Audit report still skipped due to mount read-only on dashboard-deploy.zip."
+    },
+    {
+      "at": "2026-05-22T00:22:32Z",
+      "file": "2026-05-21-15-36-14__จัดซื้อขายลงแปลง(17.5.69).xlsx",
+      "result": "success",
+      "plotsAffected": 1,
+      "totalCost": 300000,
+      "totalDelta": 300000,
+      "newItems": 0,
+      "duplicates": 0,
+      "auditFile": "",
+      "topPlots": [
+        {
+          "plot": "1",
+          "before": 0,
+          "after": 300000,
+          "delta": 300000
+        }
+      ],
+      "note": "File reconstructed from Drive base64 (Write tool truncated original); audit report skipped because deploy zip overwrite hit PermissionError on mount; Google Sheet push blocked by sandbox proxy (403)."
+    },
+    {
+      "timestamp": "2026-05-21T13:52:26+00:00",
+      "file": null,
+      "result": "skipped",
+      "message": "No .xlsx file found in inbox folder"
+    }
+  ]
+}

@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Build Finance — Accounting + HR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{
+    --charcoal:#244131;
+    --ink:#193121;
+    --muted:#6f8274;
+    --gold:#9f7a3f;
+    --gold-dark:#7a5f32;
+    --cream:#f6fbf5;
+    --sand:#eef7ef;
+    --line:#dbe8dc;
+    --card:#ffffff;
+    --green:#239355;
+    --green-bg:#eaf8ee;
+    --red:#c2413a;
+    --red-bg:#fff1ef;
+    --blue:#266d9b;
+    --blue-bg:#eaf4fb;
+    --amber:#b7791f;
+    --amber-bg:#fff8e6;
+    --violet:#6d5a9c;
+    --violet-bg:#f2effa;
+    --shadow:0 18px 42px rgba(63,112,70,.11);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--ink);line-height:1.55}
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  .serif{font-family:'Cormorant Garamond',serif}
+  .app{min-height:100vh;display:grid;grid-template-columns:260px 1fr}
+  .side{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#264936,#1d3528);color:#f5fcf6;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
+  .brand{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .brand img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:10px;padding:8px}
+  .brand .eyebrow{font-size:10px;letter-spacing:2px;color:#bfe8c6;font-weight:700}
+  .brand h1{font-size:24px;line-height:1;margin:3px 0 0}
+  .nav{display:flex;flex-direction:column;gap:6px}
+  .nav button{border:0;background:transparent;color:#d8d0c1;text-align:left;border-radius:10px;padding:11px 12px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .nav button:hover,.nav button.active{background:rgba(217,248,223,.14);color:#fff}
+  .side-note{margin-top:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;font-size:12px;color:#d8d0c1}
+  .side-note b{color:#fff}
+  .main{padding:24px 28px 60px;min-width:0}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}
+  .topbar h2{margin:0;font-size:30px;color:var(--charcoal)}
+  .topbar p{margin:4px 0 0;color:var(--muted);font-size:14px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--charcoal);border-radius:10px;padding:9px 12px;font-weight:800;box-shadow:0 2px 0 rgba(0,0,0,.02)}
+  .btn:hover{border-color:var(--green);color:var(--green)}
+  .showcase{
+    display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-bottom:18px
+  }
+  .showcase-hero{
+    position:relative;overflow:hidden;border-radius:28px;min-height:280px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;
+    background:
+      linear-gradient(135deg,rgba(18,34,24,.74),rgba(34,74,48,.44)),
+      url('assets/project-homes/type-c-living.jpg') center/cover;
+    box-shadow:0 24px 80px rgba(36,75,49,.16);color:#fff
+  }
+  .showcase-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.22) 46%,rgba(0,0,0,.44))}
+  .showcase-copy,.showcase-stats{position:relative;z-index:1}
+  .showcase-kicker{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}
+  .showcase-hero h3{margin:12px 0 8px;font-size:clamp(28px,3vw,42px);line-height:1.05}
+  .showcase-hero p{color:rgba(255,255,255,.82);max-width:560px}
+  .showcase-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+  .showcase-stats div{border-radius:16px;padding:13px;background:rgba(255,255,255,.14);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12)}
+  .showcase-stats span{display:block;font-size:11px;color:rgba(255,255,255,.72);font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+  .showcase-stats b{display:block;margin-top:3px;font-size:18px}
+  .showcase-grid{display:grid;gap:16px}
+  .showcase-card{
+    position:relative;overflow:hidden;border-radius:22px;min-height:132px;padding:18px;display:flex;align-items:flex-end;color:#fff;box-shadow:var(--shadow)
+  }
+  .showcase-card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.58))}
+  .showcase-card .copy{position:relative;z-index:1}
+  .showcase-card span{display:block;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:800}
+  .showcase-card b{display:block;margin-top:4px;font-size:20px}
+  .showcase-card p{margin-top:6px;color:rgba(255,255,255,.78);font-size:12px}
+  .showcase-card.doc{background:url('assets/project-homes/type-a-exterior.jpg') center/cover}
+  .showcase-card.receipt{background:url('assets/project-homes/type-b-living.jpg') center/cover}
+  .btn.primary{background:var(--charcoal);border-color:var(--charcoal);color:#fff}
+  .btn.gold{background:var(--gold);border-color:var(--gold);color:#fff}
+  .btn.danger{background:var(--red-bg);border-color:#f1b6b2;color:var(--red)}
+  .btn.small{font-size:12px;padding:6px 9px;border-radius:8px}
+  .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .label{font-size:12px;color:var(--muted);font-weight:700}
+  .kpi .value{font-size:25px;font-weight:900;margin-top:4px;letter-spacing:-.2px}
+  .kpi .hint{font-size:11px;color:var(--muted);margin-top:3px}
+  .kpi.in .value{color:var(--green)}
+  .kpi.out .value{color:var(--red)}
+  .kpi.net .value{color:var(--blue)}
+  .grid{display:grid;gap:14px}
+  .grid.two{grid-template-columns:1.15fr .85fr}
+  .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .panel-head h3{margin:0;font-size:17px;color:var(--charcoal)}
+  .panel-body{padding:16px 18px}
+  .filters{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+  .filters input,.filters select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;min-height:39px}
+  .filters input{min-width:220px;flex:1}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:10px 9px;border-bottom:1px solid #eee8de;text-align:left;vertical-align:top}
+  th{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:#fbfaf6;position:sticky;top:0;z-index:1}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tbody tr:hover td{background:#fffdf8}
+  .table-wrap{overflow:auto;max-height:520px;border:1px solid #f0eadf;border-radius:14px}
+  .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800;white-space:nowrap}
+  .badge.green{background:var(--green-bg);color:var(--green)}
+  .badge.red{background:var(--red-bg);color:var(--red)}
+  .badge.blue{background:var(--blue-bg);color:var(--blue)}
+  .badge.amber{background:var(--amber-bg);color:var(--amber)}
+  .badge.violet{background:var(--violet-bg);color:var(--violet)}
+  .memo{font-weight:800;color:var(--charcoal)}
+  .sub{font-size:12px;color:var(--muted)}
+  .slip-thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;border:1px solid var(--line);background:#f6f2ea}
+  .empty{padding:34px;text-align:center;color:var(--muted)}
+  .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  label{font-size:12px;color:var(--muted);font-weight:800}
+  input,select,textarea{border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px 11px;color:var(--ink)}
+  textarea{resize:vertical;min-height:84px}
+  .field.full{grid-column:1/-1}
+  .drop{border:1.5px dashed #d7cdbc;background:#fffdf8;border-radius:14px;padding:14px;text-align:center;color:var(--muted)}
+  .drop strong{color:var(--charcoal)}
+  .preview{display:none;margin-top:10px;align-items:center;gap:10px;justify-content:center}
+  .preview img{width:76px;height:76px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+  .chart{display:flex;align-items:flex-end;gap:8px;height:190px;padding-top:12px}
+  .bar{flex:1;min-width:28px;background:linear-gradient(180deg,#d7b579,#b08d57);border-radius:9px 9px 0 0;position:relative}
+  .bar.out{background:linear-gradient(180deg,#e0a39d,#c2413a)}
+  .bar span{position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted)}
+  .progress{height:10px;background:#eee7dc;border-radius:999px;overflow:hidden}
+  .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#d6b987)}
+  .report-list{display:grid;gap:10px}
+  .report-item{border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fffdf8}
+  .report-item b{display:block}
+  .section-kicker{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-dark);font-weight:900}
+  .bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+  .bento-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;min-height:154px;display:flex;flex-direction:column;gap:10px}
+  .bento-card.wide{grid-column:span 6}
+  .bento-card.mid{grid-column:span 4}
+  .bento-card.tall{grid-column:span 5;min-height:322px}
+  .bento-card.full{grid-column:1/-1}
+  .bento-card h3{margin:0;font-size:18px;color:var(--charcoal)}
+  .bento-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+  .metric-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .mini-metric{border:1px solid #eee7dc;background:#fffdf8;border-radius:14px;padding:12px}
+  .mini-metric span{display:block;font-size:11px;color:var(--muted);font-weight:800}
+  .mini-metric b{display:block;font-size:20px;margin-top:3px;color:var(--charcoal)}
+  .module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .module-link{border:1px solid var(--line);background:#fffdf8;border-radius:14px;padding:13px;display:flex;gap:10px;align-items:flex-start;transition:.18s}
+  .module-link:hover{border-color:var(--gold);transform:translateY(-1px)}
+  .module-link .ico{font-size:22px;line-height:1}
+  .module-link b{display:block;font-size:13px;color:var(--charcoal)}
+  .module-link span{display:block;font-size:11px;color:var(--muted);line-height:1.45;margin-top:2px}
+  .timeline{display:grid;gap:9px}
+  .timeline .step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+  .timeline .num{width:28px;height:28px;border-radius:9px;background:#f2eadc;color:var(--gold-dark);font-weight:900;display:grid;place-items:center;font-size:12px}
+  .timeline b{display:block;font-size:13px}
+  .timeline span{font-size:11px;color:var(--muted)}
+  .toast{position:fixed;right:22px;bottom:22px;background:#2f2f2d;color:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 18px 40px rgba(0,0,0,.22);opacity:0;transform:translateY(12px);pointer-events:none;transition:.2s;z-index:10}
+  .toast.show{opacity:1;transform:none}
+  .modal{position:fixed;inset:0;background:rgba(28,26,22,.44);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+  .modal.show{display:flex}
+  .modal-card{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.25)}
+  .modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal-head h3{margin:0}
+  .modal-body{padding:18px 20px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800;color:var(--muted)}
+  .tabs button.active{background:var(--charcoal);border-color:var(--charcoal);color:#fff}
+  .route{display:none}
+  .route.active{display:block}
+  .print-area{display:none}
+  @media(max-width:1060px){
+    .app{grid-template-columns:1fr}
+    .side{position:static;height:auto}
+    .nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .showcase{grid-template-columns:1fr}
+    .showcase-stats{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.two,.grid.three{grid-template-columns:1fr}
+    .bento{grid-template-columns:1fr}
+    .bento-card,.bento-card.wide,.bento-card.mid,.bento-card.tall,.bento-card.full{grid-column:1/-1}
+    .module-grid,.metric-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:620px){
+    .main{padding:18px 14px 44px}
+    .topbar{display:block}
+    .actions{justify-content:flex-start;margin-top:12px}
+    .nav{grid-template-columns:1fr 1fr}
+    .form-grid{grid-template-columns:1fr}
+    .kpis{grid-template-columns:1fr}
+    .brand h1{font-size:20px}
+    .module-grid,.metric-row{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff}
+    .side,.topbar,.actions,.tabs,.filters,.btn,.modal,.toast{display:none!important}
+    .app{display:block}
+    .main{padding:0}
+    .panel{box-shadow:none;border:0}
+    .table-wrap{max-height:none;border:0}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <img src="assets/brand/logo-icon.png" alt="One Vela" onerror="this.style.display='none'">
+      <div>
+        <div class="eyebrow">TWO BUILD</div>
+        <h1 class="serif">Finance</h1>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="active" data-route="dashboard">ภาพรวม</button>
+      <button data-route="cashbook">สมุดเงินสด</button>
+      <button data-route="slips">สลิป/เอกสาร</button>
+      <button data-route="payables">เจ้าหนี้/บิล</button>
+      <button data-route="contractor">ผู้รับเหมา</button>
+      <button data-route="payroll">เงินเดือน</button>
+      <button data-route="reports">รายงาน</button>
+      <button data-route="settings">ตั้งค่า</button>
+    </nav>
+    <div class="side-note">
+      <b>Finance Hub</b><br>
+      บัญชี การเงิน HR ภาษี เจ้าหนี้ ผู้รับเหมา และรายงานภายใน
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 class="serif">Two Build Finance</h2>
+        <p>One Vela · วันเวลา · Oxygen 3 · บัญชี การเงิน HR สลิป เจ้าหนี้ ภาษี และรายงานภายใน</p>
+      </div>
+      <div class="actions">
+        <a class="btn" href="home.html">กลับหน้าหลัก</a>
+        <a class="btn" href="operation.html">ไป Operation</a>
+        <button class="btn" id="exportCsvBtn">Export CSV</button>
+        <button class="btn" id="backupBtn">Backup JSON</button>
+        <button class="btn gold" id="newRecordTopBtn">เพิ่มรายการ</button>
+      </div>
+    </div>
+    <section class="showcase" aria-label="finance module hero">
+      <article class="showcase-hero">
+        <div class="showcase-copy">
+          <span class="showcase-kicker">Finance Module</span>
+          <h3 class="serif">โมดูลการเงินและเอกสารขาย ที่แยก public app ออกจากหน้างาน</h3>
+          <p>ทีม sales, finance และ admin เอกสารสามารถใช้ flow เดียวกันต่อจาก Sheet และ Drive เดิมได้ทันที โดยไม่ต้องแบกโมดูล operation ทั้งก้อนเข้ามาใน session เดียว</p>
+        </div>
+        <div class="showcase-stats">
+          <div><span>Coverage</span><b>Sales → Payment → Fee</b></div>
+          <div><span>Source</span><b>Shared Sheets + Drive</b></div>
+          <div><span>Mode</span><b>Public Finance App</b></div>
+        </div>
+      </article>
+      <div class="showcase-grid">
+        <article class="showcase-card doc">
+          <div class="copy">
+            <span>Document Flow</span>
+            <b>Quotation, booking และ contract</b>
+            <p>จัดลิงก์เอกสารขายให้ไหลต่อจาก finance hub แบบหน้าเดียวครบ</p>
+          </div>
+        </article>
+        <article class="showcase-card receipt">
+          <div class="copy">
+            <span>Collection</span>
+            <b>ผ่อนดาวน์ ค่าส่วนกลาง และสลิป</b>
+            <p>แยกทีมทำงานการเงินได้สะอาดขึ้น โดยไม่แตะระบบจัดเก็บข้อมูลเดิม</p>
+          </div>
+        </article>
+      </div>
+    </section>
+    <div id="authBar" style="margin:-8px 0 18px;border-radius:14px;overflow:hidden"></div>
+
+    <section class="kpis" id="kpiRow"></section>
+
+    <section class="route active" id="route-dashboard">
+      <div class="bento" style="margin-bottom:14px">
+        <div class="bento-card full">
+          <div class="section-kicker">Finance operating view</div>
+          <h3>ภาพรวมการเงิน บัญชี HR และภาษี</h3>
+          <div class="metric-row" id="commandMetrics"></div>
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>กระแสเงินสดรายเดือน</h3>
+            <span class="badge blue" id="monthLabel"></span>
+          </div>
+          <div class="panel-body">
+            <div class="chart" id="cashChart"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>รายการที่ต้องจัดการ</h3>
+            <button class="btn small" data-route-jump="cashbook">เปิดสมุดเงินสด</button>
+          </div>
+          <div class="panel-body report-list" id="workQueue"></div>
+        </div>
+      </div>
+      <div class="grid three" style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-head"><h3>ค่าใช้จ่ายตามโครงการ</h3></div>
+          <div class="panel-body" id="projectSummary"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>หมวดค่าใช้จ่าย</h3></div>
+          <div class="panel-body" id="categorySummary"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>เอกสารล่าสุด</h3></div>
+          <div class="panel-body report-list" id="recentDocs"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-operation">
+      <div class="bento">
+        <div class="bento-card wide">
+          <div class="section-kicker">Operation Map</div>
+          <h3>โมดูลปฏิบัติการทั้งหมด</h3>
+          <p>รวมเครื่องมือที่ทีมขาย แอดมิน โฟร์แมน ฝ่ายโอน และฝ่ายบัญชีใช้จริง โดยยังอิง Google Sheet + Drive เดิม</p>
+          <div class="module-grid" id="operationModules"></div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Today Queue</div>
+          <h3>งานที่ควรไล่วันนี้</h3>
+          <div class="report-list" id="operationQueue"></div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Single Source</div>
+          <h3>ฐานข้อมูลหลัก</h3>
+          <div class="timeline">
+            <div class="step"><div class="num">1</div><div><b>One Vela Sales DB</b><span>metadata 483 แปลง · bookings · contracts · installments · payments</span></div></div>
+            <div class="step"><div class="num">2</div><div><b>One Vela Sales Files</b><span>Drive รายแปลงสำหรับสลิป สัญญา ใบเสร็จ รูปหน้างาน เอกสารโอน</span></div></div>
+            <div class="step"><div class="num">3</div><div><b>Finance-Master-2569</b><span>Cash Book · Slip Log · Payroll · WHT · Vendor Billing · Reports</span></div></div>
+          </div>
+        </div>
+        <div class="bento-card full">
+          <div class="section-kicker">End-to-end flow</div>
+          <h3>เส้นทางงานจาก Lead ถึงรับรู้ต้นทุน</h3>
+          <div class="timeline" id="operationFlow"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-sales">
+      <div class="bento">
+        <div class="bento-card tall">
+          <div class="section-kicker">Sales CRM</div>
+          <h3>งานขายและลูกค้า 483 แปลง</h3>
+          <p>ดูสถานะรายแปลง ออกเอกสารขาย รับ walk-in เช็กสินเชื่อ และติดตามเงินจอง/สัญญา/ดาวน์</p>
+          <div class="module-grid" id="salesModules"></div>
+        </div>
+        <div class="bento-card wide">
+          <div class="section-kicker">Policy</div>
+          <h3>เกณฑ์ประเมินสินเชื่อภายใน</h3>
+          <div class="report-list">
+            <div class="report-item"><div><b>รายได้ที่นับ</b><span class="sub">เงินเดือน 100% · OT/ค่ากะ/รายได้อื่น 80% · ค่าอาหาร 0%</span></div><span class="badge blue">Sales</span></div>
+            <div class="report-item"><div><b>ภาระหนี้</b><span class="sub">ค่างวดจริง · บัตรเครดิต 10% ของยอดหนี้ในบูโร</span></div><span class="badge amber">Credit</span></div>
+            <div class="report-item"><div><b>ความสามารถผ่อน</b><span class="sub">ฐานเงินเดือน ≤30,000 หาร 2 · เกิน 30,000 หาร 3</span></div><span class="badge green">Rule</span></div>
+          </div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Live Links</div>
+          <h3>ฐานข้อมูลทีมขาย</h3>
+          <div class="report-list">
+            <a class="report-item" href="https://docs.google.com/spreadsheets/d/1vUB9IwiUa_KpDYdKF3NyBYi3gABS7Ag7pvi8FNrYbg0/edit" target="_blank"><div><b>One Vela Sales DB</b><span class="sub">เปิด Google Sheet กลาง</span></div><span class="badge green">Sheet</span></a>
+            <a class="report-item" href="https://drive.google.com/drive/folders/1cCPU9Zja185ELGihkrWTmh21fSu3Q1pk" target="_blank"><div><b>One Vela Sales Files</b><span class="sub">เปิด Drive เอกสารรายแปลง</span></div><span class="badge blue">Drive</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-site">
+      <div class="bento">
+        <div class="bento-card wide">
+          <div class="section-kicker">Site Operation</div>
+          <h3>ก่อสร้าง โฟร์แมน โอน และค่าส่วนกลาง</h3>
+          <p>ควบคุมแปลงที่เริ่มก่อสร้าง อัปเดตรูป/GPS รับผ่อนดาวน์ ออกใบแจ้งหนี้ค่าส่วนกลาง และจัดเอกสารวันโอน</p>
+          <div class="module-grid" id="siteModules"></div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Foreman Model</div>
+          <h3>2 ทีมโฟร์แมน</h3>
+          <div class="report-list">
+            <div class="report-item"><div><b>โฟร์แมนโก้</b><span class="sub">ดูแล ULTRA · ไทป์ A · บ้านเดี่ยว 2 ชั้น</span></div><span class="badge amber">A</span></div>
+            <div class="report-item"><div><b>โฟร์แมนใหญ่</b><span class="sub">ดูแล MINUTES / SECOND / MOMENT · ไทป์ B/C/D</span></div><span class="badge blue">B/C/D</span></div>
+            <div class="report-item"><div><b>Admin เริ่ม/หยุดก่อสร้าง</b><span class="sub">dropdown โฟร์แมนเห็นเฉพาะแปลง building=true</span></div><span class="badge green">Auto</span></div>
+          </div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Drive Structure</div>
+          <h3>แฟ้มรายแปลง</h3>
+          <div class="timeline">
+            <div class="step"><div class="num">01</div><div><b>ผ่อนดาวน์</b><span>สลิปและใบเสร็จรายงวด</span></div></div>
+            <div class="step"><div class="num">02</div><div><b>ค่าส่วนกลาง</b><span>ใบแจ้งหนี้และหลักฐานชำระ</span></div></div>
+            <div class="step"><div class="num">03</div><div><b>ใบชี้แจงเงินวันโอน</b><span>เอกสาร contenteditable ที่อัปโหลด snapshot</span></div></div>
+            <div class="step"><div class="num">04</div><div><b>ใบแยกเช็ค / รูปหน้างาน</b><span>เอกสารฝ่ายโอนและรูปจากโฟร์แมน</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-erp">
+      <div class="bento">
+        <div class="bento-card wide">
+          <div class="section-kicker">Lean ERP Blueprint</div>
+          <h3>จัดซื้อ คลัง และต้นทุนรายแปลง</h3>
+          <p>ชุด workflow สำหรับแทน Ecount ในอนาคต: PR จากโฟร์แมน → RFQ/PO → อนุมัติ → รับของ → FIFO stock → เบิกลงแปลง → export เข้าต้นทุนบ้าน</p>
+          <div class="timeline" id="erpFlow"></div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Locked Decisions</div>
+          <h3>กติกาที่ตกลงแล้ว</h3>
+          <div class="report-list">
+            <div class="report-item"><div><b>FIFO เท่านั้น</b><span class="sub">ขายลงแปลงใช้ราคาทุนล็อตเข้าก่อนออกก่อน</span></div><span class="badge green">Cost</span></div>
+            <div class="report-item"><div><b>PR ระบุแปลงเป็น hint</b><span class="sub">trace จริงเกิดตอนเบิก Issue ลงแปลง</span></div><span class="badge blue">Trace</span></div>
+            <div class="report-item"><div><b>ส่ง RFQ ผ่าน LINE + พิมพ์</b><span class="sub">ไม่ต้อง auto-email และไม่ต้องเชื่อม Ecount</span></div><span class="badge amber">LINE</span></div>
+          </div>
+        </div>
+        <div class="bento-card mid">
+          <div class="section-kicker">Roles</div>
+          <h3>ผู้ใช้งานใน ERP</h3>
+          <div class="timeline">
+            <div class="step"><div class="num">F</div><div><b>โฟร์แมน</b><span>สร้าง PR</span></div></div>
+            <div class="step"><div class="num">A</div><div><b>แอดมิน A</b><span>จัดซื้อ/RFQ/PO/รับของ</span></div></div>
+            <div class="step"><div class="num">M</div><div><b>MD</b><span>อนุมัติ PO</span></div></div>
+            <div class="step"><div class="num">B</div><div><b>แอดมิน B</b><span>เบิก/ขายลงแปลงและ export ต้นทุน</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-cashbook">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>สมุดเงินสดโครงการ</h3>
+          <button class="btn gold small" id="newRecordBtn">เพิ่มรายการ</button>
+        </div>
+        <div class="panel-body">
+          <div class="filters">
+            <input id="searchInput" placeholder="ค้นหา memo, vendor, เลขเอกสาร">
+            <select id="projectFilter"></select>
+            <select id="typeFilter">
+              <option value="">ทุกประเภท</option>
+              <option value="income">รายรับ</option>
+              <option value="expense">รายจ่าย</option>
+            </select>
+            <select id="statusFilter">
+              <option value="">ทุกสถานะ</option>
+              <option value="draft">รอตรวจ</option>
+              <option value="approved">อนุมัติแล้ว</option>
+              <option value="paid">จ่ายแล้ว</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>วันที่</th>
+                  <th>โครงการ</th>
+                  <th>รายการ</th>
+                  <th>หมวด</th>
+                  <th>สถานะ</th>
+                  <th class="num">รับ</th>
+                  <th class="num">จ่าย</th>
+                  <th>สลิป</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-slips">
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>เพิ่มสลิป/เอกสารค่าใช้จ่าย</h3>
+          </div>
+          <div class="panel-body">
+            <form id="quickSlipForm" class="form-grid">
+              <div class="field">
+                <label>วันที่</label>
+                <input type="date" name="date" required>
+              </div>
+              <div class="field">
+                <label>โครงการ</label>
+                <select name="project" required></select>
+              </div>
+              <div class="field">
+                <label>ยอดเงิน</label>
+                <input type="number" name="amount" min="0" step="0.01" required>
+              </div>
+              <div class="field">
+                <label>ธนาคาร/ช่องทาง</label>
+                <select name="bank">
+                  <option>SCB</option><option>KBank</option><option>BBL</option><option>KTB</option><option>เงินสด</option><option>เช็ค</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label>โน้ตด้านล่างสลิป (ใช้เป็นรายละเอียดหลัก)</label>
+                <input name="memo" placeholder="เช่น ค่าติดตั้งงานหลังคา / ค่าโอนแปลง 89-158" required>
+              </div>
+              <div class="field">
+                <label>ผู้รับเงิน / Vendor</label>
+                <input name="vendor" placeholder="ชื่อร้าน / ผู้รับเหมา / สำนักงานที่ดิน">
+              </div>
+              <div class="field">
+                <label>เลขอ้างอิง</label>
+                <input name="ref" placeholder="Ref จากสลิป">
+              </div>
+              <div class="field full">
+                <label>แนบรูปสลิป</label>
+                <div class="drop">
+                  <input type="file" name="slip" accept="image/*,.pdf">
+                  <div class="preview" id="slipPreview"><img alt=""><span></span></div>
+                  <div><strong>เลือกไฟล์สลิป</strong> แล้วระบบจะเก็บ preview ไว้ใน browser</div>
+                </div>
+              </div>
+              <div class="field full">
+                <button class="btn gold" type="submit">บันทึกสลิปเข้า Cash Book</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>กติกาอ่านโน้ตสลิป</h3></div>
+          <div class="panel-body report-list">
+            <div class="report-item"><div><b>น้ำมัน / รถ / ทางด่วน</b><span class="sub">จัดเข้า ค่าพาหนะ</span></div><span class="badge amber">OPEX</span></div>
+            <div class="report-item"><div><b>ค่าโอนแปลง</b><span class="sub">จัดเข้า ค่าโอน/ภาษี พร้อมจับเลขแปลง</span></div><span class="badge blue">Transfer</span></div>
+            <div class="report-item"><div><b>ติดตั้ง / งาน / งวด</b><span class="sub">จัดเข้า ผู้รับเหมา/ค่าแรง</span></div><span class="badge violet">Contractor</span></div>
+            <div class="report-item"><div><b>HomePro / Mega Home / ไทวัสดุ</b><span class="sub">จัดเข้า ค่าวัสดุก่อสร้าง</span></div><span class="badge green">Material</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-payables">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>เจ้าหนี้ / ใบวางบิล / ตารางจ่าย</h3>
+          <button class="btn gold small" data-prefill="bill">เพิ่มใบวางบิล</button>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>กำหนดจ่าย</th><th>Vendor</th><th>รายการ</th><th>โครงการ</th><th>สถานะ</th><th class="num">ยอด</th><th></th></tr></thead>
+              <tbody id="payablesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-contractor">
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>งวดผู้รับเหมา</h3>
+            <button class="btn gold small" data-prefill="contractor">เพิ่มงวดงาน</button>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>วันที่</th><th>ผู้รับเหมา</th><th>งาน</th><th>QC</th><th class="num">ยอดสุทธิ</th><th></th></tr></thead>
+                <tbody id="contractorBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Checklist ก่อนจ่าย</h3></div>
+          <div class="panel-body report-list">
+            <label><input type="checkbox" checked> โฟร์แมนตรวจงานผ่าน</label>
+            <label><input type="checkbox" checked> แนบรูปหน้างานก่อน/หลัง</label>
+            <label><input type="checkbox"> หักเงินประกันงาน 5%</label>
+            <label><input type="checkbox" checked> หัก ณ ที่จ่ายตามประเภทผู้รับเหมา</label>
+            <button class="btn primary" id="createVoucherBtn">สร้าง Payment Voucher ตัวอย่าง</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-payroll">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>เงินเดือนพนักงานโครงการ</h3>
+          <button class="btn gold small" data-prefill="payroll">เพิ่มเงินเดือน</button>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>รอบจ่าย</th><th>พนักงาน</th><th>ตำแหน่ง</th><th>โครงการ</th><th class="num">สุทธิ</th><th>สถานะ</th><th></th></tr></thead>
+              <tbody id="payrollBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-reports">
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>รายงานประจำเดือน</h3>
+            <button class="btn small" onclick="window.print()">พิมพ์ / Save PDF</button>
+          </div>
+          <div class="panel-body" id="monthlyReport"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>ภาษี/อสังหาฯ เบื้องต้น</h3></div>
+          <div class="panel-body report-list" id="taxReport"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route" id="route-settings">
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head"><h3>ตั้งค่าระบบ</h3></div>
+          <div class="panel-body report-list">
+            <div class="report-item"><div><b>ฐานข้อมูล</b><span class="sub">LocalStorage: <span id="storageSize"></span></span></div><span class="badge green">พร้อมใช้</span></div>
+            <div class="report-item"><div><b>Google Sheet ในอนาคต</b><span class="sub">Finance-Master-2569.xlsx · Slip-Log · Cash-Book</span></div><span class="badge amber">รอเชื่อม</span></div>
+            <div class="report-item"><div><b>OCR จริง</b><span class="sub">ตอนนี้ใช้การกรอกโน้ตจากสลิปก่อน เพื่อให้ทีมเริ่มใช้ได้เร็ว</span></div><span class="badge blue">Phase 2</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>ข้อมูลทดสอบ</h3></div>
+          <div class="panel-body report-list">
+            <button class="btn" id="seedBtn">เติมข้อมูลตัวอย่างใหม่</button>
+            <button class="btn danger" id="clearBtn">ล้างข้อมูลทั้งหมดในเครื่องนี้</button>
+            <p class="sub">คำเตือน: การล้างข้อมูลจะลบเฉพาะข้อมูลใน browser เครื่องนี้ ไม่แตะไฟล์อื่น</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="recordModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="modalTitle">เพิ่มรายการบัญชี</h3>
+      <button class="btn small" id="closeModalBtn">ปิด</button>
+    </div>
+    <div class="modal-body">
+      <form id="recordForm" class="form-grid">
+        <input type="hidden" name="id">
+        <div class="field">
+          <label>ประเภท</label>
+          <select name="type" required>
+            <option value="expense">รายจ่าย</option>
+            <option value="income">รายรับ</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>วันที่</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="field">
+          <label>โครงการ</label>
+          <select name="project" required></select>
+        </div>
+        <div class="field">
+          <label>หมวดบัญชี</label>
+          <select name="category" required></select>
+        </div>
+        <div class="field">
+          <label>ยอดเงิน</label>
+          <input type="number" name="amount" min="0" step="0.01" required>
+        </div>
+        <div class="field">
+          <label>สถานะ</label>
+          <select name="status">
+            <option value="draft">รอตรวจ</option>
+            <option value="approved">อนุมัติแล้ว</option>
+            <option value="paid">จ่ายแล้ว</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Vendor / ลูกค้า / ผู้รับเงิน</label>
+          <input name="vendor" placeholder="ชื่อคู่ค้า">
+        </div>
+        <div class="field">
+          <label>เลขเอกสาร / Ref</label>
+          <input name="ref" placeholder="INV / PO / Slip Ref">
+        </div>
+        <div class="field full">
+          <label>รายละเอียด / memo จากสลิป</label>
+          <input name="memo" required placeholder="เช่น น้ำมัน / ค่าโอนแปลง 89-158 / ค่าติดตั้งงานหลังคา">
+        </div>
+        <div class="field full">
+          <label>หมายเหตุ</label>
+          <textarea name="note" placeholder="รายละเอียดเพิ่มเติม เช่น ผู้อนุมัติ เลขแปลง หักประกัน"></textarea>
+        </div>
+        <div class="field full">
+          <button class="btn gold" type="submit">บันทึก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="_tools/auth-client.js"></script>
+<script src="assets/onevela-workbench.js"></script>
+<script>
+const IS_DEMO_VIEW = location.search.includes('demo=1') || location.protocol === 'file:';
+if(window.Auth && !IS_DEMO_VIEW){
+  Auth.require('view.payments');
+  Auth.renderAuthBar(document.getElementById('authBar'));
+}else{
+  document.getElementById('authBar').innerHTML = '<div style="background:#fff7e6;border:1px solid #ead2a1;color:#8a5d1b;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:700">Demo View · เปิดใช้งานแบบไม่ล็อกอินสำหรับตรวจหน้าเว็บ</div>';
+}
+const STORAGE_KEY = 'twoBuildFinanceStandalone.v2';
+const PROJECTS = ['One Vela','วันเวลา','Oxygen 3','สำนักงานใหญ่'];
+const CATEGORIES = [
+  'รายรับจากการขายบ้าน','ค่าจอง/ทำสัญญา','ค่าผ่อนดาวน์','ค่าธรรมเนียมโอน','ภาษีและอากร',
+  'ค่าวัสดุก่อสร้าง','ค่าผู้รับเหมา','ค่าแรง/เงินเดือน','ค่าน้ำมัน/พาหนะ','ค่าใช้จ่ายสำนักงาน',
+  'ค่าสาธารณูปโภค','อื่นๆ'
+];
+const STATUS_LABEL = {
+  draft:['รอตรวจ','amber'],
+  approved:['อนุมัติแล้ว','blue'],
+  paid:['จ่ายแล้ว','green']
+};
+const OPERATION_MODULES = [
+  {group:'operation', href:'index.html', icon:'💰', title:'แดชบอร์ดต้นทุนบ้าน', desc:'ต้นทุนวัสดุ/ค่าแรงรายหลัง 483 แปลง', status:'Live'},
+  {group:'operation', href:'admin-upload.html', icon:'📤', title:'อัปโหลด Excel ต้นทุน', desc:'Ecount/Excel inbox → sync → cost dashboard', status:'Live'},
+  {group:'operation', href:'payment.html', icon:'💵', title:'ผ่อนดาวน์ + แนบสลิป', desc:'รับชำระงวดดาวน์และเก็บเอกสารใน Drive', status:'Live'},
+  {group:'operation', href:'fee.html', icon:'🏘️', title:'ค่าส่วนกลาง', desc:'รับเงินค่าส่วนกลางและออกใบแจ้งหนี้', status:'Live'},
+  {group:'sales', href:'sales-dashboard.html', icon:'📊', title:'แดชบอร์ดงานขาย', desc:'จอง/สัญญา/ดาวน์/โอน รายเดือน รายปี', status:'Live'},
+  {group:'sales', href:'sales-walkin.html', icon:'👥', title:'ลูกค้าวอร์คอิน', desc:'บันทึก lead source, งบ, แบบบ้าน, agent, คู่แข่ง', status:'Live'},
+  {group:'sales', href:'sales-booking.html', icon:'📝', title:'ใบจอง', desc:'ดึงข้อมูลแปลงสดและ save เข้า Sheet', status:'Live'},
+  {group:'sales', href:'sales-contract.html', icon:'📄', title:'สัญญาจะซื้อจะขาย', desc:'ออกสัญญาและอัปเดตสถานะแปลง', status:'Live'},
+  {group:'sales', href:'sales-quotation.html', icon:'🧾', title:'ใบเสนอราคา', desc:'ดึงราคา/พื้นที่/โฉนดจากฐานข้อมูล', status:'Live'},
+  {group:'sales', href:'income-calculator.html', icon:'🧮', title:'คำนวณรายได้ & สินเชื่อ', desc:'สูตรประเมินความสามารถผ่อนภายใน', status:'Live'},
+  {group:'site', href:'admin-construction.html', icon:'🏗️', title:'แดชบอร์ดก่อสร้าง', desc:'เริ่ม/หยุดก่อสร้างและ auto-assign โฟร์แมน', status:'Live'},
+  {group:'site', href:'foreman-update.html', icon:'👷', title:'อัปเดตงานหน้าไซต์', desc:'โฟร์แมนถ่ายรูป GPS milestone และรายงาน', status:'Live'},
+  {group:'site', href:'plot-detail.html?plot=1', icon:'🏠', title:'รายละเอียดแปลง', desc:'Single source of truth รายแปลง', status:'Live'},
+  {group:'site', href:'transfer.html', icon:'📋', title:'แดชบอร์ดงานโอน', desc:'ติดตาม checklist และเอกสารวันโอน', status:'Live'},
+  {group:'site', href:'transfer-checklist.html', icon:'✅', title:'Checklist งานโอน', desc:'4 หมวด checklist auto-save', status:'Live'},
+  {group:'site', href:'transfer-money.html', icon:'💳', title:'ใบชี้แจงเงินวันโอน', desc:'แก้เอกสารและอัปโหลด snapshot เข้า Drive', status:'Live'},
+  {group:'site', href:'transfer-cheque.html', icon:'🏦', title:'ใบแยกเช็ค', desc:'จัดชุดเช็คและเอกสารโอนกรรมสิทธิ์', status:'Live'}
+];
+const ERP_STEPS = [
+  ['PR', 'โฟร์แมนสร้างใบขอซื้อ', 'เลือกแปลงเป็น hint, เลือกวัสดุ/หน่วย/จำนวน, สร้าง PDF และแจ้งแอดมิน'],
+  ['RFQ', 'แอดมินรวม PR เป็นใบขอราคา', 'เลือก vendor, ส่งทาง LINE/พิมพ์, เก็บ price history'],
+  ['PO', 'เปรียบเทียบราคาและออก PO', 'แนะนำ split vendor/cheapest vendor, ส่งให้ MD อนุมัติ'],
+  ['GR', 'รับสินค้าเข้าคลัง', 'ถ่ายรูป, ระบุยอดค้างส่ง, สร้าง lot สำหรับ FIFO'],
+  ['FIFO', 'คลังกลางร้านวันเวลาค้าวัสดุ', 'ดู stock lot oldest-first, movement, export CSV'],
+  ['Issue', 'เบิกขายลงแปลง', 'คำนวณต้นทุน FIFO ต่อแปลงและ export Excel เข้าระบบต้นทุนบ้าน']
+];
+const OPERATION_FLOW = [
+  ['Lead', 'Sales รับลูกค้า/Walk-in', 'บันทึก source, rating, แบบบ้าน, งบประมาณ และ follow note'],
+  ['Booking', 'ออกใบเสนอราคา/ใบจอง/สัญญา', 'ดึงข้อมูลแปลงสดจาก Sheet และกันขายซ้ำ'],
+  ['Payment', 'รับเงินจอง/ดาวน์/ค่าส่วนกลาง', 'แนบสลิปเข้า Drive รายแปลงและบันทึก Cash Book'],
+  ['Site', 'เริ่มก่อสร้างและอัปเดตหน้าไซต์', 'admin เปิด building=true, โฟร์แมนถ่ายรูป/GPS/milestone'],
+  ['Transfer', 'จัดเอกสารวันโอน', 'checklist, ใบชี้แจงเงิน, ใบแยกเช็ค, history ใน Drive'],
+  ['Finance', 'ปิดรายงานบัญชี/ภาษี/HR', 'Cash Book, WHT, Payroll, Vendor Billing และรายงานผู้บริหาร']
+];
+let state = loadState();
+let currentRoute = 'dashboard';
+let filters = {q:'', project:'', type:'', status:''};
+
+function today(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function thb(n){
+  return '฿' + Number(n || 0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function shortThb(n){
+  n = Number(n || 0);
+  if(Math.abs(n) >= 1000000) return '฿' + (n/1000000).toFixed(1) + 'M';
+  if(Math.abs(n) >= 1000) return '฿' + (n/1000).toFixed(0) + 'K';
+  return thb(n);
+}
+function uid(prefix='REC'){
+  return prefix + '-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,5).toUpperCase();
+}
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2400);
+}
+function inferCategory(memo, fallback){
+  const t = (memo || '').toLowerCase();
+  if(/โอนแปลง|ค่าโอน|ที่ดิน/.test(t)) return 'ค่าธรรมเนียมโอน';
+  if(/ภาษี|อากร|ธุรกิจเฉพาะ|ภงด|ภพ/.test(t)) return 'ภาษีและอากร';
+  if(/น้ำมัน|รถ|ทางด่วน|เดินทาง/.test(t)) return 'ค่าน้ำมัน/พาหนะ';
+  if(/หลังคา|ติดตั้ง|งวด|ผู้รับเหมา|ก่อ|ฉาบ|เท|งาน/.test(t)) return 'ค่าผู้รับเหมา';
+  if(/homepro|mega|ไทวัสดุ|วัสดุ|ปูน|เหล็ก|กระเบื้อง/.test(t)) return 'ค่าวัสดุก่อสร้าง';
+  if(/เงินเดือน|ค่าแรง|ot|ประกันสังคม/.test(t)) return 'ค่าแรง/เงินเดือน';
+  if(/ไฟ|น้ำ|อินเทอร์เน็ต|โทรศัพท์/.test(t)) return 'ค่าสาธารณูปโภค';
+  return fallback || 'อื่นๆ';
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return seedState();
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function seedState(){
+  return {
+    records:[
+      {id:'SLIP-001', type:'expense', date:'2026-03-28', project:'One Vela', category:'ค่าน้ำมัน/พาหนะ', amount:3500, vendor:'นาย โกวิท ราษีทอง', memo:'น้ำมัน', ref:'202603288QZdLiLc6dewNeyMV', status:'paid', bank:'SCB', slipName:'28032569_SCB_3500_น้ำมัน.jpg', slipData:'', note:'อ่านจากโน้ตด้านล่างสลิป'},
+      {id:'SLIP-002', type:'expense', date:'2026-03-27', project:'One Vela', category:'ค่าธรรมเนียมโอน', amount:157914, vendor:'สำนักงานที่ดินจังหวัด ชลบุรี', memo:'ค่าโอนแปลง 89-158', ref:'KPLUS-LAND-89-158', status:'paid', bank:'KBank', slipName:'27032569_KBANK_157914_ค่าโอนแปลง.jpg', slipData:'', note:'แยกตรวจภาษี/ค่าโอนในรายงานภาษี'},
+      {id:'SLIP-003', type:'expense', date:'2026-03-20', project:'One Vela', category:'ค่าผู้รับเหมา', amount:12896.34, vendor:'นาย วิเศษศักดิ์ เวียงโสม', memo:'ค่าติดตั้งงานหลังคา', ref:'202603202KrljXhW', status:'paid', bank:'SCB', slipName:'20032569_SCB_12896_งานหลังคา.jpg', slipData:'', note:'งวดหลังคา ชุดเดียวกับ SLIP-004'},
+      {id:'SLIP-004', type:'expense', date:'2026-03-20', project:'One Vela', category:'ค่าผู้รับเหมา', amount:3974.86, vendor:'นาย วิเศษศักดิ์ เวียงโสม', memo:'ติดตั้งหลังคา', ref:'202603202Krm9pP', status:'paid', bank:'SCB', slipName:'20032569_SCB_3975_ติดตั้งหลังคา.jpg', slipData:'', note:'โอนต่อเนื่องกับ SLIP-003'},
+      {id:'SLIP-005', type:'expense', date:'2026-03-20', project:'One Vela', category:'ค่าวัสดุก่อสร้าง', amount:4644.36, vendor:'HOMEPRO / MEGA Home', memo:'MEGA Home', ref:'SCB-BILL-HOMEPRO', status:'paid', bank:'SCB', slipName:'20032569_SCB_4644_MEGA_Home.jpg', slipData:'', note:'Bill payment'},
+      {id:'SALE-001', type:'income', date:'2026-05-04', project:'One Vela', category:'ค่าจอง/ทำสัญญา', amount:50000, vendor:'ลูกค้าแปลง 89', memo:'รับเงินจองแปลง 89', ref:'RC-2569-0089', status:'approved', bank:'โอน', slipName:'', slipData:'', note:'รอออกใบเสร็จ'},
+      {id:'SALE-002', type:'income', date:'2026-05-18', project:'One Vela', category:'ค่าผ่อนดาวน์', amount:185000, vendor:'ลูกค้าแปลง 158', memo:'รับผ่อนดาวน์งวด 2 แปลง 158', ref:'RC-2569-0158-02', status:'approved', bank:'โอน', slipName:'', slipData:'', note:''},
+      {id:'BILL-001', type:'expense', date:'2026-05-25', project:'วันเวลา', category:'ค่าวัสดุก่อสร้าง', amount:87450, vendor:'บจก. ปูนซีเมนต์ไทย', memo:'ปูน 5,000 ถุง บ้าน A-12', ref:'INV-2569-0341', status:'approved', bank:'เครดิต 30 วัน', slipName:'', slipData:'', note:'กำหนดจ่าย 2026-06-24'},
+      {id:'CTR-001', type:'expense', date:'2026-05-25', project:'Oxygen 3', category:'ค่าผู้รับเหมา', amount:78000, vendor:'นาย ประยุทธ์ ช่างหลังคา', memo:'งวด 2/3 มุงหลังคา บ้าน C-01,02', ref:'CTR-2569-0090', status:'draft', bank:'รอโอน', slipName:'', slipData:'', note:'รอ QC โฟร์แมน'},
+      {id:'PAY-001', type:'expense', date:'2026-05-31', project:'สำนักงานใหญ่', category:'ค่าแรง/เงินเดือน', amount:486500, vendor:'พนักงานโครงการ 24 คน', memo:'เงินเดือนพฤษภาคม 2569', ref:'PAYROLL-2569-05', status:'approved', bank:'Bank file', slipName:'', slipData:'', note:'หัก SSO/ภงด.1 แล้ว'}
+    ]
+  };
+}
+function statusBadge(status){
+  const s = STATUS_LABEL[status] || STATUS_LABEL.draft;
+  return `<span class="badge ${s[1]}">${s[0]}</span>`;
+}
+function typeBadge(type){
+  return type === 'income'
+    ? '<span class="badge green">รายรับ</span>'
+    : '<span class="badge red">รายจ่าย</span>';
+}
+function fillSelects(){
+  const projectOptions = ['<option value="">ทุกโครงการ</option>'].concat(PROJECTS.map(p=>`<option>${p}</option>`)).join('');
+  document.getElementById('projectFilter').innerHTML = projectOptions;
+  document.querySelectorAll('select[name="project"]').forEach(sel=>{
+    const keep = sel.value;
+    sel.innerHTML = PROJECTS.map(p=>`<option>${p}</option>`).join('');
+    if(keep) sel.value = keep;
+  });
+  document.querySelectorAll('select[name="category"]').forEach(sel=>{
+    const keep = sel.value;
+    sel.innerHTML = CATEGORIES.map(c=>`<option>${c}</option>`).join('');
+    if(keep) sel.value = keep;
+  });
+}
+function getFiltered(){
+  const q = filters.q.trim().toLowerCase();
+  return state.records.filter(r=>{
+    if(filters.project && r.project !== filters.project) return false;
+    if(filters.type && r.type !== filters.type) return false;
+    if(filters.status && r.status !== filters.status) return false;
+    if(q){
+      const hay = [r.memo,r.vendor,r.ref,r.category,r.project,r.note].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+}
+function sums(records=state.records){
+  return records.reduce((a,r)=>{
+    if(r.type === 'income') a.income += Number(r.amount || 0);
+    else a.expense += Number(r.amount || 0);
+    if(r.status === 'draft') a.draft += Number(r.amount || 0);
+    if(r.status === 'approved') a.approved += Number(r.amount || 0);
+    if(r.status === 'paid') a.paid += Number(r.amount || 0);
+    return a;
+  }, {income:0, expense:0, draft:0, approved:0, paid:0});
+}
+function renderKpis(){
+  const s = sums();
+  const net = s.income - s.expense;
+  const unpaid = state.records.filter(r=>r.type==='expense' && r.status !== 'paid').reduce((a,r)=>a+Number(r.amount||0),0);
+  document.getElementById('kpiRow').innerHTML = [
+    ['รายรับรวม', thb(s.income), 'ยอดรับ/รอบนี้', 'in'],
+    ['รายจ่ายรวม', thb(s.expense), 'รวมสลิปและบิล', 'out'],
+    ['สุทธิ', thb(net), net >= 0 ? 'เงินสดบวก' : 'เงินสดติดลบ', 'net'],
+    ['รอจ่าย', thb(unpaid), 'ยังไม่ paid', 'out'],
+    ['รายการทั้งหมด', state.records.length.toLocaleString('th-TH'), 'ในเครื่องนี้', '']
+  ].map(k=>`<div class="kpi ${k[3]}"><div class="label">${k[0]}</div><div class="value">${k[1]}</div><div class="hint">${k[2]}</div></div>`).join('');
+}
+function renderTable(){
+  const rows = getFiltered();
+  document.getElementById('recordsBody').innerHTML = rows.length ? rows.map(r=>`
+    <tr>
+      <td>${r.date}<div class="sub">${r.ref || '-'}</div></td>
+      <td>${r.project}</td>
+      <td><div class="memo">${r.memo}</div><div class="sub">${r.vendor || '-'}</div></td>
+      <td><span class="badge ${r.type==='income'?'green':'blue'}">${r.category}</span></td>
+      <td>${typeBadge(r.type)}<br>${statusBadge(r.status)}</td>
+      <td class="num">${r.type==='income'?thb(r.amount):''}</td>
+      <td class="num">${r.type==='expense'?thb(r.amount):''}</td>
+      <td>${r.slipData ? `<img class="slip-thumb" src="${r.slipData}" alt="slip">` : `<span class="sub">${r.slipName || '-'}</span>`}</td>
+      <td class="num">
+        <button class="btn small" onclick="editRecord('${r.id}')">แก้</button>
+        <button class="btn small danger" onclick="deleteRecord('${r.id}')">ลบ</button>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="9"><div class="empty">ยังไม่มีรายการตามเงื่อนไขนี้</div></td></tr>`;
+}
+function groupSum(field, records){
+  return records.reduce((a,r)=>{
+    const key = r[field] || '-';
+    a[key] = (a[key] || 0) + (r.type === 'expense' ? Number(r.amount || 0) : 0);
+    return a;
+  }, {});
+}
+function renderSummaryBars(target, data){
+  const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const max = Math.max(...entries.map(e=>e[1]), 1);
+  document.getElementById(target).innerHTML = entries.length ? entries.map(([name,val])=>`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><b>${name}</b><span>${thb(val)}</span></div>
+      <div class="progress"><i style="width:${Math.max(4,(val/max)*100)}%"></i></div>
+    </div>`).join('') : '<div class="empty">ไม่มีข้อมูล</div>';
+}
+function moduleCard(m){
+  return `<a class="module-link" href="${m.href}">
+    <div class="ico">${m.icon}</div>
+    <div><b>${m.title}</b><span>${m.desc}</span><span class="badge ${m.status==='Live'?'green':'amber'}" style="margin-top:7px">${m.status}</span></div>
+  </a>`;
+}
+function renderCommandCenter(){
+  const s = sums();
+  const draftCount = state.records.filter(r=>r.status === 'draft').length;
+  const unpaid = state.records.filter(r=>r.type==='expense' && r.status !== 'paid').reduce((a,r)=>a+Number(r.amount||0),0);
+  const metrics = [
+    ['Finance modules', '7 ตัว', 'Cash Book · Slip · AP · Payroll · Reports'],
+    ['Finance records', state.records.length + ' รายการ', shortThb(s.income - s.expense) + ' สุทธิ'],
+    ['Pending review', draftCount + ' งาน', 'สลิป/ผู้รับเหมารอตรวจ'],
+    ['Payment queue', shortThb(unpaid), 'เจ้าหนี้/บิลยังไม่ paid']
+  ];
+  document.getElementById('commandMetrics').innerHTML = metrics.map(m=>`
+    <div class="mini-metric"><span>${m[0]}</span><b>${m[1]}</b><span>${m[2]}</span></div>
+  `).join('');
+  const operationModules = document.getElementById('operationModules');
+  if(operationModules) operationModules.innerHTML = OPERATION_MODULES.map(moduleCard).join('');
+  const salesModules = document.getElementById('salesModules');
+  if(salesModules) salesModules.innerHTML = OPERATION_MODULES.filter(m=>m.group === 'sales').map(moduleCard).join('');
+  const siteModules = document.getElementById('siteModules');
+  if(siteModules) siteModules.innerHTML = OPERATION_MODULES.filter(m=>m.group === 'site').map(moduleCard).join('');
+  const operationFlow = document.getElementById('operationFlow');
+  if(operationFlow) operationFlow.innerHTML = OPERATION_FLOW.map((s,i)=>`
+    <div class="step"><div class="num">${i+1}</div><div><b>${s[0]} · ${s[1]}</b><span>${s[2]}</span></div></div>
+  `).join('');
+  const erpFlow = document.getElementById('erpFlow');
+  if(erpFlow) erpFlow.innerHTML = ERP_STEPS.map((s,i)=>`
+    <div class="step"><div class="num">${i+1}</div><div><b>${s[0]} · ${s[1]}</b><span>${s[2]}</span></div></div>
+  `).join('');
+  const operationQueue = document.getElementById('operationQueue');
+  if(operationQueue) operationQueue.innerHTML = [
+    ['ตรวจสลิป/เอกสาร', draftCount + ' รายการรอตรวจ', 'slips', 'amber'],
+    ['เจ้าหนี้รอจ่าย', shortThb(unpaid), 'payables', 'red'],
+    ['ก่อสร้างกำลังเปิดงาน', 'ดู admin-construction', 'site', 'blue'],
+    ['เอกสารวันโอน', 'checklist + ใบชี้แจงเงิน', 'site', 'green']
+  ].map(q=>`
+    <button class="report-item" data-route-jump="${q[2]}" style="width:100%;text-align:left;cursor:pointer">
+      <div><b>${q[0]}</b><span class="sub">${q[1]}</span></div><span class="badge ${q[3]}">เปิด</span>
+    </button>
+  `).join('');
+  if(operationQueue) document.querySelectorAll('#operationQueue [data-route-jump]').forEach(btn=>{
+    btn.addEventListener('click',()=>showRoute(btn.dataset.routeJump));
+  });
+}
+function renderDashboard(){
+  const now = new Date();
+  document.getElementById('monthLabel').textContent = now.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+  const byMonth = {};
+  state.records.forEach(r=>{
+    const m = r.date.slice(0,7);
+    if(!byMonth[m]) byMonth[m] = {income:0, expense:0};
+    byMonth[m][r.type === 'income' ? 'income' : 'expense'] += Number(r.amount || 0);
+  });
+  const months = Object.keys(byMonth).sort().slice(-6);
+  const max = Math.max(...months.flatMap(m=>[byMonth[m].income, byMonth[m].expense]), 1);
+  document.getElementById('cashChart').innerHTML = months.map(m=>{
+    const mm = new Date(m+'-01').toLocaleDateString('th-TH', {month:'short'});
+    return `<div style="display:flex;align-items:flex-end;gap:3px;flex:1;height:100%">
+      <div class="bar" style="height:${Math.max(6,byMonth[m].income/max*100)}%"><span>${mm}</span></div>
+      <div class="bar out" style="height:${Math.max(6,byMonth[m].expense/max*100)}%"></div>
+    </div>`;
+  }).join('');
+  const queue = state.records.filter(r=>r.status !== 'paid').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  document.getElementById('workQueue').innerHTML = queue.length ? queue.map(r=>`
+    <div class="report-item">
+      <div><b>${r.memo}</b><span class="sub">${r.project} · ${r.vendor || '-'} · ${r.date}</span></div>
+      <div style="text-align:right">${statusBadge(r.status)}<br><b>${thb(r.amount)}</b></div>
+    </div>`).join('') : '<div class="empty">ไม่มีรายการค้าง</div>';
+  renderSummaryBars('projectSummary', groupSum('project', state.records));
+  renderSummaryBars('categorySummary', groupSum('category', state.records));
+  const docs = state.records.filter(r=>r.slipName || r.ref).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  document.getElementById('recentDocs').innerHTML = docs.map(r=>`
+    <div class="report-item"><div><b>${r.ref || r.slipName}</b><span class="sub">${r.memo}</span></div><span class="badge blue">${r.bank || 'เอกสาร'}</span></div>
+  `).join('');
+}
+function renderPayables(){
+  const rows = state.records.filter(r=>r.type==='expense' && ['draft','approved'].includes(r.status)).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('payablesBody').innerHTML = rows.length ? rows.map(r=>`
+    <tr><td>${r.date}</td><td>${r.vendor || '-'}</td><td><b>${r.memo}</b><div class="sub">${r.ref || ''}</div></td><td>${r.project}</td><td>${statusBadge(r.status)}</td><td class="num">${thb(r.amount)}</td><td class="num"><button class="btn small" onclick="markPaid('${r.id}')">จ่ายแล้ว</button></td></tr>
+  `).join('') : '<tr><td colspan="7"><div class="empty">ไม่มีเจ้าหนี้ค้าง</div></td></tr>';
+}
+function renderContractor(){
+  const rows = state.records.filter(r=>r.category === 'ค่าผู้รับเหมา').sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('contractorBody').innerHTML = rows.map(r=>`
+    <tr><td>${r.date}</td><td>${r.vendor || '-'}</td><td><b>${r.memo}</b><div class="sub">${r.project}</div></td><td>${r.status==='draft'?'<span class="badge amber">รอ QC</span>':'<span class="badge green">ผ่าน</span>'}</td><td class="num">${thb(r.amount)}</td><td class="num"><button class="btn small" onclick="editRecord('${r.id}')">เปิด</button></td></tr>
+  `).join('');
+}
+function renderPayroll(){
+  const rows = state.records.filter(r=>r.category === 'ค่าแรง/เงินเดือน').sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('payrollBody').innerHTML = rows.map(r=>`
+    <tr><td>${r.date}</td><td>${r.vendor || '-'}</td><td>${r.memo}</td><td>${r.project}</td><td class="num">${thb(r.amount)}</td><td>${statusBadge(r.status)}</td><td class="num"><button class="btn small" onclick="markPaid('${r.id}')">จ่ายแล้ว</button></td></tr>
+  `).join('');
+}
+function renderReports(){
+  const s = sums();
+  const transfer = state.records.filter(r=>r.category === 'ค่าธรรมเนียมโอน').reduce((a,r)=>a+Number(r.amount||0),0);
+  const tax = state.records.filter(r=>r.category === 'ภาษีและอากร').reduce((a,r)=>a+Number(r.amount||0),0);
+  const gp = s.income ? ((s.income - s.expense) / s.income) * 100 : 0;
+  document.getElementById('monthlyReport').innerHTML = `
+    <div class="report-list">
+      <div class="report-item"><div><b>รายรับรวม</b><span class="sub">รวมยอดรับจากการขาย/จอง/ดาวน์</span></div><b>${thb(s.income)}</b></div>
+      <div class="report-item"><div><b>รายจ่ายรวม</b><span class="sub">รวมต้นทุน วัสดุ ค่าแรง ภาษี</span></div><b>${thb(s.expense)}</b></div>
+      <div class="report-item"><div><b>กำไร/ขาดทุนสุทธิ</b><span class="sub">คำนวณจากข้อมูลที่บันทึกในเครื่องนี้</span></div><b>${thb(s.income-s.expense)}</b></div>
+      <div class="report-item"><div><b>Margin เบื้องต้น</b><span class="sub">ใช้ตรวจแนวโน้ม ไม่ใช่งบการเงินทางการ</span></div><b>${gp.toFixed(1)}%</b></div>
+    </div>`;
+  document.getElementById('taxReport').innerHTML = `
+    <div class="report-item"><div><b>ค่าโอนสะสม</b><span class="sub">หมวดค่าธรรมเนียมโอน</span></div><b>${thb(transfer)}</b></div>
+    <div class="report-item"><div><b>ภาษี/อากรที่บันทึกแล้ว</b><span class="sub">หมวดภาษีและอากร</span></div><b>${thb(tax)}</b></div>
+    <div class="report-item"><div><b>ภาษีธุรกิจเฉพาะโดยประมาณ</b><span class="sub">ตัวอย่าง: 3.3% ของยอดขายที่บันทึก</span></div><b>${thb(s.income*0.033)}</b></div>`;
+}
+function renderSettings(){
+  document.getElementById('storageSize').textContent = (new Blob([localStorage.getItem(STORAGE_KEY) || '']).size / 1024).toFixed(1) + ' KB';
+}
+function renderAll(){
+  fillSelects();
+  renderKpis();
+  renderTable();
+  renderCommandCenter();
+  renderDashboard();
+  renderPayables();
+  renderContractor();
+  renderPayroll();
+  renderReports();
+  renderSettings();
+  save();
+}
+function showRoute(route){
+  currentRoute = route;
+  document.querySelectorAll('.route').forEach(el=>el.classList.toggle('active', el.id === 'route-'+route));
+  document.querySelectorAll('.nav button').forEach(btn=>btn.classList.toggle('active', btn.dataset.route === route));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function openModal(record){
+  const form = document.getElementById('recordForm');
+  form.reset();
+  fillSelects();
+  document.getElementById('modalTitle').textContent = record ? 'แก้รายการบัญชี' : 'เพิ่มรายการบัญชี';
+  if(record){
+    Object.keys(record).forEach(k=>{
+      if(form.elements[k]) form.elements[k].value = record[k];
+    });
+  }else{
+    form.elements.date.value = today();
+    form.elements.project.value = 'One Vela';
+    form.elements.status.value = 'draft';
+  }
+  document.getElementById('recordModal').classList.add('show');
+}
+function closeModal(){ document.getElementById('recordModal').classList.remove('show'); }
+function editRecord(id){
+  const r = state.records.find(x=>x.id===id);
+  if(r) openModal(r);
+}
+function deleteRecord(id){
+  if(!confirm('ลบรายการนี้ออกจากระบบบัญชีในเครื่องนี้?')) return;
+  state.records = state.records.filter(r=>r.id!==id);
+  renderAll();
+  toast('ลบรายการแล้ว');
+}
+function markPaid(id){
+  const r = state.records.find(x=>x.id===id);
+  if(!r) return;
+  r.status = 'paid';
+  renderAll();
+  toast('อัปเดตเป็นจ่ายแล้ว');
+}
+function prefill(kind){
+  openModal();
+  const f = document.getElementById('recordForm');
+  f.elements.type.value = 'expense';
+  f.elements.status.value = kind === 'contractor' ? 'draft' : 'approved';
+  if(kind === 'bill'){
+    f.elements.category.value = 'ค่าวัสดุก่อสร้าง';
+    f.elements.memo.value = 'ใบวางบิลค่าวัสดุ';
+  }
+  if(kind === 'contractor'){
+    f.elements.category.value = 'ค่าผู้รับเหมา';
+    f.elements.memo.value = 'งวดงานผู้รับเหมา';
+  }
+  if(kind === 'payroll'){
+    f.elements.category.value = 'ค่าแรง/เงินเดือน';
+    f.elements.memo.value = 'เงินเดือนประจำเดือน';
+    f.elements.project.value = 'สำนักงานใหญ่';
+  }
+}
+function exportCsv(){
+  const headers = ['id','date','project','type','category','amount','vendor','memo','ref','status','bank','slipName','note'];
+  const lines = [headers.join(',')].concat(state.records.map(r=>headers.map(h=>`"${String(r[h] || '').replaceAll('"','""')}"`).join(',')));
+  const blob = new Blob(['\ufeff'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'two-build-finance-cashbook.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Export CSV แล้ว');
+}
+function backupJson(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'two-build-finance-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('ดาวน์โหลด Backup แล้ว');
+}
+function wire(){
+  document.getElementById('nav').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-route]');
+    if(btn) showRoute(btn.dataset.route);
+  });
+  document.querySelectorAll('[data-route-jump]').forEach(btn=>btn.addEventListener('click',()=>showRoute(btn.dataset.routeJump)));
+  document.getElementById('newRecordBtn').addEventListener('click',()=>openModal());
+  document.getElementById('newRecordTopBtn').addEventListener('click',()=>openModal());
+  document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+  document.getElementById('recordModal').addEventListener('click', e=>{ if(e.target.id === 'recordModal') closeModal(); });
+  document.getElementById('recordForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const id = f.get('id') || uid('REC');
+    const existing = state.records.find(r=>r.id===id);
+    const data = {
+      id, type:f.get('type'), date:f.get('date'), project:f.get('project'), category:f.get('category'),
+      amount:Number(f.get('amount') || 0), status:f.get('status'), vendor:f.get('vendor'), ref:f.get('ref'),
+      memo:f.get('memo'), note:f.get('note'), bank: existing?.bank || '', slipName: existing?.slipName || '', slipData: existing?.slipData || ''
+    };
+    if(existing) Object.assign(existing, data); else state.records.push(data);
+    closeModal();
+    renderAll();
+    toast('บันทึกรายการแล้ว');
+  });
+  document.querySelector('#recordForm input[name="memo"]').addEventListener('input', e=>{
+    const cat = inferCategory(e.target.value, '');
+    if(cat && cat !== 'อื่นๆ') document.querySelector('#recordForm select[name="category"]').value = cat;
+  });
+  ['searchInput','projectFilter','typeFilter','statusFilter'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', ()=>{
+      filters.q = document.getElementById('searchInput').value;
+      filters.project = document.getElementById('projectFilter').value;
+      filters.type = document.getElementById('typeFilter').value;
+      filters.status = document.getElementById('statusFilter').value;
+      renderTable();
+    });
+  });
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+  document.getElementById('backupBtn').addEventListener('click', backupJson);
+  document.getElementById('seedBtn').addEventListener('click', ()=>{
+    if(confirm('เติมข้อมูลตัวอย่างใหม่ โดยข้อมูลปัจจุบันจะถูกแทนที่?')){
+      state = seedState();
+      renderAll();
+      toast('เติมข้อมูลตัวอย่างแล้ว');
+    }
+  });
+  document.getElementById('clearBtn').addEventListener('click', ()=>{
+    if(confirm('ล้างข้อมูลทั้งหมดในเครื่องนี้?')){
+      state = {records:[]};
+      renderAll();
+      toast('ล้างข้อมูลแล้ว');
+    }
+  });
+  document.querySelectorAll('[data-prefill]').forEach(btn=>btn.addEventListener('click',()=>prefill(btn.dataset.prefill)));
+  document.getElementById('createVoucherBtn').addEventListener('click',()=>{
+    prefill('contractor');
+    toast('เปิดฟอร์ม Payment Voucher แล้ว');
+  });
+  const quick = document.getElementById('quickSlipForm');
+  quick.elements.date.value = today();
+  quick.elements.project.innerHTML = PROJECTS.map(p=>`<option>${p}</option>`).join('');
+  quick.elements.slip.addEventListener('change', e=>{
+    const file = e.target.files[0];
+    const box = document.getElementById('slipPreview');
+    if(!file){ box.style.display='none'; return; }
+    box.style.display='flex';
+    box.querySelector('span').textContent = file.name;
+    if(file.type.startsWith('image/')){
+      const reader = new FileReader();
+      reader.onload = () => box.querySelector('img').src = reader.result;
+      reader.readAsDataURL(file);
+    }else{
+      box.querySelector('img').removeAttribute('src');
+    }
+  });
+  quick.addEventListener('submit', e=>{
+    e.preventDefault();
+    const f = new FormData(quick);
+    const file = quick.elements.slip.files[0];
+    const addRecord = slipData => {
+      const memo = f.get('memo');
+      state.records.push({
+        id: uid('SLIP'),
+        type:'expense',
+        date:f.get('date'),
+        project:f.get('project'),
+        category:inferCategory(memo),
+        amount:Number(f.get('amount') || 0),
+        vendor:f.get('vendor'),
+        memo,
+        ref:f.get('ref'),
+        status:'draft',
+        bank:f.get('bank'),
+        slipName:file ? file.name : '',
+        slipData: slipData || '',
+        note:'เพิ่มจากหน้าสลิป/เอกสาร'
+      });
+      quick.reset();
+      quick.elements.date.value = today();
+      quick.elements.project.innerHTML = PROJECTS.map(p=>`<option>${p}</option>`).join('');
+      document.getElementById('slipPreview').style.display = 'none';
+      renderAll();
+      showRoute('cashbook');
+      toast('บันทึกสลิปแล้ว รอตรวจใน Cash Book');
+    };
+    if(file && file.type.startsWith('image/')){
+      const reader = new FileReader();
+      reader.onload = () => addRecord(reader.result);
+      reader.readAsDataURL(file);
+    }else addRecord('');
+  });
+}
+wire();
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Build Operation — One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{--ink:#193121;--charcoal:#234330;--gold:#9f7a3f;--gold-d:#7a5f32;--cream:#f6fbf5;--line:#dbe8dc;--muted:#6f8274;--green:#239355;--green-bg:#eaf8ee;--blue:#3f78b8;--blue-bg:#e9f2fb;--amber:#b97a18;--amber-bg:#fff7df;--shadow:0 18px 42px rgba(63,112,70,.11)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--ink);line-height:1.55}
+  a{color:inherit;text-decoration:none}
+  .serif{font-family:'Cormorant Garamond',serif}
+  .shell{min-height:100vh;display:grid;grid-template-columns:270px 1fr}
+  .side{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#264936,#1d3528);color:#f5fcf6;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
+  .brand{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .brand img{width:54px;height:54px;object-fit:contain;background:#fff;border-radius:10px;padding:8px}
+  .brand .eyebrow{font-size:10px;letter-spacing:2px;color:#bfe8c6;font-weight:800}
+  .brand h1{font-size:24px;line-height:1;margin:3px 0 0}
+  .nav{display:flex;flex-direction:column;gap:6px}
+  .nav a{border-radius:10px;padding:11px 12px;font-weight:800;color:#d8d0c1}
+  .nav a:hover,.nav a.active{background:rgba(217,248,223,.14);color:#fff}
+  .side-note{margin-top:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;font-size:12px;color:#d5e5d9}
+  .main{padding:26px 30px 62px;min-width:0}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+  h2{margin:0;font-size:34px;color:var(--charcoal)}
+  p{margin:0;color:var(--muted);font-size:14px}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--charcoal);border-radius:10px;padding:9px 12px;font-weight:800;box-shadow:0 2px 0 rgba(0,0,0,.02)}
+  .btn:hover{border-color:var(--green);color:var(--green)}
+  .hero{
+    display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-bottom:18px
+  }
+  .hero-main{
+    position:relative;overflow:hidden;border-radius:28px;min-height:292px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;
+    background:
+      linear-gradient(135deg,rgba(18,34,24,.78),rgba(34,74,48,.46)),
+      url('assets/project-homes/type-d-exterior.jpg') center/cover;
+    box-shadow:0 26px 80px rgba(36,75,49,.18);color:#fff
+  }
+  .hero-main::before{
+    content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.2) 48%,rgba(0,0,0,.46))
+  }
+  .hero-copy,.hero-metrics{position:relative;z-index:1}
+  .hero-kicker{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}
+  .hero-main h3{margin:12px 0 8px;font-size:clamp(28px,3vw,44px);line-height:1.04}
+  .hero-main p{color:rgba(255,255,255,.8);max-width:580px}
+  .hero-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+  .hero-metrics div{border-radius:16px;padding:13px;background:rgba(255,255,255,.14);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12)}
+  .hero-metrics span{display:block;font-size:11px;color:rgba(255,255,255,.72);font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+  .hero-metrics b{display:block;margin-top:3px;font-size:18px}
+  .hero-stack{display:grid;gap:16px}
+  .hero-mini{
+    position:relative;overflow:hidden;border-radius:22px;min-height:138px;padding:18px;display:flex;align-items:flex-end;color:#fff;box-shadow:var(--shadow)
+  }
+  .hero-mini::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.58))}
+  .hero-mini .copy{position:relative;z-index:1}
+  .hero-mini span{display:block;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:800}
+  .hero-mini b{display:block;margin-top:4px;font-size:20px}
+  .hero-mini p{margin-top:6px;color:rgba(255,255,255,.78);font-size:12px}
+  .hero-mini.transfer{background:url('assets/project-homes/type-a-living.jpg') center/cover}
+  .hero-mini.site{background:url('assets/project-homes/type-b-exterior.jpg') center/cover}
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .kpi span{font-size:12px;color:var(--muted);font-weight:800}
+  .kpi b{display:block;font-size:25px;margin-top:3px;color:var(--charcoal)}
+  .bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px}
+  .card.wide{grid-column:span 7}
+  .card.mid{grid-column:span 5}
+  .card.full{grid-column:1/-1}
+  .kicker{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-d);font-weight:900}
+  .card h3{margin:0;font-size:20px;color:var(--charcoal)}
+  .module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .module{border:1px solid var(--line);background:#fcfffc;border-radius:14px;padding:13px;display:flex;gap:10px;align-items:flex-start;transition:.18s}
+  .module:hover{border-color:var(--green);background:#f4fff6;transform:translateY(-1px)}
+  .module .ico{font-size:22px;line-height:1}
+  .module b{display:block;font-size:13px;color:var(--charcoal)}
+  .module span{display:block;font-size:11px;color:var(--muted);line-height:1.45;margin-top:2px}
+  .badge{display:inline-flex;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:900;white-space:nowrap}
+  .green{background:var(--green-bg);color:var(--green)}
+  .blue{background:var(--blue-bg);color:var(--blue)}
+  .amber{background:var(--amber-bg);color:var(--amber)}
+  .timeline{display:grid;gap:9px}
+  .step{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+  .num{width:30px;height:30px;border-radius:9px;background:#f2eadc;color:var(--gold-d);font-weight:900;display:grid;place-items:center;font-size:12px}
+  .step b{display:block;font-size:13px}
+  .step span{font-size:11px;color:var(--muted)}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .box{border:1px solid var(--line);background:#fffdf8;border-radius:14px;padding:13px}
+  .box b{display:block}
+  .box span{font-size:12px;color:var(--muted)}
+  @media(max-width:1050px){.shell{grid-template-columns:1fr}.side{position:static;height:auto}.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.hero,.bento,.kpis,.module-grid,.split{grid-template-columns:1fr}.hero-metrics{grid-template-columns:1fr}.card,.card.wide,.card.mid,.card.full{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <img src="assets/brand/logo-icon.png" alt="One Vela" onerror="this.style.display='none'">
+      <div>
+        <div class="eyebrow">TWO BUILD</div>
+        <h1 class="serif">Operation</h1>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="active" href="#overview">ภาพรวม</a>
+      <a href="#sales">ขาย/ลูกค้า</a>
+      <a href="#site">ก่อสร้าง/โอน</a>
+      <a href="#cost">ต้นทุน/ชำระเงิน</a>
+      <a href="#erp">จัดซื้อ/คลัง</a>
+      <a href="finance-accounting.html">ไป Finance</a>
+    </nav>
+    <div class="side-note"><b>Operation Hub</b><br>กดเข้ากลุ่มงานก่อน แล้วค่อยเลือกโมดูลย่อยของทีมนั้น</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar" id="overview">
+      <div>
+        <h2 class="serif">Operation Center</h2>
+        <p>งานขาย ก่อสร้าง โอน ต้นทุน ค่าส่วนกลาง และ blueprint จัดซื้อ/คลัง สำหรับ One Vela 483 แปลง</p>
+      </div>
+      <div><a class="btn" href="home.html">กลับหน้าหลัก</a></div>
+    </div>
+
+    <section class="hero" aria-label="operation project hero">
+      <article class="hero-main">
+        <div class="hero-copy">
+          <span class="hero-kicker">Field Operations</span>
+          <h3 class="serif">รวมงานไซต์ งานโอน และต้นทุนไว้ในแอปเดียวของทีมปฏิบัติการ</h3>
+          <p>ทีมโฟร์แมน แอดมินก่อสร้าง ฝ่ายโอน และแอดมินต้นทุนสามารถเปิดใช้งานเฉพาะส่วนของตัวเองได้จาก Operation app โดยยังใช้ Drive, Sheet และ auth เดิมร่วมกันทั้งระบบ</p>
+        </div>
+        <div class="hero-metrics">
+          <div><span>Plots</span><b>483 หลัง</b></div>
+          <div><span>Site Teams</span><b>2 Foreman Teams</b></div>
+          <div><span>Flow</span><b>Build → Transfer → Cost</b></div>
+        </div>
+      </article>
+      <div class="hero-stack">
+        <article class="hero-mini transfer">
+          <div class="copy">
+            <span>Transfer Desk</span>
+            <b>Checklist และเอกสารวันโอน</b>
+            <p>เปิดงานโอนเป็นชุดเดียวกัน ตั้งแต่ checklist ถึงใบแยกเช็ค</p>
+          </div>
+        </article>
+        <article class="hero-mini site">
+          <div class="copy">
+            <span>Construction Control</span>
+            <b>ติดตามไซต์ด้วยหน้าบ้านจริงของโครงการ</b>
+            <p>เชื่อม admin construction, foreman update และ plot detail ให้ไหลต่อกัน</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi"><span>Project base</span><b>483 แปลง</b><span>One Vela Sales DB</span></div>
+      <div class="kpi"><span>Live modules</span><b>17 ตัว</b><span>Sales · Site · Transfer · Cost</span></div>
+      <div class="kpi"><span>Foreman model</span><b>2 ทีม</b><span>โก้ A · ใหญ่ B/C/D</span></div>
+      <div class="kpi"><span>ERP plan</span><b>6 ขั้น</b><span>PR → FIFO → Issue</span></div>
+    </section>
+
+    <section class="bento">
+      <div class="card wide" id="sales">
+        <div class="kicker">Sales / Customer</div>
+        <h3>งานขายและลูกค้า</h3>
+        <p>เริ่มจาก lead, walk-in, คัดกรองสินเชื่อ, ออกใบเสนอราคา/ใบจอง/สัญญา และดู dashboard 483 แปลง</p>
+        <div class="module-grid" data-group="sales"></div>
+      </div>
+      <div class="card mid">
+        <div class="kicker">Credit Rule</div>
+        <h3>สูตรคัดกรองสินเชื่อ</h3>
+        <div class="split">
+          <div class="box"><b>รายได้ที่นับ</b><span>เงินเดือน 100% · OT/ค่ากะ/อื่นๆ 80% · ค่าอาหาร 0%</span></div>
+          <div class="box"><b>ตัวหาร</b><span>ฐานเงินเดือน ≤30,000 หาร 2 · เกิน 30,000 หาร 3</span></div>
+        </div>
+      </div>
+
+      <div class="card wide" id="site">
+        <div class="kicker">Site / Transfer</div>
+        <h3>ก่อสร้าง งานโอน และเอกสารรายแปลง</h3>
+        <p>Admin เปิด/ปิดแปลงก่อสร้าง โฟร์แมนอัปเดตรูป/GPS และฝ่ายโอนจัดเอกสารวันโอนใน Drive รายแปลง</p>
+        <div class="module-grid" data-group="site"></div>
+      </div>
+      <div class="card mid">
+        <div class="kicker">Foreman</div>
+        <h3>ทีมหน้าไซต์</h3>
+        <div class="timeline">
+          <div class="step"><div class="num">A</div><div><b>โฟร์แมนโก้</b><span>ดูแล ULTRA · บ้านเดี่ยว 2 ชั้น</span></div></div>
+          <div class="step"><div class="num">B</div><div><b>โฟร์แมนใหญ่</b><span>ดูแล MINUTES / SECOND / MOMENT</span></div></div>
+          <div class="step"><div class="num">✓</div><div><b>Admin control</b><span>เห็นเฉพาะแปลงที่ building=true</span></div></div>
+        </div>
+      </div>
+
+      <div class="card wide" id="cost">
+        <div class="kicker">Cost / Payment</div>
+        <h3>ต้นทุนบ้าน การรับเงิน และค่าส่วนกลาง</h3>
+        <p>แดชบอร์ดต้นทุนรายหลัง, sync Excel, รับผ่อนดาวน์, แนบสลิป และจัดการค่าส่วนกลาง</p>
+        <div class="module-grid" data-group="cost"></div>
+      </div>
+      <div class="card mid">
+        <div class="kicker">Data</div>
+        <h3>ฐานข้อมูลหลัก</h3>
+        <div class="timeline">
+          <div class="step"><div class="num">1</div><div><b>One Vela Sales DB</b><span>metadata · bookings · contracts · installments · payments</span></div></div>
+          <div class="step"><div class="num">2</div><div><b>One Vela Sales Files</b><span>สลิป สัญญา ใบเสร็จ รูปหน้างาน เอกสารโอน</span></div></div>
+          <div class="step"><div class="num">3</div><div><b>Cost Dashboard</b><span>Excel Ecount/ERP → index.html ต้นทุนบ้าน</span></div></div>
+        </div>
+      </div>
+
+      <div class="card full" id="erp">
+        <div class="kicker">Lean ERP Blueprint</div>
+        <h3>จัดซื้อ คลัง FIFO และเบิกลงแปลง</h3>
+        <p>เริ่มจาก Demo 1 สำหรับทดสอบ workflow: PR, PO, รับสินค้า, FIFO, เบิกลงแปลง, อ่านสลิป/ลายมือ และคลังเอกสารแนบ</p>
+        <div><a class="btn" href="erp-demo.html">เปิด ERP Demo 1</a></div>
+        <div class="timeline" id="erpFlow"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="_tools/auth-client.js"></script>
+<script src="assets/onevela-workbench.js"></script>
+<script>
+if(window.Auth && !location.search.includes('demo=1')){
+  Auth.require('view.home');
+}
+const MODULES = [
+  {group:'cost', href:'index.html', icon:'💰', title:'แดชบอร์ดต้นทุนบ้าน', desc:'ต้นทุนวัสดุ/ค่าแรงรายหลัง 483 แปลง'},
+  {group:'cost', href:'admin-upload.html', icon:'📤', title:'อัปโหลด Excel ต้นทุน', desc:'Excel inbox → sync → dashboard'},
+  {group:'cost', href:'payment.html', icon:'💵', title:'ผ่อนดาวน์ + แนบสลิป', desc:'รับชำระงวดดาวน์และเก็บ Drive'},
+  {group:'cost', href:'fee.html', icon:'🏘️', title:'ค่าส่วนกลาง', desc:'รับเงินและออกใบแจ้งหนี้'},
+  {group:'cost', href:'erp-demo.html', icon:'🧩', title:'ERP Demo 1', desc:'PR → PO → รับสินค้า → FIFO → อ่านสลิป/ลายมือ'},
+  {group:'sales', href:'sales-dashboard.html', icon:'📊', title:'แดชบอร์ดงานขาย', desc:'จอง/สัญญา/ดาวน์/โอน'},
+  {group:'sales', href:'sales-walkin.html', icon:'👥', title:'ลูกค้าวอร์คอิน', desc:'lead source, งบ, แบบบ้าน, agent'},
+  {group:'sales', href:'income-calculator.html', icon:'🧮', title:'คำนวณรายได้ & สินเชื่อ', desc:'สูตรความสามารถผ่อนภายใน'},
+  {group:'sales', href:'sales-quotation.html', icon:'🧾', title:'ใบเสนอราคา', desc:'ดึงราคา/พื้นที่/โฉนดจาก Sheet'},
+  {group:'sales', href:'sales-booking.html', icon:'📝', title:'ใบจอง', desc:'save เข้า Sheet และกันขายซ้ำ'},
+  {group:'sales', href:'sales-contract.html', icon:'📄', title:'สัญญาจะซื้อจะขาย', desc:'อัปเดตสถานะแปลงเป็นสัญญา'},
+  {group:'site', href:'admin-construction.html', icon:'🏗️', title:'แดชบอร์ดก่อสร้าง', desc:'เริ่ม/หยุดก่อสร้าง auto-assign'},
+  {group:'site', href:'foreman-update.html', icon:'👷', title:'อัปเดตงานหน้าไซต์', desc:'รูป GPS milestone รายงาน'},
+  {group:'site', href:'plot-detail.html?plot=1', icon:'🏠', title:'รายละเอียดแปลง', desc:'single source of truth รายแปลง'},
+  {group:'site', href:'transfer.html', icon:'📋', title:'แดชบอร์ดงานโอน', desc:'ติดตาม checklist และเอกสาร'},
+  {group:'site', href:'transfer-checklist.html', icon:'✅', title:'Checklist งานโอน', desc:'4 หมวด auto-save'},
+  {group:'site', href:'transfer-money.html', icon:'💳', title:'ใบชี้แจงเงินวันโอน', desc:'snapshot เข้า Drive'},
+  {group:'site', href:'transfer-cheque.html', icon:'🏦', title:'ใบแยกเช็ค', desc:'จัดชุดเช็คโอนกรรมสิทธิ์'}
+];
+const ERP = [
+  ['PR','โฟร์แมนสร้างใบขอซื้อ','เลือกแปลงเป็น hint, เลือกวัสดุ/หน่วย/จำนวน, สร้าง PDF และแจ้งแอดมิน'],
+  ['RFQ','แอดมินรวม PR เป็นใบขอราคา','เลือก vendor, ส่งทาง LINE/พิมพ์, เก็บ price history'],
+  ['PO','เปรียบเทียบราคาและออก PO','แนะนำ split vendor/cheapest vendor, ส่งให้ MD อนุมัติ'],
+  ['GR','รับสินค้าเข้าคลัง','ถ่ายรูป, ระบุยอดค้างส่ง, สร้าง lot สำหรับ FIFO'],
+  ['FIFO','คลังกลางร้านวันเวลาค้าวัสดุ','stock lot oldest-first, movement, export CSV'],
+  ['Issue','เบิกขายลงแปลง','คำนวณต้นทุน FIFO ต่อแปลงและ export Excel เข้าระบบต้นทุนบ้าน']
+];
+function card(m){
+  return `<a class="module" href="${m.href}"><div class="ico">${m.icon}</div><div><b>${m.title}</b><span>${m.desc}</span><span class="badge green" style="margin-top:7px">Live</span></div></a>`;
+}
+document.querySelectorAll('[data-group]').forEach(el=>{
+  el.innerHTML = MODULES.filter(m=>m.group === el.dataset.group).map(card).join('');
+});
+document.getElementById('erpFlow').innerHTML = ERP.map((s,i)=>`
+  <div class="step"><div class="num">${i+1}</div><div><b>${s[0]} · ${s[1]}</b><span>${s[2]}</span></div></div>
+`).join('');
+</script>
+</body>
+</html>

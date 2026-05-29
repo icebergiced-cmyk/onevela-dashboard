@@ -89,6 +89,7 @@ function doGet(e){
     if (action === 'deleteFinanceRecord') return json(deleteFinanceRecord(p.token, p.recordId));
     if (action === 'listFinanceDocuments')return json(listFinanceDocuments(p.token, p.category, p.recordId, p.documentId));
     if (action === 'getFinanceAnalysisResult') return json(getFinanceAnalysisResult(p.token, p.requestId));
+    if (action === 'getFinanceOcrStatus')      return json(getFinanceOcrStatus(p.token));
     // ===== save actions ผ่าน GET (รับ data เป็น JSON string ใน param `data`) =====
     if (action === 'saveQuotation') return json(saveQuotation(parseData(p.data)));
     if (action === 'saveBooking')   return json(saveBooking(parseData(p.data)));
@@ -1907,14 +1908,14 @@ function renderInvoiceHTML_(d){
 }
 
 // ============================================================
-// ===== Round 9 — Finance Workspace / AI Document Desk
+// ===== Round 9 — Finance Workspace / OCR Document Desk
 // ============================================================
 const FINANCE_SUBFOLDERS = {
   cashbook: 'Cash Book Slips',
   payables: 'เจ้าหนี้และใบวางบิล',
   contractor: 'ผู้รับเหมา',
   payroll: 'สลิปเงินเดือน',
-  ai: 'AI Workspace'
+  ai: 'OCR Workspace'
 };
 
 const FINANCE_RECORD_KEYS = [
@@ -1933,7 +1934,7 @@ function ensureFinanceRecordsTab_(){
   return ensureTab_('finance_records', FINANCE_RECORD_KEYS, [
     'รหัสรายการ','route','ประเภทย่อย','วันที่','เวลา','โครงการ','หมวด','ยอดเงิน','สถานะ',
     'คู่ค้า','ผู้โอน','ผู้รับ','ธนาคาร','เลขอ้างอิง','memo','หมายเหตุ','ลิงก์ไฟล์',
-    'ลิงก์โฟลเดอร์','ชื่อไฟล์','ข้อความ OCR','สรุป AI','กำหนดชำระ','วิธีชำระ','ทีมช่าง',
+    'ลิงก์โฟลเดอร์','ชื่อไฟล์','ข้อความ OCR','สรุป OCR','กำหนดชำระ','วิธีชำระ','ทีมช่าง',
     'พนักงาน','extras JSON','สร้างเมื่อ','อัปเดตเมื่อ','สร้างโดย'
   ]);
 }
@@ -2117,6 +2118,18 @@ function getFinanceAnalysisResult(token, requestId){
   return {ok:true, ready:true, result:cached};
 }
 
+function getFinanceOcrStatus(token){
+  const a = requireAuth_(token, 'view.payments');
+  if(!a.ok) return a;
+  const apiKey = getSecret_('GOOGLE_VISION_API_KEY');
+  return {
+    ok: true,
+    ready: !!apiKey,
+    provider: 'google-vision',
+    message: apiKey ? 'OCR server พร้อมใช้งาน' : 'ยังไม่ได้ตั้ง Script Property: GOOGLE_VISION_API_KEY'
+  };
+}
+
 function analyzeFinanceDocument(token, data){
   const a = requireAuth_(token, 'view.payments');
   if(!a.ok) return a;
@@ -2128,7 +2141,7 @@ function analyzeFinanceDocument(token, data){
   }
   setFinanceAnalysisCache_(requestId, {ok:true, pending:true});
   try {
-    const result = analyzeFinanceDocumentWithOpenAI_(data);
+    const result = analyzeFinanceDocumentWithVision_(data);
     setFinanceAnalysisCache_(requestId, result);
     return {ok:true, queued:true, requestId:requestId};
   } catch(e){
@@ -2142,170 +2155,116 @@ function getSecret_(key){
   return PropertiesService.getScriptProperties().getProperty(key) || '';
 }
 
-function buildFinanceAnalysisPrompt_(kind, fileName, fallbackText){
-  const base = [
-    'You extract accounting data from Thai bank slips and vendor documents.',
-    'Return only data that is visible or strongly supported by the file.',
-    'If uncertain, return empty strings or 0 and add a warning.',
-    'Do not hallucinate bank names, people names, dates, reference numbers, or amounts.',
-    'When text is Thai, preserve Thai wording in note/purpose when possible.'
-  ];
-  if(fallbackText){
-    base.push('Supplemental OCR text is provided below. Use it only if it matches the visual document.');
-    base.push('Supplemental OCR text: ' + String(fallbackText).slice(0, 4000));
-  }
-  if(kind === 'slip'){
-    base.push('Target document: Thai transfer/payment slip.');
-    base.push('Extract transaction date, time, bank, payer, payee, amount, reference, and transfer purpose/note.');
-    base.push('Infer vendor_name from payee when reasonable. Infer category_hint briefly, such as ค่าผู้รับเหมา, ค่าวัสดุก่อสร้าง, ค่าธรรมเนียมโอน, ภาษีและอากร, ค่าแรง/เงินเดือน, อื่นๆ.');
-  } else {
-    base.push('Target document: AP/vendor document such as PR, PO, delivery note, billing note, or receipt.');
-    base.push('Extract vendor, PO number, bill/invoice number, receipt or delivery note number, amount, due date if visible, payment method if visible, and a concise summary of goods/services.');
-    base.push('Set comparison_status based on evidence only, such as รอกรอกเลขเอกสาร, รอตรวจราคา/จำนวน, ตรวจแล้ว.');
-  }
-  base.push('Filename: ' + fileName);
-  return base.join('\n');
-}
-
-function financeSlipSchema_(){
-  return {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      raw_text: {type:'string'},
-      parsed: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          date: {type:'string'},
-          time: {type:'string'},
-          amount: {type:'number'},
-          bank: {type:'string'},
-          payerName: {type:'string'},
-          payeeName: {type:'string'},
-          memo: {type:'string'},
-          vendor: {type:'string'},
-          ref: {type:'string'},
-          category: {type:'string'},
-          summary: {type:'string'},
-          confidence: {type:'number'},
-          warnings: {type:'array', items:{type:'string'}}
-        },
-        required: ['date','time','amount','bank','payerName','payeeName','memo','vendor','ref','category','summary','confidence','warnings']
-      }
-    },
-    required: ['raw_text','parsed']
-  };
-}
-
-function financePayableSchema_(){
-  return {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      raw_text: {type:'string'},
-      parsed: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          amount: {type:'number'},
-          vendor: {type:'string'},
-          poNo: {type:'string'},
-          billNo: {type:'string'},
-          receiptNo: {type:'string'},
-          dueDate: {type:'string'},
-          paymentMethod: {type:'string'},
-          memo: {type:'string'},
-          note: {type:'string'},
-          comparisonStatus: {type:'string'},
-          summary: {type:'string'},
-          warnings: {type:'array', items:{type:'string'}}
-        },
-        required: ['amount','vendor','poNo','billNo','receiptNo','dueDate','paymentMethod','memo','note','comparisonStatus','summary','warnings']
-      }
-    },
-    required: ['raw_text','parsed']
-  };
-}
-
-function extractOpenAIOutputText_(data){
-  if(data && data.output_text) return data.output_text;
-  const out = data && data.output ? data.output : [];
-  for(var i=0; i<out.length; i++){
-    const item = out[i];
-    if(item && item.type === 'message' && item.content && item.content.length){
-      for(var j=0; j<item.content.length; j++){
-        const c = item.content[j];
-        if(c && (c.type === 'output_text' || c.type === 'text') && c.text) return c.text;
-      }
-    }
-  }
-  return '';
-}
-
-function analyzeFinanceDocumentWithOpenAI_(data){
-  const apiKey = getSecret_('OPENAI_API_KEY');
-  if(!apiKey) throw new Error('ยังไม่ได้ตั้ง Script Property: OPENAI_API_KEY');
-  const model = getSecret_('FINANCE_AI_MODEL') || 'gpt-4.1-mini';
+function analyzeFinanceDocumentWithVision_(data){
+  const apiKey = getSecret_('GOOGLE_VISION_API_KEY');
+  if(!apiKey) throw new Error('ยังไม่ได้ตั้ง Script Property: GOOGLE_VISION_API_KEY');
   const kind = String(data.kind || 'slip');
   const mimeType = String(data.mimeType || 'application/octet-stream');
   const fileName = String(data.fileName || 'document');
   const base64 = String(data.base64 || '');
-  const prompt = buildFinanceAnalysisPrompt_(kind, fileName, data.fallbackText || '');
-  const content = [];
-  if(/^application\/pdf$/i.test(mimeType) || /\.pdf$/i.test(fileName)){
-    content.push({
-      type: 'input_file',
-      filename: fileName,
-      file_data: 'data:' + mimeType + ';base64,' + base64
-    });
-  } else {
-    content.push({
-      type: 'input_image',
-      image_url: 'data:' + mimeType + ';base64,' + base64,
-      detail: 'high'
-    });
-  }
-  content.push({type:'input_text', text:prompt});
-  const payload = {
-    model: model,
-    input: [{role:'user', content:content}],
-    text: {
-      format: {
-        type: 'json_schema',
-        name: kind === 'slip' ? 'finance_slip_extraction' : 'finance_payable_extraction',
-        strict: true,
-        schema: kind === 'slip' ? financeSlipSchema_() : financePayableSchema_()
-      }
-    },
-    max_output_tokens: 1200
+  if(!base64) throw new Error('ไม่พบไฟล์ base64 สำหรับ OCR');
+  const result = /^application\/pdf$/i.test(mimeType) || /\.pdf$/i.test(fileName)
+    ? runVisionPdfOcr_(apiKey, base64, mimeType)
+    : runVisionImageOcr_(apiKey, base64);
+  return {
+    ok: true,
+    provider: 'google-vision',
+    kind: kind,
+    raw_text: result.text || '',
+    score: result.score || 0,
+    message: result.message || ''
   };
-  const res = UrlFetchApp.fetch('https://api.openai.com/v1/responses', {
+}
+
+function runVisionImageOcr_(apiKey, base64){
+  const payload = {
+    requests: [{
+      image: {content: base64},
+      features: [{type:'DOCUMENT_TEXT_DETECTION'}],
+      imageContext: {
+        languageHints: ['th', 'en'],
+        textDetectionParams: {enableTextDetectionConfidenceScore: true}
+      }
+    }]
+  };
+  const json = callVisionApi_('images:annotate', payload, apiKey);
+  const response = (((json || {}).responses) || [])[0] || {};
+  if(response.error && response.error.message) throw new Error(response.error.message);
+  return {
+    text: extractVisionResponseText_(response),
+    score: collectVisionConfidence_(response),
+    message: 'OCR server อ่านจากรูปภาพ'
+  };
+}
+
+function runVisionPdfOcr_(apiKey, base64, mimeType){
+  const payload = {
+    requests: [{
+      inputConfig: {
+        mimeType: mimeType || 'application/pdf',
+        content: base64
+      },
+      features: [{type:'DOCUMENT_TEXT_DETECTION'}],
+      pages: [1, 2, 3, 4, 5]
+    }]
+  };
+  const json = callVisionApi_('files:annotate', payload, apiKey);
+  const fileResponse = (((json || {}).responses) || [])[0] || {};
+  const responses = fileResponse.responses || [];
+  const texts = [];
+  const scores = [];
+  for(var i = 0; i < responses.length; i += 1){
+    if(responses[i] && responses[i].error && responses[i].error.message){
+      throw new Error(responses[i].error.message);
+    }
+    const text = extractVisionResponseText_(responses[i]);
+    if(text) texts.push(text);
+    const score = collectVisionConfidence_(responses[i]);
+    if(score) scores.push(score);
+  }
+  return {
+    text: texts.join('\n\n').trim(),
+    score: scores.length ? Math.round(scores.reduce(function(sum, value){ return sum + value; }, 0) / scores.length) : 0,
+    message: 'OCR server อ่านจาก PDF'
+  };
+}
+
+function callVisionApi_(path, payload, apiKey){
+  const res = UrlFetchApp.fetch('https://vision.googleapis.com/v1/' + path + '?key=' + encodeURIComponent(apiKey), {
     method: 'post',
     contentType: 'application/json',
     muteHttpExceptions: true,
-    headers: {Authorization:'Bearer ' + apiKey},
     payload: JSON.stringify(payload)
   });
   const code = res.getResponseCode();
   const body = res.getContentText();
   let json = {};
-  try { json = JSON.parse(body); } catch(e){ throw new Error('AI response parse failed: ' + body); }
+  try { json = JSON.parse(body || '{}'); } catch(e){ throw new Error('Vision response parse failed: ' + body); }
   if(code >= 300){
-    throw new Error('OpenAI ' + code + ': ' + ((json.error && json.error.message) || body));
+    throw new Error('Google Vision ' + code + ': ' + (((json || {}).error || {}).message || body));
   }
-  const outputText = extractOpenAIOutputText_(json);
-  if(!outputText) throw new Error('AI ไม่ส่งผลลัพธ์กลับมา');
-  let parsed;
-  try { parsed = JSON.parse(outputText); } catch(e){ throw new Error('AI output ไม่ใช่ JSON ที่อ่านได้'); }
-  return {
-    ok: true,
-    provider: 'openai',
-    model: model,
-    kind: kind,
-    raw_text: parsed.raw_text || '',
-    parsed: parsed.parsed || parsed
-  };
+  return json;
+}
+
+function extractVisionResponseText_(response){
+  if(response && response.fullTextAnnotation && response.fullTextAnnotation.text){
+    return String(response.fullTextAnnotation.text).trim();
+  }
+  const annotations = response && response.textAnnotations ? response.textAnnotations : [];
+  if(annotations && annotations.length && annotations[0].description){
+    return String(annotations[0].description).trim();
+  }
+  return '';
+}
+
+function collectVisionConfidence_(response){
+  const pages = (((response || {}).fullTextAnnotation || {}).pages) || [];
+  const scores = [];
+  for(var i = 0; i < pages.length; i += 1){
+    if(typeof pages[i].confidence === 'number') scores.push(pages[i].confidence);
+  }
+  if(!scores.length) return 0;
+  return Math.round((scores.reduce(function(sum, value){ return sum + value; }, 0) / scores.length) * 100);
 }
 
 // ============================================================

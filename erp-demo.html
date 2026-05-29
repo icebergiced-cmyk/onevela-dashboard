@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ERP Demo 1 · One Vela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/onevela-workbench.css">
+<style>
+  :root{
+    --bg:#f5fbf4;--panel:#fff;--panel2:#eef9f0;--line:#dcebdd;--text:#183321;--muted:#6b7e70;
+    --soft:#8fa394;--green:#61c77c;--green2:#d9f8df;--deep:#244b31;--gold:#a88347;
+    --blue:#3d7ab8;--red:#d96060;--amber:#c18a2c;--shadow:0 18px 50px rgba(63,112,70,.12);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Sarabun',sans-serif;color:var(--text);background:
+    radial-gradient(circle at 8% 0%,rgba(217,248,223,.9),transparent 30%),
+    linear-gradient(135deg,#fbfdf9,#edf8ee);line-height:1.55}
+  a{color:inherit;text-decoration:none} button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  .app{min-height:100vh;display:grid;grid-template-columns:258px 1fr}
+  .side{position:sticky;top:0;height:100vh;background:#fff;border-right:1px solid var(--line);
+    padding:18px;display:flex;flex-direction:column;gap:16px}
+  .brand{display:flex;align-items:center;gap:12px;padding:8px 4px 16px;border-bottom:1px solid var(--line)}
+  .mark{width:44px;height:44px;border-radius:16px;background:linear-gradient(145deg,#ebffef,#8fe4a1);
+    display:grid;place-items:center;font-weight:900;color:var(--deep)}
+  .brand b{display:block;font-size:16px}.brand span{display:block;font-size:11px;color:var(--muted);font-weight:700}
+  .nav{display:grid;gap:6px}
+  .nav button{border:0;background:transparent;text-align:left;border-radius:12px;padding:10px 12px;
+    color:var(--muted);font-weight:800;display:flex;align-items:center;gap:9px}
+  .nav button:hover,.nav button.on{background:var(--green2);color:#1f7036}
+  .sidebox{margin-top:auto;background:#f6fbf6;border:1px solid var(--line);border-radius:16px;padding:13px;font-size:12px;color:var(--muted)}
+  .sidebox b{display:block;color:var(--text);margin-bottom:4px}
+  .main{padding:22px 26px 60px;min-width:0}
+  .top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+  h1{margin:0;font-size:30px;line-height:1.15} p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--deep);border-radius:11px;padding:9px 12px;font-weight:900;box-shadow:0 2px 0 rgba(0,0,0,.02)}
+  .btn:hover{border-color:var(--green);background:#f2fff5}
+  .btn.primary{background:var(--deep);border-color:var(--deep);color:#fff}.btn.green{background:var(--green);border-color:var(--green);color:#083514}
+  .btn.red{background:#fff0f0;border-color:#f2b9b9;color:#b83c3c}.btn.small{font-size:12px;padding:6px 9px;border-radius:8px}
+  .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+  .kpi span{font-size:11px;color:var(--muted);font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+  .kpi b{display:block;font-size:22px;margin-top:2px;color:var(--deep)}
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:start}.grid.three{grid-template-columns:repeat(3,1fr)}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+  .panel-head{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center}
+  .panel-head h2{margin:0;font-size:17px}.panel-body{padding:16px 17px}
+  .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}
+  label{font-size:11.5px;color:var(--muted);font-weight:900}
+  input,select,textarea{border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px 11px;color:var(--text)}
+  textarea{min-height:76px;resize:vertical}
+  .drop{border:1.6px dashed #b9d6bd;background:#f7fff8;border-radius:15px;padding:16px;text-align:center;color:var(--muted)}
+  .drop input{display:none}.drop b{color:var(--deep)}
+  .filechip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;margin:4px 4px 0 0;color:var(--deep)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px} th,td{padding:9px 8px;border-bottom:1px solid #edf3ed;text-align:left;vertical-align:top}
+  th{font-size:10.5px;color:var(--muted);font-weight:900;text-transform:uppercase;background:#fbfefb}
+  td.num,th.num{text-align:right;white-space:nowrap}.table{overflow:auto;max-height:430px}
+  .badge{display:inline-flex;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:900;white-space:nowrap}
+  .ok{background:#e5faea;color:#1e7a39}.wait{background:#fff5db;color:#9a650d}.blue{background:#e8f2ff;color:#2c68a0}.red{background:#ffeaea;color:#b83c3c}
+  .view{display:none}.view.on{display:block}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mini{border:1px solid var(--line);background:#fbfefb;border-radius:16px;padding:12px}
+  .mini b{display:block}.mini span{font-size:12px;color:var(--muted)}
+  .ocr-card{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:start}
+  .preview{width:130px;height:130px;border-radius:16px;border:1px solid var(--line);background:#f3f8f3;object-fit:cover}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--deep);color:#fff;padding:12px 18px;border-radius:999px;font-weight:800;box-shadow:var(--shadow);display:none;z-index:50}
+  .toast.on{display:block}.empty{padding:28px;text-align:center;color:var(--muted)}
+  @media(max-width:1100px){.app{grid-template-columns:1fr}.side{position:static;height:auto}.nav{grid-template-columns:repeat(3,1fr)}.kpis,.grid,.grid.three,.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="mark">ERP</div><div><b>ERP Demo 1</b><span>One Vela Operation</span></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebox"><b>Demo mode</b>ข้อมูลเก็บใน browser localStorage และไฟล์แนบถูกเก็บเป็น preview/data URL สำหรับทดสอบ workflow ก่อนเชื่อม Drive/AI จริง</div>
+  </aside>
+  <main class="main">
+    <div class="top">
+      <div><h1>ระบบ ERP Demo 1</h1><p>PR → RFQ → PO → รับสินค้า → คลัง FIFO → เบิกลงแปลง พร้อมตัวอ่านสลิป/ลายมือและคลังเอกสารแนบ</p></div>
+      <div class="actions"><a class="btn" href="operation.html">กลับ Operation</a><button class="btn" onclick="seedDemo()">เติมข้อมูลเดโม่</button><button class="btn red" onclick="resetDemo()">ล้างเดโม่</button></div>
+    </div>
+    <section class="kpis" id="kpis"></section>
+
+    <section class="view on" id="dashboard">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>งานที่ต้องทำวันนี้</h2><button class="btn small" onclick="go('pr')">สร้าง PR</button></div><div class="panel-body table" id="queue"></div></div>
+        <div class="panel"><div class="panel-head"><h2>สถานะระบบ</h2></div><div class="panel-body"><div class="split" id="health"></div></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="pr">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>สร้างใบขอซื้อ PR</h2></div><div class="panel-body">
+          <div class="form">
+            <div class="field"><label>แปลง</label><input id="prPlot" placeholder="เช่น 128"></div>
+            <div class="field"><label>ผู้ขอ</label><input id="prBy" placeholder="โฟร์แมน/แอดมิน"></div>
+            <div class="field"><label>วัสดุ</label><input id="prItem" placeholder="ปูนซีเมนต์ / เหล็ก / กระเบื้อง"></div>
+            <div class="field"><label>จำนวน</label><input id="prQty" type="number" placeholder="0"></div>
+            <div class="field"><label>หน่วย</label><input id="prUnit" placeholder="ถุง / เส้น / กล่อง"></div>
+            <div class="field"><label>ต้องใช้วันที่</label><input id="prDate" type="date"></div>
+            <div class="field full"><label>แนบใบจด/รูปหน้างาน</label><label class="drop"><b>เลือกไฟล์</b><br><span id="prFileText">ยังไม่มีไฟล์</span><input id="prFile" type="file" accept="image/*,.pdf" onchange="stageFile(event,'pr')"></label></div>
+            <div class="field full"><label>หมายเหตุ</label><textarea id="prNote"></textarea></div>
+          </div>
+          <div class="actions" style="margin-top:12px"><button class="btn green" onclick="createPR()">บันทึก PR</button></div>
+        </div></div>
+        <div class="panel"><div class="panel-head"><h2>PR ล่าสุด</h2></div><div class="panel-body table" id="prTable"></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="procure">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>จัดซื้อ RFQ / PO</h2></div><div class="panel-body table" id="procureTable"></div></div>
+        <div class="panel"><div class="panel-head"><h2>Vendor Compare</h2></div><div class="panel-body" id="vendorBox"></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="receive">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>รับสินค้าเข้าคลัง</h2></div><div class="panel-body">
+          <div class="form">
+            <div class="field"><label>PO</label><select id="grPo"></select></div>
+            <div class="field"><label>Vendor</label><input id="grVendor" placeholder="ร้านวัสดุ"></div>
+            <div class="field"><label>จำนวนรับ</label><input id="grQty" type="number"></div>
+            <div class="field"><label>ต้นทุน/หน่วย</label><input id="grCost" type="number"></div>
+            <div class="field full"><label>แนบใบส่งของ/บิล</label><label class="drop"><b>เลือกไฟล์</b><br><span id="grFileText">ยังไม่มีไฟล์</span><input id="grFile" type="file" accept="image/*,.pdf" onchange="stageFile(event,'gr')"></label></div>
+          </div>
+          <div class="actions" style="margin-top:12px"><button class="btn green" onclick="receiveGoods()">รับสินค้า</button></div>
+        </div></div>
+        <div class="panel"><div class="panel-head"><h2>Goods Receipt</h2></div><div class="panel-body table" id="grTable"></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="stock">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>คลัง FIFO</h2></div><div class="panel-body table" id="stockTable"></div></div>
+        <div class="panel"><div class="panel-head"><h2>เบิกลงแปลง</h2></div><div class="panel-body">
+          <div class="form">
+            <div class="field"><label>วัสดุ</label><select id="issueItem"></select></div>
+            <div class="field"><label>แปลง</label><input id="issuePlot" placeholder="เช่น 128"></div>
+            <div class="field"><label>จำนวน</label><input id="issueQty" type="number"></div>
+            <div class="field"><label>ผู้เบิก</label><input id="issueBy" placeholder="ชื่อผู้เบิก"></div>
+          </div>
+          <div class="actions" style="margin-top:12px"><button class="btn green" onclick="issueStock()">ตัด FIFO และเบิก</button></div>
+          <div class="table" id="issueTable" style="margin-top:12px"></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="view" id="ocr">
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>อ่านสลิป / ใบเสร็จ</h2></div><div class="panel-body">
+          <label class="drop"><b>อัปโหลดสลิป</b><br><span id="slipText">ใช้ชื่อไฟล์ที่มียอด เช่น slip_12500_homepro.jpg เพื่อทดสอบได้</span><input id="slipFile" type="file" accept="image/*" onchange="readSlip(event)"></label>
+          <div id="slipResult" style="margin-top:12px"></div>
+        </div></div>
+        <div class="panel"><div class="panel-head"><h2>อ่านลายมือจากใบจดหน้างาน</h2></div><div class="panel-body">
+          <label class="drop"><b>อัปโหลดใบจด</b><br><span id="handText">ระบบเดโม่จะแปลงเป็น PR draft ให้ตรวจแก้</span><input id="handFile" type="file" accept="image/*" onchange="readHandwriting(event)"></label>
+          <div id="handResult" style="margin-top:12px"></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="view" id="vault">
+      <div class="panel"><div class="panel-head"><h2>Document Vault</h2><div class="actions"><input id="vaultSearch" placeholder="ค้นหาแปลง/ไฟล์/ประเภท" oninput="render()"></div></div><div class="panel-body table" id="vaultTable"></div></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="assets/onevela-workbench.js"></script>
+<script>
+const KEY='oneVelaErpDemo1';
+const NAV=[
+  ['dashboard','ภาพรวม'],['pr','ใบขอซื้อ PR'],['procure','RFQ / PO'],['receive','รับสินค้า'],['stock','คลัง FIFO'],['ocr','อ่านสลิป/ลายมือ'],['vault','Document Vault']
+];
+let staged={}, state=load();
+function blank(){return {prs:[],pos:[],grs:[],lots:[],issues:[],docs:[],ocr:[]};}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||blank()}catch(e){return blank()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function id(p){return p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)}
+function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function today(){return new Date().toISOString().slice(0,10)}
+function toast(s){const t=document.getElementById('toast');t.textContent=s;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500)}
+function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
+document.getElementById('nav').innerHTML=NAV.map((n,i)=>`<button class="${i?'':'on'}" data-v="${n[0]}" onclick="go('${n[0]}')">${n[1]}</button>`).join('');
+
+function fileToDoc(file,type,entity,purpose,cb){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const doc={id:id('DOC'),type,entity,purpose,name:file.name,size:file.size,mime:file.type,url:e.target.result,createdAt:new Date().toISOString()};
+    state.docs.unshift(doc); cb(doc);
+  };
+  reader.readAsDataURL(file);
+}
+function stageFile(e,key){
+  const f=e.target.files&&e.target.files[0]; if(!f)return;
+  staged[key]=f; const el=document.getElementById(key+'FileText'); if(el)el.textContent=f.name;
+}
+function attachIfStaged(key,type,entity,purpose,done){
+  if(!staged[key]){done(null);return}
+  fileToDoc(staged[key],type,entity,purpose,doc=>{staged[key]=null;done(doc)});
+}
+function createPR(){
+  const pr={id:id('PR'),plot:prPlot.value.trim(),by:prBy.value.trim()||'ทีมหน้าไซต์',item:prItem.value.trim(),qty:Number(prQty.value)||0,unit:prUnit.value.trim()||'หน่วย',needDate:prDate.value||today(),note:prNote.value.trim(),status:'PR',createdAt:today(),docs:[]};
+  if(!pr.plot||!pr.item||!pr.qty){alert('กรอกแปลง วัสดุ และจำนวนก่อน');return}
+  attachIfStaged('pr','PR',pr.id,'ใบจด/รูปหน้างาน',doc=>{if(doc)pr.docs.push(doc.id);state.prs.unshift(pr);save();render();toast('บันทึก PR แล้ว')});
+}
+function makePO(prid){
+  const pr=state.prs.find(x=>x.id===prid); if(!pr)return;
+  pr.status='PO'; const price=Math.round((650+Math.random()*420)*100)/100;
+  state.pos.unshift({id:id('PO'),prId:pr.id,plot:pr.plot,item:pr.item,qty:pr.qty,unit:pr.unit,vendor:bestVendor(pr.item),unitCost:price,status:'ออก PO',createdAt:today()});
+  save();render();toast('สร้าง PO แล้ว');
+}
+function bestVendor(item){return /ปูน|ซีเมนต์/.test(item)?'HomePro Mega':'วันเวลาค้าวัสดุ'}
+function receiveGoods(){
+  const po=state.pos.find(x=>x.id===grPo.value); if(!po){alert('เลือก PO ก่อน');return}
+  const gr={id:id('GR'),poId:po.id,item:po.item,vendor:grVendor.value.trim()||po.vendor,qty:Number(grQty.value)||po.qty,remain:Number(grQty.value)||po.qty,unit:po.unit,unitCost:Number(grCost.value)||po.unitCost,createdAt:today(),docs:[]};
+  attachIfStaged('gr','GR',gr.id,'ใบส่งของ/บิล',doc=>{if(doc)gr.docs.push(doc.id);state.grs.unshift(gr);state.lots.unshift({...gr,lotId:id('LOT')});po.status='รับแล้ว';save();render();toast('รับสินค้าเข้าคลังแล้ว')});
+}
+function issueStock(){
+  const item=issueItem.value, qtyNeed=Number(issueQty.value)||0, plot=issuePlot.value.trim(), by=issueBy.value.trim()||'คลัง';
+  if(!item||!qtyNeed||!plot){alert('เลือกวัสดุ กรอกแปลง และจำนวน');return}
+  let left=qtyNeed,cost=0,used=[];
+  state.lots.filter(l=>l.item===item&&l.remain>0).sort((a,b)=>a.createdAt.localeCompare(b.createdAt)).forEach(l=>{
+    if(left<=0)return; const take=Math.min(left,Number(l.remain)||0); l.remain-=take; left-=take; cost+=take*(Number(l.unitCost)||0); used.push(l.lotId+': '+take);
+  });
+  if(left>0){alert('สต็อกไม่พอ ขาด '+left);return}
+  state.issues.unshift({id:id('ISS'),item,plot,qty:qtyNeed,by,cost,usedLots:used.join(', '),createdAt:today()});
+  save();render();toast('ตัด FIFO และเบิกลงแปลงแล้ว');
+}
+function readSlip(e){
+  const f=e.target.files&&e.target.files[0]; if(!f)return;
+  fileToDoc(f,'OCR','SLIP','สลิป/ใบเสร็จ',doc=>{
+    const amt=(f.name.match(/(\d{4,7})/)||[])[1]||Math.round(3000+Math.random()*42000);
+    const vendor=/homepro/i.test(f.name)?'HomePro Mega':(/thai|วัสดุ/i.test(f.name)?'ไทยวัสดุ':'วันเวลาค้าวัสดุ');
+    const rec={id:id('OCR'),kind:'slip',docId:doc.id,vendor,amount:Number(amt),date:today(),confidence:92,ref:'AUTO-'+Math.floor(Math.random()*900000),createdAt:today()};
+    state.ocr.unshift(rec); save();render();
+    slipResult.innerHTML=`<div class="ocr-card"><img class="preview" src="${doc.url}"><div class="mini"><b>ผลอ่านสลิป</b><span>Vendor: ${esc(vendor)}</span><br><span>Amount: ${fmt(amt)} บาท</span><br><span>Ref: ${rec.ref}</span><div class="actions" style="margin-top:10px"><button class="btn green small" onclick="toast('เดโม่: พร้อมส่งเข้า Finance/เจ้าหนี้')">ยืนยันผลอ่าน</button></div></div></div>`;
+  });
+}
+function readHandwriting(e){
+  const f=e.target.files&&e.target.files[0]; if(!f)return;
+  fileToDoc(f,'OCR','HAND','ใบจดลายมือ',doc=>{
+    const samples=[['128','ปูนซีเมนต์',20,'ถุง'],['76','เหล็ก DB12',45,'เส้น'],['214','กระเบื้องหลังคา',12,'กล่อง']];
+    const s=samples[Math.floor(Math.random()*samples.length)];
+    const rec={id:id('OCR'),kind:'handwriting',docId:doc.id,plot:s[0],item:s[1],qty:s[2],unit:s[3],confidence:84,createdAt:today()};
+    state.ocr.unshift(rec); save();render();
+    handResult.innerHTML=`<div class="ocr-card"><img class="preview" src="${doc.url}"><div class="mini"><b>ผลอ่านลายมือ</b><span>แปลง ${s[0]} · ${s[1]} · ${s[2]} ${s[3]}</span><div class="actions" style="margin-top:10px"><button class="btn green small" onclick="createPRFromOCR('${rec.id}')">สร้าง PR จากผลอ่าน</button></div></div></div>`;
+  });
+}
+function createPRFromOCR(oid){
+  const o=state.ocr.find(x=>x.id===oid); if(!o)return;
+  state.prs.unshift({id:id('PR'),plot:o.plot,by:'OCR ลายมือ',item:o.item,qty:o.qty,unit:o.unit,needDate:today(),note:'สร้างจาก OCR '+o.docId,status:'PR',createdAt:today(),docs:[o.docId]});
+  save();render();toast('สร้าง PR จากลายมือแล้ว');
+}
+function seedDemo(){
+  state=blank();
+  state.prs=[{id:'PR-demo-1',plot:'128',by:'โฟร์แมนใหญ่',item:'ปูนซีเมนต์',qty:40,unit:'ถุง',needDate:today(),note:'เทคานรอบบ้าน',status:'PR',createdAt:today(),docs:[]}];
+  state.pos=[{id:'PO-demo-1',prId:'PR-demo-1',plot:'128',item:'ปูนซีเมนต์',qty:40,unit:'ถุง',vendor:'HomePro Mega',unitCost:148,status:'ออก PO',createdAt:today()}];
+  state.lots=[{lotId:'LOT-demo-1',id:'GR-demo-1',poId:'PO-demo-1',item:'ปูนซีเมนต์',vendor:'HomePro Mega',qty:40,remain:40,unit:'ถุง',unitCost:148,createdAt:today(),docs:[]}];
+  save();render();toast('เติมข้อมูลเดโม่แล้ว');
+}
+function resetDemo(){if(!confirm('ล้างข้อมูลเดโม่ทั้งหมด?'))return;state=blank();save();render();toast('ล้างเดโม่แล้ว')}
+function renderTable(rows,cols,empty='ยังไม่มีข้อมูล'){
+  if(!rows.length)return `<div class="empty">${empty}</div>`;
+  return `<table><thead><tr>${cols.map(c=>`<th class="${c.cls||''}">${c.h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td class="${c.cls||''}">${c.v(r)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function render(){
+  kpis.innerHTML=[
+    ['PR เปิดอยู่',state.prs.filter(x=>x.status!=='รับแล้ว').length],['PO',state.pos.length],['มูลค่าสต็อก',fmt(state.lots.reduce((a,l)=>a+(l.remain*l.unitCost),0))],['เบิกลงแปลง',state.issues.length],['เอกสารแนบ',state.docs.length]
+  ].map(x=>`<div class="kpi"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');
+  queue.innerHTML=renderTable([...state.prs].slice(0,8),[
+    {h:'เลข',v:r=>r.id},{h:'แปลง',v:r=>r.plot},{h:'วัสดุ',v:r=>r.item},{h:'จำนวน',v:r=>fmt(r.qty)+' '+r.unit},{h:'สถานะ',v:r=>`<span class="badge wait">${r.status}</span>`}
+  ]);
+  health.innerHTML=[
+    ['Workflow','PR/RFQ/PO/GR/FIFO ครบ'],['File Link','ทุกไฟล์เข้า Document Vault'],['OCR','Slip + handwriting demo'],['Next','ต่อ Drive + AI OCR จริง']
+  ].map(x=>`<div class="mini"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
+  prTable.innerHTML=renderTable(state.prs,[{h:'PR',v:r=>r.id},{h:'แปลง',v:r=>r.plot},{h:'วัสดุ',v:r=>r.item},{h:'จำนวน',v:r=>fmt(r.qty)+' '+r.unit},{h:'Action',v:r=>r.status==='PR'?`<button class="btn small" onclick="makePO('${r.id}')">สร้าง PO</button>`:'<span class="badge blue">'+r.status+'</span>'}]);
+  procureTable.innerHTML=renderTable(state.pos,[{h:'PO',v:r=>r.id},{h:'แปลง',v:r=>r.plot},{h:'วัสดุ',v:r=>r.item},{h:'Vendor',v:r=>r.vendor},{h:'ยอด',cls:'num',v:r=>fmt(r.qty*r.unitCost)},{h:'สถานะ',v:r=>`<span class="badge blue">${r.status}</span>`}]);
+  vendorBox.innerHTML=['HomePro Mega','วันเวลาค้าวัสดุ','ไทยวัสดุ'].map((v,i)=>`<div class="mini" style="margin-bottom:8px"><b>${v}</b><span>ราคาเสนอ ${fmt(120+i*18)}-${fmt(210+i*22)} บาท/หน่วย · lead time ${i+1} วัน</span></div>`).join('');
+  grPo.innerHTML=state.pos.map(p=>`<option value="${p.id}">${p.id} · ${p.item} · ${p.vendor}</option>`).join('');
+  grTable.innerHTML=renderTable(state.grs,[{h:'GR',v:r=>r.id},{h:'PO',v:r=>r.poId},{h:'วัสดุ',v:r=>r.item},{h:'รับ',v:r=>fmt(r.qty)+' '+r.unit},{h:'ต้นทุน',cls:'num',v:r=>fmt(r.qty*r.unitCost)}]);
+  const items=[...new Set(state.lots.filter(l=>l.remain>0).map(l=>l.item))]; issueItem.innerHTML=items.map(x=>`<option>${x}</option>`).join('');
+  stockTable.innerHTML=renderTable(state.lots,[{h:'Lot',v:r=>r.lotId},{h:'วัสดุ',v:r=>r.item},{h:'Vendor',v:r=>r.vendor},{h:'คงเหลือ',v:r=>fmt(r.remain)+' '+r.unit},{h:'ต้นทุน/หน่วย',cls:'num',v:r=>fmt(r.unitCost)}]);
+  issueTable.innerHTML=renderTable(state.issues,[{h:'แปลง',v:r=>r.plot},{h:'วัสดุ',v:r=>r.item},{h:'จำนวน',v:r=>fmt(r.qty)},{h:'ต้นทุน',cls:'num',v:r=>fmt(r.cost)},{h:'Lots',v:r=>r.usedLots}]);
+  const q=(vaultSearch&&vaultSearch.value||'').toLowerCase();
+  const docs=state.docs.filter(d=>(d.name+' '+d.type+' '+d.entity+' '+d.purpose).toLowerCase().includes(q));
+  vaultTable.innerHTML=renderTable(docs,[{h:'ไฟล์',v:d=>`<a href="${d.url}" target="_blank"><b>${esc(d.name)}</b></a><br><span style="color:var(--muted)">${esc(d.purpose)}</span>`},{h:'ประเภท',v:d=>d.type},{h:'ผูกกับ',v:d=>d.entity},{h:'วันที่',v:d=>String(d.createdAt).slice(0,10)},{h:'ขนาด',cls:'num',v:d=>fmt(Math.round(d.size/1024))+' KB'}]);
+}
+render();
+</script>
+</body>
+</html>
