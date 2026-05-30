@@ -1,0 +1,62 @@
+name: Deploy Cloudflare Pages
+
+# Deploy 3 public apps ไปยัง Cloudflare Pages โดยใช้ wrangler โดยตรง
+# (แทนการ upload ผ่าน MCP proxy เดิมที่ติด 404 Not Found)
+#
+# ต้องตั้ง secret ใน repo ก่อน (Settings → Secrets and variables → Actions):
+#   - CLOUDFLARE_API_TOKEN   : token ที่มีสิทธิ์ "Cloudflare Pages: Edit"
+#   - CLOUDFLARE_ACCOUNT_ID  : account id ของ Cloudflare
+#
+# Trigger:
+#   - push to main ที่แตะ publish-* (deploy เฉพาะที่เปลี่ยน)
+#   - workflow_dispatch: กดรันเองได้ทันที (deploy ครบทั้ง 3)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'publish-main/**'
+      - 'publish-finance/**'
+      - 'publish-operation/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dir: publish-main
+            project: onevela-main-20260529
+          - dir: publish-finance
+            project: onevela-finance-ai-20260528
+          - dir: publish-operation
+            project: onevela-operation-20260529
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Guard — secrets present
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "::error::ยังไม่ได้ตั้ง CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID ใน repo secrets"
+            exit 1
+          fi
+
+      - name: Deploy ${{ matrix.dir }} → ${{ matrix.project }}
+        run: npx -y wrangler@3 pages deploy "${{ matrix.dir }}" --project-name="${{ matrix.project }}" --branch=main

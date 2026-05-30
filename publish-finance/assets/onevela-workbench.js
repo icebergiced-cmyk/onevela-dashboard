@@ -1,9 +1,9 @@
 window.ONEVELA_APP_URLS = Object.assign({
-  portal: 'https://deluxe-panda-4b66fb.netlify.app',
-  home: 'https://deluxe-panda-4b66fb.netlify.app',
-  finance: 'https://effortless-eclair-c20651.netlify.app',
-  operation: 'https://onevela-cost.netlify.app',
-  erp: 'https://onevela-cost.netlify.app/erp-demo.html'
+  portal: 'https://onevela-main-20260529.pages.dev/home.html',
+  home: 'https://onevela-main-20260529.pages.dev/home.html',
+  finance: 'https://onevela-finance-ai-20260528.pages.dev/finance-accounting',
+  operation: 'https://onevela-operation-20260529.pages.dev/operation.html',
+  erp: 'https://onevela-operation-20260529.pages.dev/erp-demo.html'
 }, window.ONEVELA_APP_URLS || {});
 
 (function(){
