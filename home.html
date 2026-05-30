@@ -42,6 +42,13 @@
   .brand h1{margin:0;font-size:18px;line-height:1.1;font-weight:800;letter-spacing:.2px}
   .brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
   .userbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .rightbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .hublink{
+    display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(102,201,129,.4);
+    background:rgba(216,248,223,.6);color:#1d6b34;border-radius:999px;padding:8px 13px;
+    font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer
+  }
+  .hublink:hover{background:#e9faee;border-color:rgba(102,201,129,.85)}
   .pill{
     border:1px solid rgba(87,132,94,.16);background:rgba(255,255,255,.72);
     color:var(--muted);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700
@@ -171,7 +178,10 @@
         <p>Lightweight gateway for separated web apps</p>
       </div>
     </a>
-    <div class="userbar" id="userbar"></div>
+    <div class="rightbar">
+      <a class="hublink" href="hub.html">🔗 ลิงก์ทั้งหมด</a>
+      <div class="userbar" id="userbar"></div>
+    </div>
   </header>
 
   <main>
